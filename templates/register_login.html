@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+{% match error_msg %}
+    {% when Some with (error_msg) %}
+        <div class="error-msg">
+            Error: {{ error_msg }}
+        </div>
+    {% when None %}
+{% endmatch %}
+
+
+    {% if template == TemplateName::Login %}
+        {% include "login_form.html" %}
+    {% else if template == TemplateName::Register %}
+        {% include "register_form.html" %}
+    {% endif %}
+
+{% endblock %}

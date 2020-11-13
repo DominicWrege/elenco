@@ -1,0 +1,52 @@
+main {
+    display: grid;
+    justify-content: center;
+    margin-top: 2em !Important;
+}
+
+
+input, .error-msg {
+    width: 34vw;
+}
+
+.submit-btn, label{
+    margin-top: 1em !important;
+}
+
+
+.error-msg {
+    padding: 1em;
+    word-wrap: normal;
+    background: #e7615d;
+    color: white;
+    border-radius: 0.25em;
+}
+
+.menu{
+    background: #efefef;
+    padding: 1em;
+}
+
+.mr-1em{
+    margin-right: 1em;
+}
+
+.podcast-title{
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+img {
+    max-height: 20rem;
+}
+
+.width100{
+    width: 40em;
+}
+
+.podcast-conatiner{
+    display: grid;
+    grid-template-columns: 1fr 25em;
+    grid-column-gap: 1.5em;
+    margin-top: 2rem;
+}

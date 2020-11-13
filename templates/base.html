@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/pure-min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Elenco Podcast Dir</title>
+</head>
+
+<body>
+    <div class="menu pure-menu pure-menu-horizontal">
+        <span class="pure-menu-heading">Podcasts</span>
+        <ul class="pure-menu-list">
+
+            {% if status %}
+                <li class="pure-menu-item">
+                    <a href="/profile" class="pure-menu-link">My Profile</a>
+                </li>
+            {% else %}
+                <li class="pure-menu-item">
+                    <a href="/login" class="pure-menu-link">Login</a>
+                </li>
+            <li class="pure-menu-item">
+                <a href="/register" class="pure-menu-link">Register</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    <main>{% block content %} {% endblock %}</main>
+</body>
+
+</html>
