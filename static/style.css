@@ -21,7 +21,9 @@ input, .error-msg {
     color: white;
     border-radius: 0.25em;
 }
-
+body{
+    margin-bottom: 2em;
+}
 .menu{
     background: #efefef;
     padding: 1em;
