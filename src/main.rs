@@ -31,6 +31,7 @@ async fn run() -> Result<(), anyhow::Error> {
                     .max_age_time(time::Duration::days(3))
                     .same_site(SameSite::Strict),
             ))
+            .service(web::resource("/").to(login))
             .service(
                 web::resource("/register")
                     .route(web::post().to(register))

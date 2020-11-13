@@ -48,9 +48,10 @@ where
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         match req.get_identity() {
             Some(_) => Either::Left(self.service.call(req)),
-            None if req.path().contains("/login")
+            None if req.path().starts_with("/login")
                 || req.path().starts_with("/static")
-                || req.path().starts_with("/register") =>
+                || req.path().starts_with("/register")
+                || req.path().eq("") =>
             {
                 Either::Left(self.service.call(req))
             }
