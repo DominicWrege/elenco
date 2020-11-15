@@ -29,6 +29,8 @@ futures-util = "0.3.8"
 time = "0.2.22"
 email_address = "0.2.0"
 url = { version = "2.2.0", features=["serde"] } 
+actix-session = "0.4.0"
+refinery = { version= "0.4.0", features = ["tokio-postgres"] }
 [dependencies.tokio]
 version = "0.2.23"
 features = ["rt-threaded", "sync", "time"]

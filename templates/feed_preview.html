@@ -1,0 +1,20 @@
+{% match feed_content %}
+    {% when Some with (content) %}
+        <div class="podcast-conatiner">
+            {% match content.img %}
+                {% when Some with (img) %}
+                    <img src="{{ img }}" class="pure-img" />
+                {% when None %}
+            {% endmatch %}
+            <div>
+                <h3 class="podcast-title">{{ content.title }}</h3>
+                <small>{{ content.author }}</small>
+                <p>{{ content.description  }}</p>
+            </div>
+        </div>
+    <form class="w100 pure-form pure-form-stacked" method="POST" action="{{ prefix }}/save-feed">
+        <input hidden type="url" value="{{ content.url }}" name="feed-url"  />
+        <button type="submit" class="submit-btn pure-button pure-button-primary">Save</button>
+    </form>
+    {% when None %}
+{% endmatch %}

@@ -2,14 +2,14 @@ use crate::{util::redirect, State};
 use actix_web::{dev::HttpResponseBuilder, web, HttpResponse, ResponseError};
 use askama::Template;
 //use postgres_types::{FromSql, ToSql};
-use actix_identity::Identity;
+//use actix_identity::Identity;
+use actix_session::Session;
 use actix_web::http::StatusCode;
 use email_address::EmailAddress;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
-
 #[derive(Debug, Error)]
 pub enum RegisterError {
     #[error("row was not found: {0}")]
@@ -146,23 +146,33 @@ pub async fn register(
     Ok(redirect("/login"))
 }
 
+#[derive(Serialize, Debug, Deserialize)]
+pub struct SessionStorage {
+    pub username: String,
+    pub id: i32,
+}
+
 pub async fn login_site() -> HttpResponse {
     render_template(TemplateName::Login, None, StatusCode::OK)
 }
-pub async fn logout(id: Identity) -> HttpResponse {
-    id.forget();
+pub async fn logout(session: Session) -> HttpResponse {
+    session.purge();
     redirect("/login")
 }
-
+const SESSION_KEY_ACCOUNT: &str = "account";
 #[derive(Debug, Deserialize)]
 pub struct LoginForm {
     password: String,
     email: String,
 }
 
+pub fn get_session(s: &Session) -> Option<SessionStorage> {
+    s.get::<SessionStorage>(SESSION_KEY_ACCOUNT).ok().flatten()
+}
+
 pub async fn login(
     state: web::Data<State>,
-    id: Identity,
+    session: Session,
     form: web::Form<LoginForm>,
 ) -> Result<HttpResponse, LoginError> {
     if form.password.is_empty() {
@@ -180,7 +190,16 @@ pub async fn login(
         .map_err(|_| LoginError::UserNotFound)?;
     let account: Account = Account::from_row(row)?;
     if bcrypt::verify(&form.password, &account.password_hash).unwrap() {
-        id.remember(account.account_name.clone());
+        //id.remember(account.account_name.clone());
+        session
+            .set(
+                SESSION_KEY_ACCOUNT,
+                SessionStorage {
+                    username: account.account_name.clone(),
+                    id: 1,
+                },
+            )
+            .unwrap();
         Ok(redirect("/profile"))
     } else {
         Err(LoginError::WrongPassword.into())

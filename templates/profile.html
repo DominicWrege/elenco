@@ -4,7 +4,7 @@
 <h1>Hello {{ username }}<br>This is your profile!</h1>
 
 <div class="grid">
-    <a href="/new-feed" class="pure-button mr-1em">New Podcast</a>
-    <a href="/logout" class="pure-button">Logout</a>
+    <a href="{{ prefix }}/new-feed" class="pure-button mr-1em">New Podcast</a>
+    <a href="{{ prefix }}/logout" class="pure-button">Logout</a>
 </div>
 {% endblock %}

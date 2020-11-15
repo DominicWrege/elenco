@@ -6,6 +6,6 @@ where
     P: std::fmt::Display,
 {
     HttpResponse::Found()
-        .header(http::header::LOCATION, format!("{}", path))
+        .header(http::header::LOCATION, format!("/web{}", path))
         .finish()
 }

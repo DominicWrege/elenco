@@ -2,7 +2,7 @@
 use std::task::{Context, Poll};
 
 use crate::util;
-use actix_identity::RequestIdentity;
+use actix_session::UserSession;
 use actix_web::dev::{Service, Transform};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::Error;
@@ -29,8 +29,6 @@ pub struct CheckLoginMiddleware<S> {
     service: S,
 }
 
-//const NO_LOGIN_PATH: [&str; 3] = ["/login", "/static", "/register"];
-
 impl<S, B> Service for CheckLoginMiddleware<S>
 where
     S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
@@ -46,12 +44,12 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        match req.get_identity() {
+        use super::auth::get_session;
+        match get_session(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
-            None if req.path().starts_with("/login")
-                || req.path().starts_with("/static")
-                || req.path().starts_with("/register")
-                || req.path().eq("") =>
+            None if req.path().starts_with("/web") && req.path().contains("/login")
+                || req.path().contains("/static")
+                || req.path().contains("/register") =>
             {
                 Either::Left(self.service.call(req))
             }

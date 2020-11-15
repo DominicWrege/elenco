@@ -1,4 +1,5 @@
-use actix_identity::Identity;
+use crate::auth::get_session;
+use actix_session::Session;
 use actix_web::HttpResponse;
 use askama::Template;
 #[derive(Template)]
@@ -8,9 +9,11 @@ pub struct ProfileSite {
     status: bool,
 }
 
-pub async fn site(id: Identity) -> HttpResponse {
-    let username = id.identity().unwrap_or(String::from("Username.."));
-    dbg!(id.identity());
+pub async fn site(session: Session) -> HttpResponse {
+    //let username = id.identity().unwrap_or(String::from("Username.."));
+    let username = get_session(&session)
+        .and_then(|s| Some(s.username))
+        .unwrap_or(String::from("Default Username"));
     HttpResponse::Ok().content_type("text/html").body(
         ProfileSite {
             username,

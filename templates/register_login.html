@@ -3,14 +3,7 @@
 {% block content %}
 
 
-{% match error_msg %}
-    {% when Some with (error_msg) %}
-        <div class="error-msg">
-            Error: {{ error_msg }}
-        </div>
-    {% when None %}
-{% endmatch %}
-
+    {% include "error_msg.html" %}
 
     {% if template == TemplateName::Login %}
         {% include "login_form.html" %}
