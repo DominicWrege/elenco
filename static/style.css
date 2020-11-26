@@ -1,7 +1,6 @@
 main {
     display: grid;
     justify-content: center;
-    margin-top: 2em !Important;
 }
 
 
@@ -22,11 +21,11 @@ input, .error-msg {
     border-radius: 0.25em;
 }
 body{
-    margin-bottom: 2em;
+    margin-bottom: 5em;
 }
 .menu{
     background: #efefef;
-    padding: 1em;
+    padding: .5em;
 }
 
 .mr-1em{
@@ -39,16 +38,54 @@ body{
 }
 
 img {
-    max-height: 20rem;
+    max-height: 15rem;
 }
 
 .width100{
-    width: 40em;
+    min-width: 45em;
+    
 }
-
+button.width100{
+    max-width: 16em;
+    min-width: 16em;
+    width: 16em;
+}
 .podcast-conatiner{
     display: grid;
-    grid-template-columns: 1fr 25em;
+    grid-template-columns: 1fr 31em;
     grid-column-gap: 1.5em;
     margin-top: 2rem;
+}
+
+form#save-container{
+    display: grid;
+    justify-content: center;
+}
+div#episodes{
+    margin-bottom: 1em;
+}
+div#episodes > table {
+    display: inline-block;
+    overflow-y: scroll;
+    max-height:280px;
+}
+.w80{
+    max-width: 67vw;
+}
+
+tbody tr:nth-child(even)  {
+    background: #f2f2f2;
+}
+
+
+/* div#episodes > table > tbody > tr first-child:td{
+    width: 20vw;
+    max-width: 40vw;
+} */
+#episodes > table > tbody > tr:nth-child(1) > td:nth-child(1){
+    min-width: 27em;
+}
+
+#episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a{
+    white-space: nowrap;
 }

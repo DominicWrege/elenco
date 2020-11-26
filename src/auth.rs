@@ -156,7 +156,8 @@ pub async fn login_site() -> HttpResponse {
     render_template(TemplateName::Login, None, StatusCode::OK)
 }
 pub async fn logout(session: Session) -> HttpResponse {
-    session.purge();
+    session.remove(SESSION_KEY_ACCOUNT);
+    session.clear();
     redirect("/login")
 }
 const SESSION_KEY_ACCOUNT: &str = "account";

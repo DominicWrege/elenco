@@ -7,8 +7,8 @@ mod auth_middleware;
 mod db;
 mod podcast;
 mod profile;
+mod routes;
 mod util;
-use auth::{login, login_site, logout, register, register_site};
 use deadpool_postgres::{Manager, Pool};
 use rand::Rng;
 
@@ -32,7 +32,13 @@ async fn run() -> Result<(), anyhow::Error> {
             .data(state.clone())
             .wrap(middleware::Compress::default())
             .route("/", web::get().to(|| util::redirect("/login")))
-            .service(web::scope("/api").service(web::resource("/feeds").to(api::all_feeds)))
+            .service(
+                web::scope("/api")
+                    .service(
+                        web::resource("/search/{title}").route(web::get().to(api::feeds_by_name)),
+                    )
+                    .service(web::resource("/feeds").route(web::get().to(api::all_feeds))),
+            )
             .service(
                 web::scope("/web")
                     .service(actix_files::Files::new("/static", "./static").show_files_listing())
@@ -44,30 +50,10 @@ async fn run() -> Result<(), anyhow::Error> {
                             .max_age_time(time::Duration::days(3))
                             .same_site(SameSite::Strict),
                     )
-                    .service(
-                        web::resource("/register")
-                            .route(web::post().to(register))
-                            .route(web::get().to(register_site)),
-                    )
-                    .service(
-                        web::resource("/login")
-                            .route(web::post().to(login))
-                            .route(web::get().to(login_site)),
-                    )
-                    .service(web::resource("/logout").to(logout))
-                    .service(web::resource("/profile").route(web::get().to(profile::site)))
-                    .service(
-                        web::resource("/new-feed")
-                            .route(web::get().to(podcast::feed_form))
-                            .route(web::post().to(podcast::submit_feed)),
-                    )
-                    .service(
-                        web::resource("/save-feed")
-                            .route(web::post().to(podcast::handle_submit_feed)),
-                    ),
+                    .configure(routes::register_auth_routes),
             )
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await?;
     Ok(())

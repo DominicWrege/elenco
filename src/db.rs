@@ -34,6 +34,7 @@ pub async fn save_feed<'a>(
 
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
+use tokio_postgres::Row;
 #[derive(Debug, PostgresMapper, serde::Serialize)]
 #[pg_mapper(table = "feed")]
 pub struct Feed {
@@ -45,17 +46,45 @@ pub struct Feed {
     pub author: String,
 }
 
-pub async fn fetch_feeds(pool: &Pool) -> Result<Vec<Feed>, anyhow::Error> {
+pub fn rows_into_vec<T>(row: Vec<Row>) -> Vec<T>
+where
+    T: FromTokioPostgresRow,
+{
+    row.into_iter()
+        .filter_map(|r| T::from_row(r).ok())
+        .collect::<Vec<_>>()
+}
+
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum DbError {
+    #[error("Deadpool")]
+    Deadpool(#[from] deadpool_postgres::PoolError),
+    #[error("tokio_postgres")]
+    Postgres(#[from] tokio_postgres::Error)
+}
+
+pub async fn fetch_feeds(pool: &Pool) -> Result<Vec<Feed>, DbError> {
     let client = pool.get().await?;
 
-    let ret = client
+    let rows = client
         .query(
-            "SELECT id, link as url, img_url as img, title, description, author FROM feed",
+            "SELECT id, link as url, img_url as img, title, description, author FROM feed ORDER BY id",
             &[],
         )
-        .await?
-        .into_iter()
-        .filter_map(|r| Feed::from_row(r).ok())
-        .collect::<Vec<_>>();
-    Ok(ret)
+        .await?;
+    Ok(rows_into_vec(rows))
+}
+
+pub async fn fetch_feeds_by_name(pool: &Pool, name: &str) -> Result<Vec<Feed>, anyhow::Error> {
+    let client = pool.get().await?;
+
+    let stmnt = client
+        .prepare(
+            "SELECT id, link as url, img_url as img, title, description, author FROM feed WHERE title LIKE concat('%', $1::text,'%') ORDER BY id",
+        )
+        .await?;
+    let rows = client.query(&stmnt, &[&name.to_string()]).await?;
+    Ok(rows_into_vec(rows))
 }

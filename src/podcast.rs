@@ -20,15 +20,17 @@ impl<'a> Feed<'a> {
         description: &'a str,
         url: &'a Url,
         author: &'a str,
+        episodes: Vec<Episode<'a>>,
         err: Option<String>,
     ) -> Feed<'a> {
         Feed {
             feed_content: Some(FeedContent {
+                url,
                 img,
                 title,
                 description,
-                url,
                 author,
+                episodes,
             }),
             status: true,
             error_msg: err,
@@ -42,6 +44,24 @@ pub struct FeedContent<'a> {
     pub title: &'a str,
     pub description: &'a str,
     pub author: &'a str,
+    pub episodes: Vec<Episode<'a>>,
+}
+#[derive(Debug)]
+pub struct Episode<'a> {
+    pub title: &'a str,
+    pub link: Option<Url>,
+    pub duration: &'a str,
+}
+
+fn parse_epsiodes<'a>(item: &'a rss::Item) -> Episode<'a> {
+    Episode {
+        title: item.title().unwrap_or_default(),
+        link: item.link().and_then(|u| Url::parse(u).ok()),
+        duration: item
+            .itunes_ext()
+            .and_then(|o| o.duration())
+            .unwrap_or_default(),
+    }
 }
 
 pub async fn feed_form() -> HttpResponse {
@@ -99,7 +119,7 @@ pub async fn submit_feed(form: web::Form<FeedForm>) -> Result<HttpResponse, Http
         .unwrap();
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    let podcast_feed = into_feed(&channel, &form.feed);
+    let podcast_feed = parse_meta_feed(&channel, &form.feed);
 
     Ok(HttpResponse::Ok()
         .content_type("text/html")
@@ -121,14 +141,14 @@ pub async fn handle_submit_feed(
         .unwrap();
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    let podcast_feed = into_feed(&channel, &form.feed);
+    let podcast_feed = parse_meta_feed(&channel, &form.feed);
     save_feed(&state.db_pool, &podcast_feed.feed_content.unwrap(), id).await?;
     Ok(HttpResponse::Found()
         .header(http::header::LOCATION, "/api/feeds")
         .finish())
 }
 
-fn into_feed<'a>(feed: &'a rss::Channel, url: &'a Url) -> Feed<'a> {
+fn parse_meta_feed<'a>(feed: &'a rss::Channel, url: &'a Url) -> Feed<'a> {
     let img = feed
         .image()
         .and_then(|img| Url::parse(img.url()).ok())
@@ -140,5 +160,20 @@ fn into_feed<'a>(feed: &'a rss::Channel, url: &'a Url) -> Feed<'a> {
         .itunes_ext()
         .and_then(|x| x.author())
         .unwrap_or_default();
-    Feed::new(feed.title(), img, feed.description(), url, author, None)
+
+    let episodes: Vec<_> = feed
+        .items()
+        .iter()
+        .map(|item| parse_epsiodes(item))
+        .collect();
+
+    Feed::new(
+        feed.title(),
+        img,
+        feed.description(),
+        url,
+        author,
+        episodes,
+        None,
+    )
 }
