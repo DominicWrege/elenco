@@ -2,8 +2,7 @@ create type permission as enum ('user', 'admin');
 
 create table account (
     id serial primary key,
-    first_name text not null check ( first_name <> ''),
-    last_name text not null check ( last_name <> '' ),
+    username text not null check ( username <> ''),
     password_hash text not null check ( password_hash <> '' ),
     email text unique not null check ( email <> '' ),
     created timestamp not null default CURRENT_TIMESTAMP,
@@ -30,7 +29,6 @@ create table feed (
     description text not null check ( description <> '' ),
     subtitle text check ( subtitle <> '' ),
     url text unique not null check ( url <> '' ),
-    author text not null check ( author <> '' ),
     language integer references feed_language(id),
     copyright text check ( copyright <> '' ),
     status feed_status not null default 'queued',

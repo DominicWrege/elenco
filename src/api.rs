@@ -1,5 +1,5 @@
 use crate::{
-    db::{fetch_feeds, Feed},
+    db::{fetch_feeds, SmallFeed},
     State,
 };
 use actix_web::{web, web::Json};
@@ -31,7 +31,7 @@ impl actix_web::ResponseError for ApiError {
     }
 }
 
-type ApiFeedsResponse = Result<Json<Vec<Feed>>, ApiError>;
+type ApiFeedsResponse = Result<Json<Vec<SmallFeed>>, ApiError>;
 
 pub async fn all_feeds(state: web::Data<State>) -> ApiFeedsResponse {
     Ok(Json(fetch_feeds(&state.db_pool).await?))

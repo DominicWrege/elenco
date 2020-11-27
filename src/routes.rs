@@ -4,6 +4,7 @@ use crate::{
 };
 
 use actix_web::web;
+use podcast::handler;
 
 pub fn register_auth_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -20,8 +21,8 @@ pub fn register_auth_routes(cfg: &mut web::ServiceConfig) {
     .service(web::resource("/profile").route(web::get().to(profile::site)))
     .service(
         web::resource("/new-feed")
-            .route(web::get().to(podcast::feed_form))
-            .route(web::post().to(podcast::submit_feed)),
+            .route(web::get().to(podcast::handler::feed_form))
+            .route(web::post().to(podcast::handler::feed_preview)),
     )
-    .service(web::resource("/save-feed").route(web::post().to(podcast::handle_submit_feed)));
+    .service(web::resource("/save-feed").route(web::post().to(handler::save_feed)));
 }

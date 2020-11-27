@@ -14,6 +14,7 @@ input, .error-msg {
 
 
 .error-msg {
+    margin-top: 1.5em;
     padding: 1em;
     word-wrap: normal;
     background: #e7615d;

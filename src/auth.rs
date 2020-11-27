@@ -183,7 +183,7 @@ pub async fn login(
     }
     let client = state.db_pool.get().await?;
     let stmt = client
-        .prepare("SELECT account_name, email, password_hash FROM Account WHERE email = $1")
+        .prepare("SELECT username, email, password_hash FROM Account WHERE email = $1")
         .await?;
     let row = client
         .query_one(&stmt, &[&form.email])
@@ -196,7 +196,7 @@ pub async fn login(
             .set(
                 SESSION_KEY_ACCOUNT,
                 SessionStorage {
-                    username: account.account_name.clone(),
+                    username: account.username.clone(),
                     id: 1,
                 },
             )
@@ -210,7 +210,7 @@ pub async fn login(
 #[derive(Debug, PostgresMapper)]
 #[pg_mapper(table = "account")]
 struct Account {
-    pub account_name: String,
+    pub username: String,
     pub email: String,
     pub password_hash: String,
 }
