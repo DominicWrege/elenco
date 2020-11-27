@@ -11,7 +11,7 @@ mod routes;
 mod util;
 use deadpool_postgres::{Manager, Pool};
 use rand::Rng;
-
+mod model;
 #[derive(Clone)]
 pub struct State {
     db_pool: Pool,

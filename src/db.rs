@@ -1,4 +1,4 @@
-use crate::podcast::PreviewFeedContent;
+use crate::model::PreviewFeedContent;
 use deadpool_postgres::{Client, Manager, Pool};
 pub async fn save_feed<'a>(
     pool: &Pool,
