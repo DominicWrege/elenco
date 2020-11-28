@@ -3,11 +3,10 @@ use std::convert::{TryFrom, TryInto};
 use actix_web::{dev::HttpResponseBuilder, HttpResponse, ResponseError};
 use askama::Template;
 
-use rss::Image;
+use crate::model::{EpisodePreview, PreviewFeedContent};
+use actix_web::http::StatusCode;
 use thiserror::Error;
 use url::Url;
-
-use crate::model::{EpisodePreview, PreviewFeedContent};
 #[derive(Template)]
 #[template(path = "feed_form.html")]
 struct NewFeedSite<'a> {
@@ -41,16 +40,16 @@ impl<'a> NewFeedSite<'a> {
     }
 }
 
-fn parse_epsiodes<'a>(item: &'a rss::Item) -> EpisodePreview<'a> {
-    EpisodePreview {
-        title: item.title().unwrap_or_default(),
-        link: item.link().and_then(|u| Url::parse(u).ok()),
-        duration: item
-            .itunes_ext()
-            .and_then(|o| o.duration())
-            .unwrap_or_default(),
-    }
-}
+// fn parse_epsiodes<'a>(item: &'a rss::Item) -> EpisodePreview<'a> {
+//     EpisodePreview {
+//         title: item.title().unwrap_or_default(),
+//         link: item.link().and_then(|u| Url::parse(u).ok()),
+//         duration: item
+//             .itunes_ext()
+//             .and_then(|o| o.duration())
+//             .unwrap_or_default(),
+//     }
+// }
 
 #[derive(Debug, Error)]
 pub enum HttpError {
@@ -63,8 +62,8 @@ pub enum HttpError {
 }
 
 impl ResponseError for HttpError {
-    fn status_code(&self) -> reqwest::StatusCode {
-        reqwest::StatusCode::BAD_REQUEST
+    fn status_code(&self) -> StatusCode {
+        StatusCode::BAD_REQUEST
     }
 
     fn error_response(&self) -> HttpResponse {
@@ -102,7 +101,10 @@ pub fn episode_list<'a, T>(feed: &'a rss::Channel) -> Vec<T>
 where
     T: TryFrom<&'a rss::Item>,
 {
-    feed.items().iter().flat_map(|item| item.try_into().ok()).collect()
+    feed.items()
+        .iter()
+        .flat_map(|item| item.try_into().ok())
+        .collect()
 }
 
 fn generate_feed_preview<'a>(feed: &'a rss::Channel, url: &'a Url) -> NewFeedSite<'a> {
@@ -125,7 +127,7 @@ pub mod handler {
     use actix_web::{http, web, HttpResponse};
 
     use super::{generate_feed_preview, HttpError, NewFeedSite, Url};
-    use crate::State;
+    use crate::{db::insert_feed, model::RawFeed, State};
     use askama::Template;
     #[derive(serde::Deserialize)]
     pub struct FeedForm {
@@ -139,17 +141,13 @@ pub mod handler {
         ses: actix_session::Session,
     ) -> Result<HttpResponse, HttpError> {
         use crate::auth::get_session;
-        use crate::db::save_feed;
-        let id = get_session(&ses).unwrap().id;
-        let resp_bytes = reqwest::get(form.feed.clone())
-            .await?
-            .bytes()
-            .await
-            .unwrap();
+        let user_id = get_session(&ses).unwrap().id;
+        let resp_bytes = reqwest::get(form.feed.clone()).await?.bytes().await?;
         let feed_bytes = std::io::Cursor::new(&resp_bytes);
         let channel = rss::Channel::read_from(feed_bytes)?;
-        let podcast_feed = super::generate_feed_preview(&channel, &form.feed);
-        save_feed(&state.db_pool, &podcast_feed.metadata.unwrap(), id).await?;
+        // let podcast_feed = super::generate_feed_preview(&channel, &form.feed);
+        let raw_feed = RawFeed::try_from_channel(&channel, &form.feed).unwrap();
+        insert_feed(&mut state.db_pool.get().await.unwrap(), &raw_feed, user_id).await?;
         Ok(HttpResponse::Found()
             .header(http::header::LOCATION, "/api/feeds")
             .finish())

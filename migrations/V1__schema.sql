@@ -30,7 +30,7 @@ create table feed (
     subtitle text check ( subtitle <> '' ),
     url text unique not null check ( url <> '' ),
     language integer references feed_language(id),
-    link_web: text not null check( link_web <> ''), 
+    link_web text not null check( link_web <> ''), 
     status feed_status not null default 'queued',
     submitted timestamp not null default CURRENT_TIMESTAMP not null,
     last_modified timestamp not null default CURRENT_TIMESTAMP not null
@@ -49,7 +49,7 @@ create table feed_category (
 create table episode (
     id bigserial primary key,
     title text unique not null check ( title <> '' ),
-    description text not ( description <> '' ),
+    description text check( description <> '' ),
     published timestamp,
     explicit bool default false not null,
     keywords text[],

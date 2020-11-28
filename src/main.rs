@@ -9,9 +9,10 @@ mod podcast;
 mod profile;
 mod routes;
 mod util;
-use deadpool_postgres::{Manager, Pool};
+use deadpool_postgres::Pool;
 use rand::Rng;
 mod model;
+
 #[derive(Clone)]
 pub struct State {
     db_pool: Pool,
@@ -20,7 +21,6 @@ async fn run() -> Result<(), anyhow::Error> {
     let state = State {
         db_pool: db::connect_and_migrate().await?,
     };
-    std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
     let _private_key = rand::thread_rng().gen::<[u8; 32]>();
     HttpServer::new(move || {

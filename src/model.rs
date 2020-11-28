@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{collections::BTreeSet, convert::TryFrom};
 
 use chrono::{DateTime, Duration, Utc};
 use reqwest::Url;
@@ -23,9 +23,20 @@ pub struct RawFeed<'a> {
     pub subtitle: Option<&'a str>,
     pub language: Option<&'a str>,
     pub link_web: Url,
-    pub categories: Vec<&'a str>,
+    pub categories: BTreeSet<&'a str>,
 }
 
+impl<'a> RawFeed<'a> {
+    pub fn link_web(&self) -> &str {
+        self.link_web.as_str()
+    }
+    pub fn url(&self) -> &str {
+        self.link_web.as_str()
+    }
+    pub fn img_path(&self) -> Option<&str> {
+        self.img_path.as_ref().and_then(|i| Some(i.as_str()))
+    }
+}
 #[derive(Debug)]
 pub struct EpisodeRow {
     pub title: String,
@@ -46,8 +57,22 @@ pub struct EpisodePreview<'a> {
 }
 // TODO use
 impl<'a> RawFeed<'a> {
-    fn try_from_channel(feed: &'a rss::Channel, url: &'a Url) -> Result<Self, anyhow::Error> {
+    pub fn try_from_channel(feed: &'a rss::Channel, url: &'a Url) -> Result<Self, anyhow::Error> {
         use super::podcast::{episode_list, parse_img_url};
+        let mut categories_set = BTreeSet::new();
+        for category in feed.categories() {
+            if !category.name().is_empty() {
+                categories_set.insert(category.name());
+            }
+        }
+        // TODO think about itunes subcategories?!
+        if let Some(categories) = feed.itunes_ext().map(|it| it.categories()) {
+            for category in categories {
+                if !category.text().is_empty() {
+                    categories_set.insert(category.text());
+                }
+            }
+        }
         Ok(Self {
             url,
             img_path: parse_img_url(&feed),
@@ -58,15 +83,10 @@ impl<'a> RawFeed<'a> {
             subtitle: feed.itunes_ext().and_then(|it| it.subtitle()),
             language: feed.language(), // better lang codes?!
             link_web: Url::parse(feed.link())?,
-            categories: feed
-                .categories()
-                .into_iter()
-                .map(|cat| cat.name())
-                .collect::<Vec<_>>(),
+            categories: categories_set,
         })
     }
 }
-
 
 // TODO return Err if shity input
 impl<'a> TryFrom<&'a rss::Item> for EpisodeRow {
@@ -114,18 +134,7 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodePreview<'a> {
         })
     }
 }
-// impl<'a> From<&'a rss::Item> for EpisodePreview<'a> {
-//     fn from(item: &'a rss::Item) -> Self {
-//         Self {
-//             title: item.title().unwrap_or_default(),
-//             link: item.link().and_then(|u| Url::parse(u).ok()),
-//             duration: item
-//                 .itunes_ext()
-//                 .and_then(|o| o.duration())
-//                 .unwrap_or_default(),
-//         }
-//     }
-// }
+
 // after RFC https://tools.ietf.org/html/rfc822
 fn parse_datetime_rfc822(stamp: &str) -> Result<DateTime<Utc>, chrono::ParseError> {
     DateTime::parse_from_rfc2822(stamp).map(|t| t.into())

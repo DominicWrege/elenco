@@ -137,7 +137,7 @@ pub async fn register(
     let client = state.db_pool.get().await?;
     let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
     let stmt = client
-        .prepare("INSERT INTO Account(account_name, password_hash, email) Values($1, $2, $3)")
+        .prepare("INSERT INTO Account(username, password_hash, email) Values($1, $2, $3)")
         .await?;
     client
         .execute(&stmt, &[&form.username, &pwd_hash, &form.email])
