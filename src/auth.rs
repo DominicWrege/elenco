@@ -214,3 +214,19 @@ struct Account {
     pub email: String,
     pub password_hash: String,
 }
+
+mod tests {
+    use super::*;
+    use actix_web::{http::HeaderValue, test, web, App};
+    #[tokio::test]
+    async fn test_login_get() {
+        let mut app =
+            test::init_service(App::new().route("/web/login", web::get().to(login_site))).await;
+        let req = test::TestRequest::get().uri("/web/login").to_request();
+        let resp = test::call_service(&mut app, req).await;
+        assert_eq!(
+            Some(&HeaderValue::from_static("text/html")),
+            resp.headers().get("content-type")
+        );
+    }
+}
