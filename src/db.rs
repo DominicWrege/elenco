@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::model::RawFeed;
+use crate::model::{EpisodeRow, RawFeed};
 use deadpool_postgres::{Client, Manager, Pool};
 
 use futures_util::future;
@@ -53,6 +53,7 @@ pub async fn insert_feed<'a>(
     let new_feed_id: i32 = r.get("id");
 
     insert_feed_catagories(&trx, &feed_content.categories, new_feed_id).await?;
+    insert_episodes(&trx, new_feed_id, &feed_content.episodes).await?;
     trx.commit().await?;
     Ok(())
 }
@@ -159,7 +160,7 @@ pub async fn insert_or_get_language_id(
     Ok(row.get("id"))
 }
 
-pub async fn insert_feed_catagories(
+async fn insert_feed_catagories(
     trx: &Transaction<'_>,
     categories: &BTreeSet<&str>,
     feed_id: i32,
@@ -185,10 +186,7 @@ pub async fn insert_feed_catagories(
     Ok(())
 }
 
-pub async fn insert_or_get_author_id(
-    trx: &Transaction<'_>,
-    author_name: Option<&str>,
-) -> Option<i32> {
+async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str>) -> Option<i32> {
     if let Some(name) = author_name {
         let stmnt = trx
             .prepare(
@@ -223,7 +221,58 @@ pub async fn insert_or_get_author_id(
     None
 }
 
-pub async fn insert_or_get_category_id(
+async fn insert_episodes(
+    trx: &Transaction<'_>,
+    feed_id: i32,
+    episodes: &Vec<EpisodeRow<'_>>,
+) -> Result<(), tokio_postgres::Error> {
+    future::try_join_all(
+        episodes
+            .iter()
+            .map(|ep| insert_one_episode(trx, feed_id, ep)),
+    )
+    .await?;
+
+    Ok(())
+}
+
+async fn insert_one_episode(
+    trx: &Transaction<'_>,
+    feed_id: i32,
+    ep: &EpisodeRow<'_>,
+) -> Result<(), tokio_postgres::Error> {
+    let stmnt = trx
+        .prepare(
+            "
+        INSERT INTO  
+            episode(title, description, published, explicit, keywords, 
+                    duration, show_notes, url, media_url, feed_id )
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+
+    ",
+        )
+        .await?;
+    trx.execute(
+        &stmnt,
+        &[
+            &ep.title,
+            &ep.description,
+            &ep.published,
+            &ep.explicit,
+            &ep.keywords,
+            &ep.duration,
+            &ep.show_notes,
+            &ep.url(),
+            &ep.media_url(),
+            &feed_id,
+        ],
+    )
+    .await?;
+
+    Ok(())
+}
+
+async fn insert_or_get_category_id(
     trx: &Transaction<'_>,
     category: &str,
 ) -> Result<i32, tokio_postgres::Error> {

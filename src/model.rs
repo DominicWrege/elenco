@@ -1,8 +1,8 @@
 use std::{collections::BTreeSet, convert::TryFrom};
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::offset::Utc;
+use chrono::{DateTime, Duration};
 use reqwest::Url;
-
 #[derive(Debug)]
 pub struct PreviewFeedContent<'a> {
     pub url: &'a Url,
@@ -19,7 +19,7 @@ pub struct RawFeed<'a> {
     pub title: &'a str,
     pub description: &'a str,
     pub author: Option<&'a str>,
-    pub episodes: Vec<EpisodeRow>,
+    pub episodes: Vec<EpisodeRow<'a>>,
     pub subtitle: Option<&'a str>,
     pub language: Option<&'a str>,
     pub link_web: Url,
@@ -38,17 +38,25 @@ impl<'a> RawFeed<'a> {
     }
 }
 #[derive(Debug)]
-pub struct EpisodeRow {
-    pub title: String,
-    pub description: Option<String>,
+pub struct EpisodeRow<'a> {
+    pub title: &'a str,
+    pub description: Option<&'a str>,
     pub published: Option<DateTime<Utc>>,
-    pub keywords: Option<Vec<String>>,
-    pub duration: Option<u32>,
-    pub show_notes: Option<String>,
+    pub keywords: Option<Vec<&'a str>>,
+    pub duration: Option<i32>,
+    pub show_notes: Option<&'a str>,
     pub url: Option<Url>,
     pub media_url: Url,
+    pub explicit: bool,
 }
-
+impl<'a> EpisodeRow<'a> {
+    pub fn url(&self) -> Option<&str> {
+        self.url.as_ref().and_then(|i| Some(i.as_str()))
+    }
+    pub fn media_url(&self) -> &str {
+        self.media_url.as_str()
+    }
+}
 #[derive(Debug)]
 pub struct EpisodePreview<'a> {
     pub title: &'a str,
@@ -71,6 +79,11 @@ impl<'a> RawFeed<'a> {
                 if !category.text().is_empty() {
                     categories_set.insert(category.text());
                 }
+                if let Some(sub_category) =
+                    category.subcategory().filter(|sub| !sub.text().is_empty())
+                {
+                    categories_set.insert(sub_category.text());
+                }
             }
         }
         Ok(Self {
@@ -89,26 +102,26 @@ impl<'a> RawFeed<'a> {
 }
 
 // TODO return Err if shity input
-impl<'a> TryFrom<&'a rss::Item> for EpisodeRow {
+// TODO add Field Media Typ
+// TODO check iuntes show notes
+impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
     type Error = anyhow::Error;
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
         Ok(Self {
-            title: item.title().unwrap().to_string(),
+            title: item.title().expect("No title, FIX ME!!!!!"),
             description: item.description().map(|d| d.into()),
             published: item.pub_date().and_then(|d| parse_datetime_rfc822(d).ok()),
-            keywords: item.itunes_ext().and_then(|it| it.keywords()).map(|k| {
-                String::from(k)
-                    .split(",")
-                    .map(|a| a.to_string())
-                    .collect::<Vec<_>>()
-            }),
+            keywords: item
+                .itunes_ext()
+                .and_then(|it| it.keywords())
+                .map(|k| k.split(",").collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
                 .and_then(|it| it.duration())
                 .and_then(|d| parse_duration_from_str(d))
-                .map(|x| x.num_seconds() as u32),
-            show_notes: item.content().map(|s| s.to_string()).or_else(|| {
+                .map(|x| x.num_seconds() as i32),
+            show_notes: item.content().or_else(|| {
                 item.itunes_ext()
                     .and_then(|it| it.summary().and_then(|su| Some(su.into())))
             }),
@@ -116,10 +129,19 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow {
             media_url: item
                 .enclosure()
                 .and_then(|e| Url::parse(e.url()).ok())
-                .unwrap(),
+                .expect("No Media, FIX ME!!!!!"),
+            explicit: parse_explicit(item.itunes_ext()),
         })
     }
 }
+
+fn parse_explicit(it_ext: Option<&rss::extension::itunes::ITunesItemExtension>) -> bool {
+    matches!(
+        it_ext.and_then(|ext| ext.explicit()),
+        Some("Yes") | Some("yes") | Some("true") | Some("True") | Some("explicit")
+    )
+}
+
 impl<'a> TryFrom<&'a rss::Item> for EpisodePreview<'a> {
     type Error = anyhow::Error;
 
@@ -140,17 +162,24 @@ fn parse_datetime_rfc822(stamp: &str) -> Result<DateTime<Utc>, chrono::ParseErro
     DateTime::parse_from_rfc2822(stamp).map(|t| t.into())
 }
 
+// fn digit_thing(s: &str) -> Option<i64> {
+//     match s.len() {
+//         1 | 2 | 3 => s.parse::<i64>().ok(),
+//         0 | _ => None,
+//     }
+// }
+////
+
 fn digit_thing(s: &str) -> Option<i64> {
     match s.len() {
-        2 => match s {
+        2 | 3 => match s {
             "00" => Some(0),
-            _ => s.trim_start_matches('0').parse::<u8>().ok().map(i64::from),
+            _ => s.trim_start_matches('0').parse::<u16>().ok().map(i64::from),
         },
         1 => s.parse().ok(),
         0 | _ => None,
     }
 }
-
 fn parse_duration_from_str(s: &str) -> Option<Duration> {
     let digits = s.split(':').collect::<Vec<_>>();
 
@@ -159,14 +188,18 @@ fn parse_duration_from_str(s: &str) -> Option<Duration> {
         [m, s] if s.len() == 2 => (None, m, s),
         _ => return None,
     };
-    let hours = Duration::hours(digit_thing(h.unwrap_or(&"0"))?);
-    let minutes = digit_thing(m)?;
+    let hours = digit_thing(h.unwrap_or(&"0"))?;
+    let raw_minutes = digit_thing(m)?;
+    let (hours2, minutes) = if 60 <= raw_minutes {
+        (raw_minutes / 60, raw_minutes % 60)
+    } else {
+        (hours, raw_minutes)
+    };
     let seconds = digit_thing(s)?;
-    if minutes >= 60 || seconds >= 60 {
+    if seconds >= 60 {
         return None;
     };
-
-    Some(hours + Duration::minutes(minutes) + Duration::seconds(seconds))
+    Some(Duration::hours(hours2) + Duration::minutes(minutes) + Duration::seconds(seconds))
 }
 
 #[cfg(test)]
@@ -190,14 +223,24 @@ mod test {
             parse_datetime_rfc822(time).expect(time);
         }
     }
-    //The duration should be in one of the following formats: HH:MM:SS, H:MM:SS, MM:SS, M:SS.
+    //The duration should be in one of the following formats: HH:MM:SS, H:MM:SS, MM:SS, M:SS and MMM::SS
     #[test]
     fn test_duration() {
         let ok = [
             ("00:00", Duration::seconds(0)),
             ("1:00:00", Duration::hours(1)),
             ("01:00:00", Duration::hours(1)),
+            (
+                "143:45",
+                Duration::hours(2) + Duration::minutes(23) + Duration::seconds(45),
+            ),
+            (
+                "218:11",
+                Duration::hours(3) + Duration::minutes(38) + Duration::seconds(11),
+            ),
+            ("60:00", Duration::hours(1)),
             ("02:30:00", Duration::hours(2) + Duration::minutes(30)),
+            ("360:00", Duration::hours(6)),
             (
                 "12:45:05",
                 Duration::hours(12) + Duration::minutes(45) + Duration::seconds(5),
@@ -208,9 +251,7 @@ mod test {
             ("00:44:38", Duration::minutes(44) + Duration::seconds(38)),
             ("0:44:38", Duration::minutes(44) + Duration::seconds(38)),
         ];
-        let fail = [
-            "60:00", "90", "90:14", "00:420", "420:00", "90:210", "7:1", "0:0",
-        ];
+        let fail = ["90", "90:999", "00:420", "000:420", "90:210", "7:1", "0:0"];
 
         for (time, exp) in &ok {
             assert_eq!(

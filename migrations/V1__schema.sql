@@ -41,19 +41,19 @@ create table category (
     description text unique not null check( description <> '' )
 );
 create table feed_category (
-    feed_id integer references feed(id) not null,
+    feed_id integer references feed(id) on delete cascade not null ,
     category_id integer references category(id) not null,
     primary key (feed_id, category_id)
 );
 
 create table episode (
     id bigserial primary key,
-    title text unique not null check ( title <> '' ),
+    title text not null check ( title <> '' ),
     description text check( description <> '' ),
-    published timestamp,
+    published timestamptz,
     explicit bool default false not null,
     keywords text[],
-    duration bigint check ( duration > 0 ),
+    duration int check (duration >= 0),
     show_notes text check ( show_notes <> '' ),
     url text check ( url <> '' ),
     media_url text not null check ( media_url <> '' ),
