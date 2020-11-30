@@ -1,6 +1,6 @@
 {% match metadata %}
     {% when Some with (content) %}
-        <div class="podcast-conatiner" >
+        <div class="podcast-container" >
             {% match content.img %}
                 {% when Some with (img) %}
                     <img src="{{ img }}" id="p-img" class="pure-img" />

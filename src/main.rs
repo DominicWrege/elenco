@@ -12,6 +12,7 @@ mod util;
 use deadpool_postgres::Pool;
 use rand::Rng;
 mod model;
+mod template;
 
 #[derive(Clone)]
 pub struct State {

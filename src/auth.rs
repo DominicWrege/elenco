@@ -1,6 +1,6 @@
+use crate::template::{self, TemplateName};
 use crate::{util::redirect, State};
-use actix_web::{dev::HttpResponseBuilder, web, HttpResponse, ResponseError};
-use askama::Template;
+use actix_web::{web, HttpResponse, ResponseError};
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
 use actix_session::Session;
@@ -44,11 +44,8 @@ impl ResponseError for RegisterError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        render_template(
-            TemplateName::Register,
-            Some(&self.to_string()),
-            self.status_code(),
-        )
+        template::RegisterLogin::new(TemplateName::Register, Some(&self.to_string()))
+            .render_response(self.status_code())
     }
 }
 
@@ -61,11 +58,8 @@ impl ResponseError for LoginError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        render_template(
-            TemplateName::Login,
-            Some(&self.to_string()),
-            self.status_code(),
-        )
+        template::RegisterLogin::new(TemplateName::Login, Some(&self.to_string()))
+            .render_response(self.status_code())
     }
 }
 
@@ -77,48 +71,13 @@ pub struct RegisterForm {
     password_check: String,
 }
 
-#[derive(Template)]
-#[template(path = "register_login.html")]
-pub struct RegisterLogin<'a> {
-    error_msg: Option<&'a str>,
-    template: TemplateName,
-    status: bool,
-}
-
-#[derive(std::cmp::PartialEq)]
-pub enum TemplateName {
-    Login,
-    Register,
-}
-
-fn render_template(
-    tn: TemplateName,
-    error_msg: Option<&str>,
-    status_code: actix_web::http::StatusCode,
-) -> HttpResponse {
-    let rl = RegisterLogin {
-        error_msg,
-        template: tn,
-        status: false,
-    }
-    .render()
-    .unwrap();
-
-    HttpResponseBuilder::new(status_code)
-        .content_type("text/html")
-        .body(rl)
-}
-
 pub async fn register_site() -> HttpResponse {
-    render_template(TemplateName::Register, None, StatusCode::OK)
+    template::RegisterLogin::new(TemplateName::Register, None).render_response(StatusCode::OK)
 }
 
-fn bad_resquest(err_msg: &str) -> HttpResponse {
-    render_template(
-        TemplateName::Register,
-        Some(err_msg),
-        StatusCode::BAD_REQUEST,
-    )
+fn bad_request(err_msg: &str, template_name: TemplateName) -> HttpResponse {
+    template::RegisterLogin::new(template_name, Some(err_msg))
+        .render_response(StatusCode::BAD_REQUEST)
 }
 
 pub async fn register(
@@ -126,13 +85,25 @@ pub async fn register(
     form: web::Form<RegisterForm>,
 ) -> Result<HttpResponse, RegisterError> {
     if form.password != form.password_check {
-        return Ok(bad_resquest("A password repeat does not match password"));
+        return Ok(bad_request(
+            "A password repeat does not match password",
+            TemplateName::Register,
+        ));
     } else if form.username.is_empty() {
-        return Ok(bad_resquest("A username is required"));
+        return Ok(bad_request(
+            "A username is required",
+            TemplateName::Register,
+        ));
     } else if !EmailAddress::is_valid(&form.email) {
-        return Ok(bad_resquest("This email address is not valid"));
+        return Ok(bad_request(
+            "This email address is not valid",
+            TemplateName::Register,
+        ));
     } else if form.password.is_empty() || form.password_check.is_empty() {
-        return Ok(bad_resquest("A password is required"));
+        return Ok(bad_request(
+            "A password is required",
+            TemplateName::Register,
+        ));
     }
     let client = state.db_pool.get().await?;
     let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
@@ -153,7 +124,7 @@ pub struct SessionStorage {
 }
 
 pub async fn login_site() -> HttpResponse {
-    render_template(TemplateName::Login, None, StatusCode::OK)
+    template::RegisterLogin::new(TemplateName::Login, None).render_response(StatusCode::OK)
 }
 pub async fn logout(session: Session) -> HttpResponse {
     session.remove(SESSION_KEY_ACCOUNT);
@@ -177,13 +148,16 @@ pub async fn login(
     form: web::Form<LoginForm>,
 ) -> Result<HttpResponse, LoginError> {
     if form.password.is_empty() {
-        return Ok(bad_resquest("A username is required"));
+        return Ok(bad_request("A username is required", TemplateName::Login));
     } else if form.email.is_empty() {
-        return Ok(bad_resquest("A email address is required"));
+        return Ok(bad_request(
+            "A email address is required",
+            TemplateName::Login,
+        ));
     }
     let client = state.db_pool.get().await?;
     let stmt = client
-        .prepare("SELECT username, email, password_hash FROM Account WHERE email = $1")
+        .prepare("SELECT username, email, id, password_hash FROM Account WHERE email = $1")
         .await?;
     let row = client
         .query_one(&stmt, &[&form.email])
@@ -196,8 +170,8 @@ pub async fn login(
             .set(
                 SESSION_KEY_ACCOUNT,
                 SessionStorage {
-                    username: account.username.clone(),
-                    id: 1,
+                    username: account.username,
+                    id: account.id,
                 },
             )
             .unwrap();
@@ -213,11 +187,14 @@ struct Account {
     pub username: String,
     pub email: String,
     pub password_hash: String,
+    pub id: i32,
 }
-
+#[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
     use actix_web::{http::HeaderValue, test, web, App};
+
+    use super::*;
     #[tokio::test]
     async fn test_login_get() {
         let mut app =

@@ -1,44 +1,12 @@
 use std::convert::{TryFrom, TryInto};
 
 use actix_web::{dev::HttpResponseBuilder, HttpResponse, ResponseError};
-use askama::Template;
 
-use crate::model::{EpisodePreview, PreviewFeedContent};
+use crate::{model::PreviewFeedContent, template::NewFeedSite};
 use actix_web::http::StatusCode;
+use askama::Template;
 use thiserror::Error;
 use url::Url;
-#[derive(Template)]
-#[template(path = "feed_form.html")]
-struct NewFeedSite<'a> {
-    metadata: Option<PreviewFeedContent<'a>>,
-    status: bool,
-    error_msg: Option<String>,
-}
-
-impl<'a> NewFeedSite<'a> {
-    pub fn new(
-        title: &'a str,
-        img: Option<Url>,
-        description: &'a str,
-        url: &'a Url,
-        author: String,
-        episodes: Vec<EpisodePreview<'a>>,
-        err: Option<String>,
-    ) -> NewFeedSite<'a> {
-        NewFeedSite {
-            metadata: Some(PreviewFeedContent {
-                url,
-                img,
-                title,
-                description,
-                author,
-                episodes,
-            }),
-            status: true,
-            error_msg: err,
-        }
-    }
-}
 
 // fn parse_epsiodes<'a>(item: &'a rss::Item) -> EpisodePreview<'a> {
 //     EpisodePreview {
@@ -70,13 +38,9 @@ impl ResponseError for HttpError {
         HttpResponseBuilder::new(self.status_code())
             .content_type("text/html")
             .body(
-                NewFeedSite {
-                    metadata: None,
-                    status: true,
-                    error_msg: Some(self.to_string()),
-                }
-                .render()
-                .unwrap(),
+                NewFeedSite::new(None, Some(self.to_string()))
+                    .render()
+                    .unwrap(),
             )
     }
 }
@@ -111,14 +75,15 @@ fn generate_feed_preview<'a>(feed: &'a rss::Channel, url: &'a Url) -> NewFeedSit
     let img = parse_img_url(&feed);
 
     // let episodes: Vec<_> = feed.items().iter().map(|item| item.into()).collect();
-    let episodes = episode_list(&feed);
     NewFeedSite::new(
-        feed.title(),
-        img,
-        feed.description(),
-        url,
-        parse_author(&feed),
-        episodes,
+        Some(PreviewFeedContent {
+            url,
+            img,
+            title: feed.title(),
+            description: feed.description(),
+            author: parse_author(&feed),
+            episodes: episode_list(&feed),
+        }),
         None,
     )
 }
@@ -149,7 +114,7 @@ pub mod handler {
         let raw_feed = RawFeed::try_from_channel(&channel, &form.feed).unwrap();
         insert_feed(&mut state.db_pool.get().await.unwrap(), &raw_feed, user_id).await?;
         Ok(HttpResponse::Found()
-            .header(http::header::LOCATION, "/api/feeds")
+            .header(http::header::LOCATION, "/web/profile")
             .finish())
     }
 
@@ -169,14 +134,8 @@ pub mod handler {
     }
 
     pub async fn feed_form() -> HttpResponse {
-        HttpResponse::Ok().content_type("text/html").body(
-            NewFeedSite {
-                metadata: None,
-                status: true,
-                error_msg: None,
-            }
-            .render()
-            .unwrap(),
-        )
+        HttpResponse::Ok()
+            .content_type("text/html")
+            .body(NewFeedSite::new(None, None).render().unwrap())
     }
 }

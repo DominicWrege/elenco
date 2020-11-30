@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::model::{EpisodeRow, RawFeed};
+use crate::model::{EpisodeRow, FeedSmall2, RawFeed};
 use deadpool_postgres::{Client, Manager, Pool};
 
 use futures_util::future;
@@ -270,6 +270,26 @@ async fn insert_one_episode(
     .await?;
 
     Ok(())
+}
+
+pub async fn get_feeds_for_account(
+    client: &Client,
+    account_id: i32,
+) -> Result<Vec<FeedSmall2>, anyhow::Error> {
+    let stmnt = client
+        .prepare(
+            "
+            SELECT title, img_path, author.name as author_name, link_web, status::text
+            FROM feed INNER JOIN author ON Feed.author_id = author.id
+            WHERE feed.submitter_id = $1
+            ",
+        )
+        .await?;
+    let rows = client.query(&stmnt, &[&account_id]).await?;
+    Ok(rows
+        .into_iter()
+        .filter_map(|r| FeedSmall2::from_row(r).ok())
+        .collect::<Vec<_>>())
 }
 
 async fn insert_or_get_category_id(

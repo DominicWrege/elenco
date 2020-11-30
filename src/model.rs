@@ -1,8 +1,8 @@
-use std::{collections::BTreeSet, convert::TryFrom};
-
 use chrono::offset::Utc;
 use chrono::{DateTime, Duration};
 use reqwest::Url;
+use std::{collections::BTreeSet, convert::TryFrom};
+use tokio_pg_mapper_derive::PostgresMapper;
 #[derive(Debug)]
 pub struct PreviewFeedContent<'a> {
     pub url: &'a Url,
@@ -24,6 +24,16 @@ pub struct RawFeed<'a> {
     pub language: Option<&'a str>,
     pub link_web: Url,
     pub categories: BTreeSet<&'a str>,
+}
+
+#[derive(Debug, PostgresMapper)]
+#[pg_mapper(table = "feed")]
+pub struct FeedSmall2 {
+    pub title: String,
+    pub img_path: String,
+    pub author_name: String,
+    pub link_web: String,
+    pub status: String,
 }
 
 impl<'a> RawFeed<'a> {

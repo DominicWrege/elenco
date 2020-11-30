@@ -38,7 +38,7 @@ body{
     margin-block-end: 0;
 }
 
-img {
+.podcast-container img {
     max-height: 15rem;
 }
 
@@ -51,7 +51,7 @@ button.width100{
     min-width: 16em;
     width: 16em;
 }
-.podcast-conatiner{
+.podcast-container{
     display: grid;
     grid-template-columns: 1fr 31em;
     grid-column-gap: 1.5em;
@@ -89,4 +89,38 @@ tbody tr:nth-child(even)  {
 
 #episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a{
     white-space: nowrap;
+}
+.feed-list-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-row-gap: 2em;
+    grid-column-gap: 1.5em;
+}
+.card {
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    display: grid;
+    grid-template-columns: 10.5em 1fr;
+}
+.card:hover {
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  }
+
+.card img {
+    width: 100%;
+}
+
+.card div {
+    padding: 1em;
+}
+.feed-list-grid div > p:nth-child(3) {
+    margin-top: 2em;
+    color: #646464;
+}
+.card h3, p{
+    margin: 0;
+}
+.card h3 {
+    font-size: 1.2em;
 }
