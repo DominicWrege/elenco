@@ -14,8 +14,6 @@ pub async fn insert_feed<'a>(
     user_id: i32,
 ) -> Result<(), anyhow::Error> {
     let trx = client.transaction().await?;
-    // TODO insert categories
-
     let autor_id = insert_or_get_author_id(&trx, feed_content.author).await;
 
     let language = if let Some(lang) = feed_content.language {

@@ -8,7 +8,11 @@ input {
     width: 34vw;
 }
 
-.submit-btn, label{
+.submit-btn{
+    margin-left: 1em !important;
+}
+
+label{
     margin-top: 1em !important;
 }
 
@@ -53,7 +57,7 @@ button.width100{
 }
 .podcast-container{
     display: grid;
-    grid-template-columns: 1fr 31em;
+    grid-template-columns: 16em 32em;
     grid-column-gap: 1.5em;
     margin-top: 2rem;
 }
@@ -84,7 +88,7 @@ tbody tr:nth-child(even)  {
     max-width: 40vw;
 } */
 #episodes > table > tbody > tr:nth-child(1) > td:nth-child(1){
-    min-width: 27em;
+    min-width: 29em;
 }
 
 #episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a{
@@ -118,9 +122,25 @@ tbody tr:nth-child(even)  {
     margin-top: 2em;
     color: #646464;
 }
-.card h3, p{
-    margin: 0;
-}
+
 .card h3 {
     font-size: 1.2em;
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+.flex {
+    display: flex;
+    /* display: grid; */
+    align-items: baseline;
+    /* grid-template-columns: 60px 1fr 1fr; */
+    grid-template-rows: 1f;
+}
+.podcast-header-form{
+    justify-content: space-between;
+    padding-right: 3em;
+}
+
+form button{
+    padding-left: 1.5em !important;
+    padding-right: 1.5em !important;
 }

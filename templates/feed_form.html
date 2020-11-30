@@ -9,19 +9,22 @@
 {% block content %}
     <div class="w80">
         {% include "error_msg.html" %}
-        <form class="w100 pure-form pure-form-stacked" method="POST" id="d="form1" action="{{ prefix }}/new-feed">
+        <form class="w100  pure-form pure-form-stacked" method="POST" id="d="form1" action="{{ prefix }}/new-feed">
             <fieldset>
                 <legend>
                     <h2>Submit A New Podcast</h2>
                 </legend>
                 <label for="stacked-email">Feed URL</label>
-                {% match metadata %}
-                    {% when Some with (content) %}
-                        <input type="url" value="{{ content.url }}" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" autofocus required />
-                    {% when None %}
-                        <input type="url" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" required />
-                {% endmatch %}
-                <button type="submit" class="submit-btn pure-button pure-button-primary">Preview</button>
+                <div class="flex">
+                    {% match metadata %}
+                        {% when Some with (content) %}
+                            <input type="url" value="{{ content.url }}" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" autofocus required />
+                        {% when None %}
+                            <input type="url" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" required />
+                    {% endmatch %}
+                    <button type="submit" class="submit-btn pure-button pure-button-primary">Preview</button>
+                </div>
+
             </fieldset>
         </form>
         {% include "feed_preview.html" %}

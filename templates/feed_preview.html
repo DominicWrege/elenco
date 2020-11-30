@@ -3,11 +3,17 @@
         <div class="podcast-container" >
             {% match content.img %}
                 {% when Some with (img) %}
-                    <img src="{{ img }}" id="p-img" class="pure-img" />
+                    <img decoding="async" src="{{ img }}" id="p-img" class="pure-img" />
                 {% when None %}
             {% endmatch %}
             <div id="text-box">
-                <h3 class="podcast-title">{{ content.title }}</h3>
+                <div class="flex podcast-header-form">
+                    <h3 class="podcast-title">{{ content.title }}</h3>
+                    <form id="save-container" method="POST" action="{{ prefix }}/save-feed">
+                        <input hidden type="url" value="{{ content.url }}" name="feed-url"  />
+                        <button type="submit" class="submit-btn pure-button pure-button-primary">Save</button>
+                    </form>
+                </div>
                 <small>{{ content.author }}</small>
                 <p>{{ content.description  }}</p>
             </div>
@@ -40,9 +46,5 @@
                 </tbody>
             </table>
         </div>
-        <form id="save-container" class="w100 pure-form pure-form-stacked" method="POST" action="{{ prefix }}/save-feed">
-            <input hidden type="url" value="{{ content.url }}" name="feed-url"  />
-            <button type="submit" class="width100 submit-btn pure-button pure-button-primary">Save</button>
-        </form>
     {% when None %}
 {% endmatch %}
