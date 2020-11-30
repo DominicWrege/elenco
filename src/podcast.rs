@@ -2,22 +2,11 @@ use std::convert::{TryFrom, TryInto};
 
 use actix_web::{dev::HttpResponseBuilder, HttpResponse, ResponseError};
 
-use crate::{model::PreviewFeedContent, template::NewFeedSite};
+use crate::{model::PreviewFeedContent, template::FeedPreviewSite};
 use actix_web::http::StatusCode;
 use askama::Template;
 use thiserror::Error;
 use url::Url;
-
-// fn parse_epsiodes<'a>(item: &'a rss::Item) -> EpisodePreview<'a> {
-//     EpisodePreview {
-//         title: item.title().unwrap_or_default(),
-//         link: item.link().and_then(|u| Url::parse(u).ok()),
-//         duration: item
-//             .itunes_ext()
-//             .and_then(|o| o.duration())
-//             .unwrap_or_default(),
-//     }
-// }
 
 #[derive(Debug, Error)]
 pub enum HttpError {
@@ -38,7 +27,7 @@ impl ResponseError for HttpError {
         HttpResponseBuilder::new(self.status_code())
             .content_type("text/html")
             .body(
-                NewFeedSite::new(None, Some(self.to_string()))
+                FeedPreviewSite::new(None, Some(self.to_string()))
                     .render()
                     .unwrap(),
             )
@@ -71,27 +60,28 @@ where
         .collect()
 }
 
-fn generate_feed_preview<'a>(feed: &'a rss::Channel, url: &'a Url) -> NewFeedSite<'a> {
-    let img = parse_img_url(&feed);
-
-    // let episodes: Vec<_> = feed.items().iter().map(|item| item.into()).collect();
-    NewFeedSite::new(
-        Some(PreviewFeedContent {
-            url,
-            img,
-            title: feed.title(),
-            description: feed.description(),
-            author: parse_author(&feed),
-            episodes: episode_list(&feed),
-        }),
-        None,
-    )
+impl<'a> From<&'a rss::Channel> for FeedPreviewSite<'a> {
+    fn from(feed: &'a rss::Channel) -> Self {
+        FeedPreviewSite::new(
+            Some(PreviewFeedContent {
+                url: Url::parse(feed.link()).unwrap(),
+                img: parse_img_url(&feed),
+                title: feed.title(),
+                description: feed.description(),
+                author: parse_author(&feed),
+                episodes: episode_list(&feed),
+            }),
+            None,
+        )
+    }
 }
 
 pub mod handler {
+    use std::convert::TryFrom;
+
     use actix_web::{http, web, HttpResponse};
 
-    use super::{generate_feed_preview, HttpError, NewFeedSite, Url};
+    use super::{FeedPreviewSite, HttpError, Url};
     use crate::{db::insert_feed, model::RawFeed, State};
     use askama::Template;
     #[derive(serde::Deserialize)]
@@ -110,8 +100,7 @@ pub mod handler {
         let resp_bytes = reqwest::get(form.feed.clone()).await?.bytes().await?;
         let feed_bytes = std::io::Cursor::new(&resp_bytes);
         let channel = rss::Channel::read_from(feed_bytes)?;
-        // let podcast_feed = super::generate_feed_preview(&channel, &form.feed);
-        let raw_feed = RawFeed::try_from_channel(&channel, &form.feed).unwrap();
+        let raw_feed = RawFeed::try_from(&channel)?;
         insert_feed(&mut state.db_pool.get().await.unwrap(), &raw_feed, user_id).await?;
         Ok(HttpResponse::Found()
             .header(http::header::LOCATION, "/web/profile")
@@ -126,16 +115,16 @@ pub mod handler {
             .unwrap();
         let feed_bytes = std::io::Cursor::new(&resp_bytes);
         let channel = rss::Channel::read_from(feed_bytes)?;
-        let podcast_feed = generate_feed_preview(&channel, &form.feed);
+        let preview_site = FeedPreviewSite::from(&channel);
 
         Ok(HttpResponse::Ok()
             .content_type("text/html")
-            .body(podcast_feed.render().unwrap()))
+            .body(preview_site.render().unwrap()))
     }
 
     pub async fn feed_form() -> HttpResponse {
         HttpResponse::Ok()
             .content_type("text/html")
-            .body(NewFeedSite::new(None, None).render().unwrap())
+            .body(FeedPreviewSite::new(None, None).render().unwrap())
     }
 }

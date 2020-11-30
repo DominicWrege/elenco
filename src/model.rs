@@ -5,7 +5,7 @@ use std::{collections::BTreeSet, convert::TryFrom};
 use tokio_pg_mapper_derive::PostgresMapper;
 #[derive(Debug)]
 pub struct PreviewFeedContent<'a> {
-    pub url: &'a Url,
+    pub url: Url,
     pub img: Option<Url>,
     pub title: &'a str,
     pub description: &'a str,
@@ -14,7 +14,7 @@ pub struct PreviewFeedContent<'a> {
 }
 #[derive(Debug)]
 pub struct RawFeed<'a> {
-    pub url: &'a Url,
+    pub url: Url,
     pub img_path: Option<Url>,
     pub title: &'a str,
     pub description: &'a str,
@@ -74,8 +74,11 @@ pub struct EpisodePreview<'a> {
     pub duration: &'a str,
 }
 // TODO use
-impl<'a> RawFeed<'a> {
-    pub fn try_from_channel(feed: &'a rss::Channel, url: &'a Url) -> Result<Self, anyhow::Error> {
+
+impl<'a> TryFrom<&'a rss::Channel> for RawFeed<'a> {
+    type Error = anyhow::Error;
+
+    fn try_from(feed: &'a rss::Channel) -> Result<Self, Self::Error> {
         use super::podcast::{episode_list, parse_img_url};
         let mut categories_set = BTreeSet::new();
         for category in feed.categories() {
@@ -96,8 +99,9 @@ impl<'a> RawFeed<'a> {
                 }
             }
         }
+
         Ok(Self {
-            url,
+            url: Url::parse(feed.link())?,
             img_path: parse_img_url(&feed),
             title: feed.title(),
             description: feed.description(),
@@ -172,14 +176,6 @@ fn parse_datetime_rfc822(stamp: &str) -> Result<DateTime<Utc>, chrono::ParseErro
     DateTime::parse_from_rfc2822(stamp).map(|t| t.into())
 }
 
-// fn digit_thing(s: &str) -> Option<i64> {
-//     match s.len() {
-//         1 | 2 | 3 => s.parse::<i64>().ok(),
-//         0 | _ => None,
-//     }
-// }
-////
-
 fn digit_thing(s: &str) -> Option<i64> {
     match s.len() {
         2 | 3 => match s {
@@ -198,18 +194,17 @@ fn parse_duration_from_str(s: &str) -> Option<Duration> {
         [m, s] if s.len() == 2 => (None, m, s),
         _ => return None,
     };
-    let hours = digit_thing(h.unwrap_or(&"0"))?;
-    let raw_minutes = digit_thing(m)?;
-    let (hours2, minutes) = if 60 <= raw_minutes {
-        (raw_minutes / 60, raw_minutes % 60)
-    } else {
-        (hours, raw_minutes)
+    let mut hours = digit_thing(h.unwrap_or(&"0"))?;
+    let mut minutes = digit_thing(m)?;
+    if 60 <= minutes {
+        hours = minutes / 60;
+        minutes = minutes % 60;
     };
     let seconds = digit_thing(s)?;
     if seconds >= 60 {
         return None;
     };
-    Some(Duration::hours(hours2) + Duration::minutes(minutes) + Duration::seconds(seconds))
+    Some(Duration::hours(hours) + Duration::minutes(minutes) + Duration::seconds(seconds))
 }
 
 #[cfg(test)]

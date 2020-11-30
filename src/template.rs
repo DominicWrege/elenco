@@ -42,15 +42,15 @@ pub struct ProfileSite {
 
 #[derive(Template)]
 #[template(path = "feed_form.html")]
-pub struct NewFeedSite<'a> {
+pub struct FeedPreviewSite<'a> {
     metadata: Option<PreviewFeedContent<'a>>,
     status: bool,
     error_msg: Option<String>,
 }
 
-impl<'a> NewFeedSite<'a> {
-    pub fn new(metadata: Option<PreviewFeedContent<'a>>, err: Option<String>) -> NewFeedSite<'a> {
-        NewFeedSite {
+impl<'a> FeedPreviewSite<'a> {
+    pub fn new(metadata: Option<PreviewFeedContent<'a>>, err: Option<String>) -> FeedPreviewSite<'a> {
+        FeedPreviewSite {
             metadata,
             status: true,
             error_msg: err,
