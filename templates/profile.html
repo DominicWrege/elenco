@@ -14,7 +14,7 @@
     <div class="feed-list-grid">
         {% for feed in submitted_feeds %}
             <div class="card">
-                <img decoding="async" src="{{ feed.img_path }}"></img>
+                <img src="{{ feed.img_path }}"></img>
                 <div>
                     <a href="{{feed.link_web }}" target="_blank"><h3>{{ feed.title }}</h3></a>
                     <small>{{ feed.author_name }}</small>
@@ -26,6 +26,5 @@
     </div>
 
 </div>
-
 
 {% endblock %}

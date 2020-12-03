@@ -11,7 +11,7 @@
                     <h3 class="podcast-title">{{ content.title }}</h3>
                     <form id="save-container" method="POST" action="{{ prefix }}/save-feed">
                         <input hidden type="url" value="{{ content.url }}" name="feed-url"  />
-                        <button type="submit" class="submit-btn pure-button pure-button-primary">Save</button>
+                        <button type="submit" class="pure-button pure-button-primary">Save</button>
                     </form>
                 </div>
                 <small>{{ content.author }}</small>
@@ -19,7 +19,7 @@
             </div>
         </div>
         <div id="episodes">
-            <h2>Episodes</h2>
+            <h3>Episodes</h3>
             <table class="pure-table">
                 <thead>
                     <tr>

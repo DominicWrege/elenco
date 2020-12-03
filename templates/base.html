@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ prefix }}/static/pure-min.css">
     <link rel="stylesheet" href="{{ prefix }}/static/style.css">
+    <link rel="stylesheet" href="{{ prefix }}/static/modal-alert.css">
+    <script src="{{ prefix }}/static/script.js"></script>
     <title>Elenco Podcast Dir</title>
 </head>
-
-
 
 <body>
     <div class="menu pure-menu pure-menu-horizontal">
@@ -36,6 +36,7 @@
         </ul>
     </div>
     <main>{% block content %} {% endblock %}</main>
+    <div id="modal-alert" hidden></div>
 </body>
 
 </html>

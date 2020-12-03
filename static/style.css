@@ -1,146 +1,151 @@
 main {
-    display: grid;
-    justify-content: center;
+	display: grid;
+	justify-content: center;
 }
-
 
 input {
-    width: 34vw;
+	width: 34vw;
 }
 
-.submit-btn{
+/* .submit-btn{
     margin-left: 1em !important;
+} */
+
+.submit-btn {
+	margin-top: 1em !important;
 }
 
-label{
-    margin-top: 1em !important;
+label {
+	margin-top: 1em !important;
 }
-
 
 .error-msg {
-    margin-top: 1.5em;
-    padding: 1em;
-    word-wrap: normal;
-    background: #e7615d;
-    color: white;
-    border-radius: 0.25em;
+	margin-top: 1.5em;
+	padding: 1em;
+	word-wrap: normal;
+	background: #e7615d;
+	color: white;
+	border-radius: 0.25em;
 }
-body{
-    margin-bottom: 5em;
+body {
+	margin-bottom: 5em;
 }
-.menu{
-    background: #efefef;
-    padding: .5em;
-}
-
-.mr-1em{
-    margin-right: 1em;
+.menu {
+	background: #efefef;
+	padding: 0.5em;
 }
 
-.podcast-title{
-    margin-block-start: 0;
-    margin-block-end: 0;
+.mr-1em {
+	margin-right: 1em;
+}
+.ml-1em {
+	margin-left: 1em;
+}
+
+.podcast-title {
+	margin-block-start: 0;
+	margin-block-end: 0;
 }
 
 .podcast-container img {
-    max-height: 15rem;
+	max-height: 15rem;
 }
 
-.width100{
-    min-width: 45em;
-    
+.width100 {
+	min-width: 45em;
 }
-button.width100{
-    max-width: 16em;
-    min-width: 16em;
-    width: 16em;
+button.width100 {
+	max-width: 16em;
+	min-width: 16em;
+	width: 16em;
 }
-.podcast-container{
-    display: grid;
-    grid-template-columns: 16em 32em;
-    grid-column-gap: 1.5em;
-    margin-top: 2rem;
+.podcast-container {
+	display: grid;
+	grid-template-columns: 16em 32em;
+	grid-column-gap: 1.5em;
+	margin-top: 2rem;
 }
 
-form#save-container{
-    display: grid;
-    justify-content: center;
+form#save-container {
+	display: grid;
+	justify-content: center;
 }
-div#episodes{
-    margin-bottom: 1em;
+div#episodes {
+	margin-bottom: 1em;
 }
 div#episodes > table {
-    display: inline-block;
-    overflow-y: scroll;
-    max-height:280px;
+	display: inline-block;
+	overflow-y: scroll;
+	max-height: 280px;
 }
-.w80{
-    max-width: 67vw;
-}
-
-tbody tr:nth-child(even)  {
-    background: #f2f2f2;
+.w80 {
+	max-width: 67vw;
 }
 
+tbody tr:nth-child(even) {
+	background: #f2f2f2;
+}
 
 /* div#episodes > table > tbody > tr first-child:td{
     width: 20vw;
     max-width: 40vw;
 } */
-#episodes > table > tbody > tr:nth-child(1) > td:nth-child(1){
-    min-width: 29em;
+#episodes > table > tbody > tr:nth-child(1) > td:nth-child(1) {
+	min-width: 29em;
 }
 
-#episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a{
-    white-space: nowrap;
+#episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a {
+	white-space: nowrap;
 }
-.feed-list-grid{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-row-gap: 2em;
-    grid-column-gap: 1.5em;
+.feed-list-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+	grid-row-gap: 2em;
+	grid-column-gap: 1.5em;
+	width: 85vw;
 }
 .card {
-    border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-    display: grid;
-    grid-template-columns: 10.5em 1fr;
+	border-radius: 3px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+	display: grid;
+	grid-template-columns: 10.5em 1fr;
 }
 .card:hover {
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-  }
+	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
 
 .card img {
-    width: 100%;
+	width: 100%;
 }
 
 .card div {
-    padding: 1em;
+	padding: 1em;
 }
 .feed-list-grid div > p:nth-child(3) {
-    margin-top: 2em;
-    color: #646464;
+	margin-top: 2em;
+	color: #646464;
 }
 
 .card h3 {
-    font-size: 1.2em;
-    margin-block-start: 0;
-    margin-block-end: 0;
+	font-size: 1.2em;
+	margin-block-start: 0;
+	margin-block-end: 0;
 }
 .flex {
-    display: flex;
-    /* display: grid; */
-    align-items: baseline;
-    /* grid-template-columns: 60px 1fr 1fr; */
-    grid-template-rows: 1f;
+	display: flex;
+	/* display: grid; */
+	align-items: baseline;
+	/* grid-template-columns: 60px 1fr 1fr; */
+	grid-template-rows: 1f;
+	gap: 1rem;
 }
-.podcast-header-form{
-    justify-content: space-between;
-    padding-right: 3em;
+.podcast-header-form {
+	justify-content: space-between;
+	padding-right: 3em;
 }
 
-form button{
-    padding-left: 1.5em !important;
-    padding-right: 1.5em !important;
+form button {
+	padding-left: 1.5em !important;
+	padding-right: 1.5em !important;
 }
