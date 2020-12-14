@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% let prefix = "/web" %}
-
+{% let title = "Elenco" %}
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="{{ prefix }}/static/style.css">
     <link rel="stylesheet" href="{{ prefix }}/static/modal-alert.css">
     <script src="{{ prefix }}/static/script.js"></script>
-    <title>Elenco Podcast Dir</title>
+    <title>{{ title }} Podcast Dir</title>
 </head>
 
 <body>
     <div class="menu pure-menu pure-menu-horizontal">
-        <span class="pure-menu-heading">Podcasts</span>
+        <span class="pure-menu-heading"><b>{{ title }}</b></span>
         <ul class="pure-menu-list">
 
             {% if status %}

@@ -22,6 +22,9 @@ async fn run() -> Result<(), anyhow::Error> {
     let state = State {
         db_pool: db::connect_and_migrate().await?,
     };
+    if std::env::var_os("RUST_LOG").is_none() {
+        std::env::set_var("RUST_LOG", "info");
+    }
     env_logger::init();
     let _private_key = rand::thread_rng().gen::<[u8; 32]>();
     HttpServer::new(move || {
@@ -45,8 +48,11 @@ async fn run() -> Result<(), anyhow::Error> {
                         CookieSession::private(&[1; 32])
                             .name("auth")
                             .secure(false)
-                            .max_age_time(time::Duration::days(3))
-                            .same_site(SameSite::Strict),
+                            .max_age_time(time::Duration::days(2))
+                            .lazy(true)
+                            .path("/web")
+                            .same_site(SameSite::Strict)
+                            .lazy(true),
                     )
                     .configure(routes::register_auth_routes),
             )

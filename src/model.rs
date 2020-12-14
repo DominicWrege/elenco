@@ -1,11 +1,11 @@
 use chrono::offset::Utc;
 use chrono::{DateTime, Duration};
 use reqwest::Url;
-use std::{collections::BTreeSet, convert::TryFrom};
+use std::{collections::BTreeMap, convert::TryFrom};
 use tokio_pg_mapper_derive::PostgresMapper;
 #[derive(Debug)]
 pub struct PreviewFeedContent<'a> {
-    pub url: Url,
+    pub url: &'a Url,
     pub img: Option<Url>,
     pub title: &'a str,
     pub description: &'a str,
@@ -23,7 +23,7 @@ pub struct RawFeed<'a> {
     pub subtitle: Option<&'a str>,
     pub language: Option<&'a str>,
     pub link_web: Url,
-    pub categories: BTreeSet<&'a str>,
+    pub categories: BTreeMap<&'a str, Vec<&'a str>>,
 }
 
 #[derive(Debug, PostgresMapper)]
@@ -58,6 +58,7 @@ pub struct EpisodeRow<'a> {
     pub url: Option<Url>,
     pub media_url: Url,
     pub explicit: bool,
+    pub guid: Option<&'a str>,
 }
 impl<'a> EpisodeRow<'a> {
     pub fn url(&self) -> Option<&str> {
@@ -75,30 +76,38 @@ pub struct EpisodePreview<'a> {
 }
 // TODO use
 
+impl<'a> RawFeed<'a> {
+    fn parse_categories(feed: &'a rss::Channel) -> BTreeMap<&str, Vec<&str>> {
+        let mut categories_map = BTreeMap::new();
+
+        for category in feed.categories() {
+            if !category.name().is_empty() {
+                categories_map.insert(category.name(), Vec::new());
+            }
+        }
+        if let Some(categories) = feed.itunes_ext().map(|it| it.categories()) {
+            for category in categories {
+                if !category.text().is_empty() {
+                    let sub_categories = categories_map
+                        .entry(category.text())
+                        .or_insert_with(Vec::new);
+                    if let Some(sub_category) =
+                        category.subcategory().filter(|sub| !sub.text().is_empty())
+                    {
+                        sub_categories.push(sub_category.text());
+                    }
+                }
+            }
+        }
+        categories_map
+    }
+}
+
 impl<'a> TryFrom<&'a rss::Channel> for RawFeed<'a> {
     type Error = anyhow::Error;
 
     fn try_from(feed: &'a rss::Channel) -> Result<Self, Self::Error> {
         use super::podcast::{episode_list, parse_img_url};
-        let mut categories_set = BTreeSet::new();
-        for category in feed.categories() {
-            if !category.name().is_empty() {
-                categories_set.insert(category.name());
-            }
-        }
-        // TODO think about itunes subcategories?!
-        if let Some(categories) = feed.itunes_ext().map(|it| it.categories()) {
-            for category in categories {
-                if !category.text().is_empty() {
-                    categories_set.insert(category.text());
-                }
-                if let Some(sub_category) =
-                    category.subcategory().filter(|sub| !sub.text().is_empty())
-                {
-                    categories_set.insert(sub_category.text());
-                }
-            }
-        }
 
         Ok(Self {
             url: Url::parse(feed.link())?,
@@ -110,7 +119,7 @@ impl<'a> TryFrom<&'a rss::Channel> for RawFeed<'a> {
             subtitle: feed.itunes_ext().and_then(|it| it.subtitle()),
             language: feed.language(), // better lang codes?!
             link_web: Url::parse(feed.link())?,
-            categories: categories_set,
+            categories: Self::parse_categories(&feed),
         })
     }
 }
@@ -145,6 +154,7 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
                 .and_then(|e| Url::parse(e.url()).ok())
                 .expect("No Media, FIX ME!!!!!"),
             explicit: parse_explicit(item.itunes_ext()),
+            guid: item.guid().map(|g| g.value()),
         })
     }
 }

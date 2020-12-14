@@ -6,7 +6,9 @@ main {
 input {
 	width: 34vw;
 }
-
+.pure-menu-heading b {
+    letter-spacing: .075em !important;
+}
 /* .submit-btn{
     margin-left: 1em !important;
 } */
@@ -28,7 +30,8 @@ label {
 	border-radius: 0.25em;
 }
 body {
-	margin-bottom: 5em;
+    margin-bottom: 3em;
+    background: #f3f4f573;
 }
 .menu {
 	background: #efefef;
@@ -105,6 +108,7 @@ tbody tr:nth-child(even) {
 	width: 85vw;
 }
 .card {
+    background-color: #fff;
 	border-radius: 3px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -148,4 +152,20 @@ tbody tr:nth-child(even) {
 form button {
 	padding-left: 1.5em !important;
 	padding-right: 1.5em !important;
+}
+
+.pure-table-container{
+    overflow-y: scroll;
+    max-height: 23em;
+}
+.pure-table-container table.pure-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 0;
+}
+.pure-table-container .pure-table th {
+    position: sticky;
+    top: 0;
+    left: 0;
+    background-color: #e0e0e0;
 }

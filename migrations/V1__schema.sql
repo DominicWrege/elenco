@@ -5,7 +5,7 @@ create table account (
     username text not null check ( username <> ''),
     password_hash text not null check ( password_hash <> '' ),
     email text unique not null check ( email <> '' ),
-    created timestamp not null default CURRENT_TIMESTAMP,
+    created timestamptz not null default CURRENT_TIMESTAMP,
     account_type permission not null default 'user' 
 );
 create type feed_status as enum ('online', 'offline', 'blocked', 'queued');
@@ -32,13 +32,14 @@ create table feed (
     language integer references feed_language(id),
     link_web text not null check( link_web <> ''), 
     status feed_status not null default 'queued',
-    submitted timestamp not null default CURRENT_TIMESTAMP not null,
-    last_modified timestamp not null default CURRENT_TIMESTAMP not null
+    submitted timestamptz not null default CURRENT_TIMESTAMP not null,
+    last_modified timestamptz not null default CURRENT_TIMESTAMP not null
 );
 
 create table category (
     id serial primary key,
-    description text unique not null check( description <> '' )
+    description text unique not null check( description <> '' ),
+    parent_id integer references category(id)
 );
 create table feed_category (
     feed_id integer references feed(id) on delete cascade not null ,
@@ -56,6 +57,7 @@ create table episode (
     duration int check (duration >= 0),
     show_notes text check ( show_notes <> '' ),
     url text check ( url <> '' ),
+    guid text check ( guid <> '' ),
     media_url text not null check ( media_url <> '' ),
     feed_id integer references feed(id) on delete cascade not null
 );

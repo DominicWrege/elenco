@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 
 use crate::model::{EpisodeRow, FeedSmall2, RawFeed};
 use deadpool_postgres::{Client, Manager, Pool};
@@ -160,25 +160,19 @@ pub async fn insert_or_get_language_id(
 
 async fn insert_feed_catagories(
     trx: &Transaction<'_>,
-    categories: &BTreeSet<&str>,
+    categories: &BTreeMap<&str, Vec<&str>>,
     feed_id: i32,
 ) -> Result<(), tokio_postgres::Error> {
-    let category_ids = future::join_all(
-        categories
-            .into_iter()
-            .map(|c| insert_or_get_category_id(&trx, c)),
-    )
-    .await
-    .into_iter()
-    .filter_map(|r| r.ok())
-    .collect::<Vec<_>>();
-
     let stmnt = trx
         .prepare("INSERT INTO feed_category (feed_id, category_id) VALUES($1, $2)")
         .await?;
 
-    for c_id in category_ids {
-        trx.execute(&stmnt, &[&feed_id, &c_id]).await?;
+    for (parent, children) in categories {
+        let parent_id = insert_or_get_category_id(trx, parent, None).await?;
+        trx.execute(&stmnt, &[&feed_id, &parent_id]).await?;
+        for child_id in insert_subcategories(trx, parent_id, children).await? {
+            trx.execute(&stmnt, &[&feed_id, &child_id]).await?;
+        }
     }
 
     Ok(())
@@ -290,33 +284,71 @@ pub async fn get_feeds_for_account(
         .collect::<Vec<_>>())
 }
 
+async fn insert_subcategories(
+    trx: &Transaction<'_>,
+    parent_category: i32,
+    subcategories: &[&str],
+) -> Result<Vec<i32>, tokio_postgres::Error> {
+    future::try_join_all(
+        subcategories
+            .iter()
+            .map(|child| insert_or_get_category_id(trx, child, Some(parent_category))),
+    )
+    .await
+}
+
 async fn insert_or_get_category_id(
     trx: &Transaction<'_>,
     category: &str,
+    parent_id: Option<i32>,
 ) -> Result<i32, tokio_postgres::Error> {
-    dbg!(&category);
-    let stmnt = trx
-        .prepare(
-            "
-            WITH inserted as (
-                INSERT INTO
-                category(description)
-                VALUES
-                    ($1)
-                ON CONFLICT DO NOTHING
-                RETURNING ID
-            )
-            SELECT id FROM inserted
-        
-            UNION ALL
-        
-            SELECT id
-            FROM category
-            WHERE description = $1
-    ",
+    const WITHOUT_PARENT: &str = "
+        WITH inserted as (
+            INSERT INTO
+            category(description)
+            VALUES
+                ($1)
+            ON CONFLICT DO NOTHING
+            RETURNING ID
         )
+        SELECT id FROM inserted
+
+        UNION ALL
+
+        SELECT id
+        FROM category
+        WHERE description = $1
+    ";
+    const WITH_PARENT: &str = "
+        WITH inserted as (
+            INSERT INTO
+            category(description, parent_id)
+            VALUES
+                ($1,$2)
+            ON CONFLICT DO NOTHING
+            RETURNING ID
+        )
+        SELECT id FROM inserted
+
+        UNION ALL
+
+        SELECT id
+        FROM category
+        WHERE description = $1
+    ";
+
+    let stmnt = trx
+        .prepare(if parent_id.is_some() {
+            WITH_PARENT
+        } else {
+            WITHOUT_PARENT
+        })
         .await?;
-    let row = trx.query_one(&stmnt, &[&category]).await?;
+
+    let row = match parent_id {
+        Some(parent_id) => trx.query_one(&stmnt, &[&category, &parent_id]).await?,
+        None => trx.query_one(&stmnt, &[&category]).await?,
+    };
     Ok(row.get("id"))
 }
 

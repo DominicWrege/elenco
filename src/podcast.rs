@@ -10,7 +10,7 @@ use url::Url;
 
 #[derive(Debug, Error)]
 pub enum HttpError {
-    #[error("An Inavalid RSS Feed was provided!. {0}")]
+    #[error("An Invalid RSS Feed was provided!. {0}")]
     InvalidRssFeed(#[from] rss::Error),
     #[error("{0}")]
     Connection(#[from] reqwest::Error),
@@ -24,6 +24,7 @@ impl ResponseError for HttpError {
     }
 
     fn error_response(&self) -> HttpResponse {
+        log::error!("{:#?}", &self);
         HttpResponseBuilder::new(self.status_code())
             .content_type("text/html")
             .body(
@@ -43,7 +44,7 @@ pub fn parse_img_url(feed: &rss::Channel) -> Option<Url> {
                 .and_then(|it| it.image().and_then(|u| Url::parse(u).ok()))
         })
 }
-fn parse_author(feed: &rss::Channel) -> String {
+pub fn parse_author(feed: &rss::Channel) -> String {
     feed.itunes_ext()
         .and_then(|x| x.author())
         .unwrap_or_default()
@@ -60,29 +61,17 @@ where
         .collect()
 }
 
-impl<'a> From<&'a rss::Channel> for FeedPreviewSite<'a> {
-    fn from(feed: &'a rss::Channel) -> Self {
-        FeedPreviewSite::new(
-            Some(PreviewFeedContent {
-                url: Url::parse(feed.link()).unwrap(),
-                img: parse_img_url(&feed),
-                title: feed.title(),
-                description: feed.description(),
-                author: parse_author(&feed),
-                episodes: episode_list(&feed),
-            }),
-            None,
-        )
-    }
-}
-
 pub mod handler {
     use std::convert::TryFrom;
 
     use actix_web::{http, web, HttpResponse};
 
     use super::{FeedPreviewSite, HttpError, Url};
-    use crate::{db::insert_feed, model::RawFeed, State};
+    use crate::{
+        db::{self, insert_feed},
+        model::RawFeed,
+        State,
+    };
     use askama::Template;
     #[derive(serde::Deserialize)]
     pub struct FeedForm {
@@ -97,7 +86,7 @@ pub mod handler {
     ) -> Result<HttpResponse, HttpError> {
         use crate::auth::get_session;
         let user_id = get_session(&ses).unwrap().id;
-        let resp_bytes = reqwest::get(form.feed.clone()).await?.bytes().await?;
+        let resp_bytes = reqwest::get(form.feed.clone()).await?.text().await?;
         let feed_bytes = std::io::Cursor::new(&resp_bytes);
         let channel = rss::Channel::read_from(feed_bytes)?;
         let raw_feed = RawFeed::try_from(&channel)?;
@@ -115,8 +104,7 @@ pub mod handler {
             .unwrap();
         let feed_bytes = std::io::Cursor::new(&resp_bytes);
         let channel = rss::Channel::read_from(feed_bytes)?;
-        let preview_site = FeedPreviewSite::from(&channel);
-
+        let preview_site = FeedPreviewSite::preview(&channel, &form.feed);
         Ok(HttpResponse::Ok()
             .content_type("text/html")
             .body(preview_site.render().unwrap()))

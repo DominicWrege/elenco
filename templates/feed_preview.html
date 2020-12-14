@@ -20,31 +20,33 @@
         </div>
         <div id="episodes">
             <h3>Episodes</h3>
-            <table class="pure-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Link</th>
-                        <th>Duration</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for episode in content.episodes %}
+            <div class="pure-table-container">
+                <table class="pure-table">
+                    <thead>
                         <tr>
-                            <td>{{ episode.title }}</td>
-                            <td>
-                                {% match episode.link %}
-                                    {% when Some with (link) %}
-                                        <a href="{{ link }}" target="_blank">go to episode</a>
-                                    {% when None %}
-                                        <div>None</div>
-                                {% endmatch %}
-                            </td>
-                            <td>{{ episode.duration }}</td>
+                            <th>Title</th>
+                            <th>Link</th>
+                            <th>Duration</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for episode in content.episodes %}
+                            <tr>
+                                <td>{{ episode.title }}</td>
+                                <td>
+                                    {% match episode.link %}
+                                        {% when Some with (link) %}
+                                            <a href="{{ link }}" target="_blank">go to episode</a>
+                                        {% when None %}
+                                            <div>None</div>
+                                    {% endmatch %}
+                                </td>
+                                <td>{{ episode.duration }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     {% when None %}
 {% endmatch %}

@@ -15,5 +15,5 @@ function showCustomAlter(message, type) {
 }
 
 window.addEventListener("load", () => {
-    showCustomAlter("This is an Alert!", "ok");
+    // showCustomAlter("This is an Alert!", "ok");
 });
