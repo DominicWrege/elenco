@@ -1,7 +1,9 @@
-use crate::{auth::get_session, db::get_feeds_for_account, template::ProfileSite, State};
+use crate::{db::api::get_feeds_for_account, template::ProfileSite, State};
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
 use askama::Template;
+
+use super::auth::get_session;
 
 // TODO replace unwrap
 pub async fn site(session: Session, state: web::Data<State>) -> HttpResponse {

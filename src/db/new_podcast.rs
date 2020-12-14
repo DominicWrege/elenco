@@ -1,12 +1,11 @@
 use std::collections::BTreeMap;
 
-use crate::model::{EpisodeRow, FeedSmall2, RawFeed};
-use deadpool_postgres::{Client, Manager, Pool};
+use crate::model::{EpisodeRow, RawFeed};
+use deadpool_postgres::Client;
 
 use futures_util::future;
-use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
-use tokio_postgres::{tls::NoTlsStream, Row, Socket, Transaction};
+use tokio_postgres::Transaction;
 
 pub async fn insert_feed<'a>(
     client: &mut Client,
@@ -65,68 +64,6 @@ pub struct SmallFeed {
     pub title: String,
     pub description: String,
     pub author_id: i32,
-}
-
-pub fn rows_into_vec<T>(row: Vec<Row>) -> Vec<T>
-where
-    T: FromTokioPostgresRow,
-{
-    row.into_iter()
-        .filter_map(|r| T::from_row(r).ok())
-        .collect::<Vec<_>>()
-}
-
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum DbError {
-    #[error("Deadpool: {0}")]
-    Deadpool(#[from] deadpool_postgres::PoolError),
-    #[error("tokio_postgres: {0}")]
-    Postgres(#[from] tokio_postgres::Error),
-}
-
-pub async fn fetch_feeds(client: &mut Client) -> Result<Vec<SmallFeed>, DbError> {
-    let rows = client
-        .query(
-            "SELECT id, url, img_path, title, description, author_id FROM feed ORDER BY id",
-            &[],
-        )
-        .await?;
-    Ok(rows_into_vec(rows))
-}
-
-pub async fn fetch_feeds_by_name(pool: &Pool, name: &str) -> Result<Vec<SmallFeed>, anyhow::Error> {
-    let client = pool.get().await?;
-
-    let stmnt = client
-        .prepare(
-            "SELECT id, url, img_path, title, description, author_id FROM feed WHERE title LIKE concat('%', $1::text,'%') ORDER BY id",
-        )
-        .await?;
-    let rows = client.query(&stmnt, &[&name.to_string()]).await?;
-    Ok(rows_into_vec(rows))
-}
-
-struct DBContext {
-    client: tokio_postgres::Client,
-    connection: tokio_postgres::Connection<Socket, NoTlsStream>,
-    config: tokio_postgres::Config,
-}
-
-async fn connect_with_conf() -> Result<DBContext, anyhow::Error> {
-    let mut config = tokio_postgres::Config::default();
-    config
-        .user("harra")
-        .password("hund")
-        .dbname("podcast")
-        .host("127.0.0.1");
-    let (client, connection) = config.connect(tokio_postgres::NoTls).await?;
-    Ok(DBContext {
-        client,
-        connection,
-        config,
-    })
 }
 
 pub async fn insert_or_get_language_id(
@@ -264,26 +201,6 @@ async fn insert_one_episode(
     Ok(())
 }
 
-pub async fn get_feeds_for_account(
-    client: &Client,
-    account_id: i32,
-) -> Result<Vec<FeedSmall2>, anyhow::Error> {
-    let stmnt = client
-        .prepare(
-            "
-            SELECT title, img_path, author.name as author_name, link_web, status::text
-            FROM feed INNER JOIN author ON Feed.author_id = author.id
-            WHERE feed.submitter_id = $1
-            ",
-        )
-        .await?;
-    let rows = client.query(&stmnt, &[&account_id]).await?;
-    Ok(rows
-        .into_iter()
-        .filter_map(|r| FeedSmall2::from_row(r).ok())
-        .collect::<Vec<_>>())
-}
-
 async fn insert_subcategories(
     trx: &Transaction<'_>,
     parent_category: i32,
@@ -350,23 +267,4 @@ async fn insert_or_get_category_id(
         None => trx.query_one(&stmnt, &[&category]).await?,
     };
     Ok(row.get("id"))
-}
-
-mod embedded {
-    use refinery::embed_migrations;
-    embed_migrations!("./migrations");
-}
-
-pub async fn connect_and_migrate() -> Result<Pool, anyhow::Error> {
-    let DBContext {
-        mut client,
-        connection,
-        config,
-    } = connect_with_conf().await?;
-    tokio::task::spawn(connection);
-    embedded::migrations::runner()
-        .run_async(&mut client)
-        .await?;
-    let mngr = Manager::new(config.clone(), tokio_postgres::NoTls);
-    Ok(Pool::new(mngr, 12))
 }

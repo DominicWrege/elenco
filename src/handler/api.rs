@@ -1,11 +1,9 @@
 use crate::{
-    db::{fetch_feeds, SmallFeed},
+    db::{api::fetch_feeds, api::fetch_feeds_by_name, api::DbError, new_podcast::SmallFeed},
     State,
 };
 use actix_web::{web, web::Json};
 
-use crate::db::fetch_feeds_by_name;
-use crate::db::DbError;
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::StatusCode;
 use thiserror::Error;

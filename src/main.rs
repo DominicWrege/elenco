@@ -1,26 +1,23 @@
 use actix_session::CookieSession;
 use actix_web::{cookie::SameSite, middleware, middleware::Logger, web, App, HttpServer};
-//use sqlx::PgPool;
-mod api;
-mod auth;
 mod auth_middleware;
 mod db;
-mod podcast;
-mod profile;
+mod handler;
+use crate::handler::api;
 mod routes;
 mod util;
 use deadpool_postgres::Pool;
 use rand::Rng;
 mod model;
+mod podcast;
 mod template;
-
 #[derive(Clone)]
 pub struct State {
     db_pool: Pool,
 }
 async fn run() -> Result<(), anyhow::Error> {
     let state = State {
-        db_pool: db::connect_and_migrate().await?,
+        db_pool: db::util::connect_and_migrate().await?,
     };
     if std::env::var_os("RUST_LOG").is_none() {
         std::env::set_var("RUST_LOG", "info");

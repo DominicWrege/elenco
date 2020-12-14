@@ -44,7 +44,7 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        use super::auth::get_session;
+        use super::handler::auth::get_session;
         match get_session(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
             None if req.path().starts_with("/web") && req.path().contains("/login")
