@@ -3,3 +3,4 @@ pub mod auth;
 pub mod error;
 pub mod podcast;
 pub mod profile;
+pub mod moderator;

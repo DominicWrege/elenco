@@ -3,6 +3,14 @@ use chrono::{DateTime, Duration};
 use reqwest::Url;
 use std::{collections::BTreeMap, convert::TryFrom};
 use tokio_pg_mapper_derive::PostgresMapper;
+
+use postgres_types::{FromSql, ToSql};
+
+#[derive(Debug, ToSql, FromSql)]
+pub enum Permission {
+    Admin,
+    User,
+}
 #[derive(Debug)]
 pub struct PreviewFeedContent<'a> {
     pub url: &'a Url,

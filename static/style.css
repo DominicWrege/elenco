@@ -124,7 +124,7 @@ tbody tr:nth-child(even) {
 }
 
 .card div {
-	padding: 1em;
+	padding: 1em 1em 0 1em;
 }
 .feed-list-grid div > p:nth-child(3) {
 	margin-top: 2em;

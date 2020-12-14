@@ -3,10 +3,11 @@ use crate::{util::redirect, State};
 use actix_web::{web, HttpResponse, ResponseError};
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
+use crate::session::SessionStorage;
 use actix_session::Session;
 use actix_web::http::StatusCode;
 use email_address::EmailAddress;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -33,6 +34,8 @@ pub enum LoginError {
     Sql(#[from] tokio_postgres::Error),
     #[error("Internal error: {0}")]
     PoolError(#[from] deadpool_postgres::PoolError),
+    #[error("Session Error: {0}")]
+    Session(actix_web::Error),
 }
 
 impl ResponseError for RegisterError {
@@ -105,41 +108,32 @@ pub async fn register(
             TemplateName::Register,
         ));
     }
-    let client = state.db_pool.get().await?;
+
+    let mut client = state.db_pool.get().await?;
+    let trx = client.transaction().await?;
     let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
-    let stmt = client
+    let stmt = trx
         .prepare("INSERT INTO Account(username, password_hash, email) Values($1, $2, $3)")
         .await?;
-    client
-        .execute(&stmt, &[&form.username, &pwd_hash, &form.email])
+    trx.execute(&stmt, &[&form.username, &pwd_hash, &form.email])
         .await
         .map_err(|_e| RegisterError::EmailOrUsernameExists)?;
+    trx.commit().await?;
     Ok(redirect("/login"))
-}
-
-#[derive(Serialize, Debug, Deserialize)]
-pub struct SessionStorage {
-    pub username: String,
-    pub id: i32,
 }
 
 pub async fn login_site() -> HttpResponse {
     template::RegisterLogin::new(TemplateName::Login, None).render_response(StatusCode::OK)
 }
 pub async fn logout(session: Session) -> HttpResponse {
-    session.remove(SESSION_KEY_ACCOUNT);
-    session.clear();
+    SessionStorage::forget(&session);
     redirect("/login")
 }
-const SESSION_KEY_ACCOUNT: &str = "account";
+
 #[derive(Debug, Deserialize)]
 pub struct LoginForm {
     password: String,
     email: String,
-}
-
-pub fn get_session(s: &Session) -> Option<SessionStorage> {
-    s.get::<SessionStorage>(SESSION_KEY_ACCOUNT).ok().flatten()
 }
 
 pub async fn login(
@@ -166,15 +160,8 @@ pub async fn login(
     let account: Account = Account::from_row(row)?;
     if bcrypt::verify(&form.password, &account.password_hash).unwrap() {
         //id.remember(account.account_name.clone());
-        session
-            .set(
-                SESSION_KEY_ACCOUNT,
-                SessionStorage {
-                    username: account.username,
-                    id: account.id,
-                },
-            )
-            .unwrap();
+        SessionStorage::create(&session, account.username, account.id)
+            .map_err(|e| LoginError::Session(e))?;
         Ok(redirect("/profile"))
     } else {
         Err(LoginError::WrongPassword.into())

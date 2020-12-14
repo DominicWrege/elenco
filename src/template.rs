@@ -52,6 +52,12 @@ pub struct FeedPreviewSite<'a> {
     error_msg: Option<String>,
 }
 
+#[derive(Template, Debug)]
+#[template(path = "moderator.html")]
+pub struct ModeratorSite {
+    pub status: bool,
+}
+
 impl<'a> FeedPreviewSite<'a> {
     pub fn new(
         metadata: Option<PreviewFeedContent<'a>>,

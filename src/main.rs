@@ -1,7 +1,6 @@
 use actix_session::CookieSession;
 use actix_web::{cookie::SameSite, middleware, middleware::Logger, web, App, HttpServer};
 //use sqlx::PgPool;
-mod auth_middleware;
 mod db;
 mod handler;
 mod routes;
@@ -9,7 +8,9 @@ mod util;
 use deadpool_postgres::Pool;
 use rand::Rng;
 mod model;
+mod my_middleware;
 mod podcast_util;
+mod session;
 mod template;
 #[derive(Clone)]
 pub struct State {
@@ -41,7 +42,7 @@ async fn run() -> Result<(), anyhow::Error> {
             .service(
                 web::scope("/web")
                     .service(actix_files::Files::new("/static", "./static").show_files_listing())
-                    .wrap(auth_middleware::CheckLogin)
+                    .wrap(my_middleware::auth::CheckLogin)
                     .wrap(
                         CookieSession::private(&[1; 32])
                             .name("auth")
@@ -52,7 +53,12 @@ async fn run() -> Result<(), anyhow::Error> {
                             .same_site(SameSite::Strict)
                             .lazy(true),
                     )
-                    .configure(routes::register_auth_routes),
+                    .configure(routes::register_auth_routes)
+                    .service(
+                        web::scope("/admin")
+                            .wrap(my_middleware::admin::Moderator)
+                            .route("/manage", web::get().to(handler::moderator::manage)),
+                    ),
             )
     })
     .bind("0.0.0.0:8080")?

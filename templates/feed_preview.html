@@ -10,7 +10,6 @@
                 <div class="flex podcast-header-form">
                     <h3 class="podcast-title">{{ content.title }}</h3>
                     <form id="save-container" method="POST" action="{{ prefix }}/save-feed">
-                        <input hidden type="url" value="{{ content.url }}" name="feed-url"  />
                         <button type="submit" class="pure-button pure-button-primary">Save</button>
                     </form>
                 </div>

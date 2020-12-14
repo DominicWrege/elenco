@@ -1,6 +1,5 @@
 use crate::model::FeedSmall2;
 
-use deadpool_postgres::Pool;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::{Client, Row};
