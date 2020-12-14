@@ -1,15 +1,15 @@
 use actix_session::CookieSession;
 use actix_web::{cookie::SameSite, middleware, middleware::Logger, web, App, HttpServer};
+//use sqlx::PgPool;
 mod auth_middleware;
 mod db;
 mod handler;
-use crate::handler::api;
 mod routes;
 mod util;
 use deadpool_postgres::Pool;
 use rand::Rng;
 mod model;
-mod podcast;
+mod podcast_util;
 mod template;
 #[derive(Clone)]
 pub struct State {
@@ -33,9 +33,10 @@ async fn run() -> Result<(), anyhow::Error> {
             .service(
                 web::scope("/api")
                     .service(
-                        web::resource("/search/{title}").route(web::get().to(api::feeds_by_name)),
+                        web::resource("/search/{title}")
+                            .route(web::get().to(handler::api::feeds_by_name)),
                     )
-                    .service(web::resource("/feeds").route(web::get().to(api::all_feeds))),
+                    .service(web::resource("/feeds").route(web::get().to(handler::api::all_feeds))),
             )
             .service(
                 web::scope("/web")

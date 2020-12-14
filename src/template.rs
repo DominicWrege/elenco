@@ -1,9 +1,9 @@
 use crate::{
     model::{FeedSmall2, PreviewFeedContent},
-    podcast::{episode_list, parse_author, parse_img_url},
+    podcast_util::{episode_list, parse_author, parse_img_url},
 };
 use actix_web::{dev::HttpResponseBuilder, HttpResponse};
-use askama::Template;
+use askama_actix::Template;
 use reqwest::Url;
 
 #[derive(Template)]

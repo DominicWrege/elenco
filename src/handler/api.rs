@@ -42,5 +42,7 @@ pub async fn feeds_by_name(
     web::Path(title): web::Path<String>,
     state: web::Data<State>,
 ) -> ApiFeedsResponse {
-    Ok(Json(fetch_feeds_by_name(&state.db_pool, &title).await?))
+    Ok(Json(
+        fetch_feeds_by_name(&state.db_pool.get().await.unwrap(), &title).await?,
+    ))
 }

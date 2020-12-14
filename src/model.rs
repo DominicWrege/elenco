@@ -107,7 +107,7 @@ impl<'a> TryFrom<&'a rss::Channel> for RawFeed<'a> {
     type Error = anyhow::Error;
 
     fn try_from(feed: &'a rss::Channel) -> Result<Self, Self::Error> {
-        use super::podcast::{episode_list, parse_img_url};
+        use super::podcast_util::{episode_list, parse_img_url};
 
         Ok(Self {
             url: Url::parse(feed.link())?,

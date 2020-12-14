@@ -1,9 +1,10 @@
 use std::convert::TryFrom;
 
-use crate::{db::new_podcast::insert_feed, podcast::HttpError, template::FeedPreviewSite};
+use crate::{db::new_podcast::insert_feed, handler::error::HttpError, template::FeedPreviewSite};
 use crate::{model::RawFeed, State};
 use actix_web::{http, web, HttpResponse};
 use askama::Template;
+use askama_actix::TemplateIntoResponse;
 use reqwest::Url;
 #[derive(serde::Deserialize)]
 pub struct FeedForm {
@@ -37,13 +38,11 @@ pub async fn feed_preview(form: web::Form<FeedForm>) -> Result<HttpResponse, Htt
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     let preview_site = FeedPreviewSite::preview(&channel, &form.feed);
-    Ok(HttpResponse::Ok()
-        .content_type("text/html")
-        .body(preview_site.render().unwrap()))
+    preview_site
+        .into_response()
+        .map_err(|e| HttpError::Template(e))
 }
 
-pub async fn feed_form() -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(FeedPreviewSite::new(None, None).render().unwrap())
+pub async fn feed_form() -> Result<HttpResponse, actix_web::Error> {
+    FeedPreviewSite::new(None, None).into_response()
 }

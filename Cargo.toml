@@ -12,7 +12,7 @@ serde_json = "1.0"
 actix-web = "3.3.1"
 rss = "1.9.0"
 reqwest = { version= "0.10.8", features = ["rustls-tls"] }
-askama = { version = "0.10.3" }
+askama = { version = "0.10.3", features=["with-actix-web"]}
 thiserror = "1.0.22"
 bcrypt = "0.9.0"
 anyhow = "1.0.34"
@@ -32,6 +32,7 @@ refinery = { version= "0.4.0", features = ["tokio-postgres"] }
 env_logger = "0.8.1"
 chrono = "0.4.19"
 log = "0.4.11"
+askama_actix = "0.11.1"
 
 [dependencies.tokio]
 version = "0.2.23"

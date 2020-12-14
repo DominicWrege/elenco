@@ -34,9 +34,10 @@ pub async fn fetch_feeds(client: &mut Client) -> Result<Vec<SmallFeed>, DbError>
     Ok(rows_into_vec(rows))
 }
 
-pub async fn fetch_feeds_by_name(pool: &Pool, name: &str) -> Result<Vec<SmallFeed>, anyhow::Error> {
-    let client = pool.get().await?;
-
+pub async fn fetch_feeds_by_name(
+    client: &Client,
+    name: &str,
+) -> Result<Vec<SmallFeed>, anyhow::Error> {
     let stmnt = client
         .prepare(
             "SELECT id, url, img_path, title, description, author_id FROM feed WHERE title LIKE concat('%', $1::text,'%') ORDER BY id",
