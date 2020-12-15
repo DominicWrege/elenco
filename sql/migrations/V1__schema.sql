@@ -57,7 +57,6 @@ create table episode (
     duration int check (duration >= 0),
     show_notes text check ( show_notes <> '' ),
     url text check ( url <> '' ),
-    guid text check ( guid <> '' ),
     media_url text not null check ( media_url <> '' ),
     feed_id integer references feed(id) on delete cascade not null
 );

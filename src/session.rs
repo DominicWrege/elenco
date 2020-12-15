@@ -1,41 +1,27 @@
 use actix_session::Session;
-#[derive(serde::Serialize, Debug, serde::Deserialize)]
-pub struct SessionStorage {
-    username: String,
-    id: i32,
-}
+
+use crate::model::Account;
+
 const SESSION_KEY_ACCOUNT: &str = "account";
 const FEED_URL: &str = "feed_url";
 
-impl SessionStorage {
-    pub fn create(session: &Session, username: String, id: i32) -> Result<(), actix_web::Error> {
-        session.set(SESSION_KEY_ACCOUNT, Self { username, id })
+impl Account {
+    pub fn save(&self, session: &Session) -> Result<(), actix_web::Error> {
+        session.set(SESSION_KEY_ACCOUNT, self)
     }
-    pub fn get(session: &Session) -> Option<SessionStorage> {
-        session
-            .get::<SessionStorage>(SESSION_KEY_ACCOUNT)
-            .ok()
-            .flatten()
+    pub fn get_account(session: &Session) -> Option<Account> {
+        session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
     }
     pub fn forget(session: &Session) {
         session.remove(SESSION_KEY_ACCOUNT);
         session.clear();
     }
-    pub fn user_id(session: &Session) -> i32 {
-        Self::get(session).unwrap().id
-    }
-    //FIXME ERROR HANDLING!!!!!!!!!!!!!!!!!!!!!!
-    pub fn user(session: &Session) -> (i32, String) {
-        let s = Self::get(session).unwrap();
-        (s.id, s.username)
-    }
 }
 
-//FIXME ERROR HANDLING
-pub fn cache_feed_url(session: &Session, url: url::Url) {
-    session.set(FEED_URL, url).unwrap();
+pub fn cache_feed_url(session: &Session, url: url::Url) -> Result<(), actix_web::Error> {
+    session.set(FEED_URL, url)
 }
-//FIXME ERROR HANDLING
-pub fn feed_url(session: &Session) -> url::Url {
-    session.get::<url::Url>(FEED_URL).unwrap().unwrap()
+
+pub fn feed_url(session: &Session) -> Result<url::Url, actix_web::Error> {
+    session.get::<url::Url>(FEED_URL).map(|url| url.unwrap())
 }

@@ -1,114 +1,136 @@
-use crate::template::{self, TemplateName};
+use std::fmt::Display;
+
+use crate::{
+    generic_handler_err, hide_internal, inc_sql,
+    model::Account,
+    template::{self},
+    validation_handler_err, wrap_err,
+};
 use crate::{util::redirect, State};
 use actix_web::{web, HttpResponse, ResponseError};
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
-use crate::session::SessionStorage;
+use crate::template::LoginRegister;
 use actix_session::Session;
 use actix_web::http::StatusCode;
-use email_address::EmailAddress;
 use serde::Deserialize;
+use template::Login;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
-use tokio_pg_mapper_derive::PostgresMapper;
+
+use validator::{Validate, ValidationErrors};
+
 #[derive(Debug, Error)]
 pub enum RegisterError {
-    #[error("row was not found: {0}")]
-    RowNotFound(#[from] tokio_postgres::error::Error),
     #[error("username or email is already taken")]
     EmailOrUsernameExists,
-    #[error("could not map type")]
-    Mapper(#[from] tokio_pg_mapper::Error),
-    #[error("internal error: {0}")]
-    PoolError(#[from] deadpool_postgres::PoolError),
+    #[error("{0}")]
+    Validation(ValiderError),
+    #[error("Internal error: {0}")]
+    Internal(Box<dyn std::error::Error + Sync + Send>),
 }
+
 #[derive(Debug, Error)]
 pub enum LoginError {
     #[error("Wrong password")]
     WrongPassword,
     #[error("User does not exist")]
     UserNotFound,
-    #[error("Internal error: {0}")]
-    Mapper(#[from] tokio_pg_mapper::Error),
-    #[error("Internal error: {0}")]
-    Sql(#[from] tokio_postgres::Error),
-    #[error("Internal error: {0}")]
-    PoolError(#[from] deadpool_postgres::PoolError),
-    #[error("Session Error: {0}")]
-    Session(actix_web::Error),
+    #[error("Internal error: {0:#?}")]
+    Internal(Box<dyn std::error::Error + Sync + Send>),
+    #[error("{0}")]
+    Validation(ValiderError),
+    #[error("Could not create session")]
+    Session,
+}
+generic_handler_err!(RegisterError, RegisterError::Internal);
+generic_handler_err!(LoginError, LoginError::Internal);
+validation_handler_err!(RegisterError, RegisterError::Validation);
+validation_handler_err!(LoginError, LoginError::Validation);
+
+wrap_err!(ValidationErrors, ValiderError);
+#[derive(Debug)]
+pub struct ValiderError(ValidationErrors);
+
+impl Display for ValiderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let errors = self.0.field_errors();
+        let first_error_msg = errors
+            .into_iter()
+            .flat_map(|(_, b)| b)
+            .take(1)
+            .filter_map(|v| v.message.clone())
+            .collect::<String>();
+        write!(f, "{:}", first_error_msg)
+    }
 }
 
 impl ResponseError for RegisterError {
     fn status_code(&self) -> StatusCode {
-        match self {
+        match *self {
             RegisterError::EmailOrUsernameExists => StatusCode::CONFLICT,
+            RegisterError::Validation(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
-        template::RegisterLogin::new(TemplateName::Register, Some(&self.to_string()))
-            .render_response(self.status_code())
+        let msg = hide_internal!(RegisterError, self);
+
+        template::Register::default()
+            .error_msg(&msg)
+            .response(self.status_code())
+            .unwrap()
     }
 }
 
 impl ResponseError for LoginError {
     fn status_code(&self) -> StatusCode {
         match self {
-            LoginError::WrongPassword | LoginError::UserNotFound => StatusCode::UNAUTHORIZED,
+            LoginError::WrongPassword | LoginError::UserNotFound | LoginError::Validation(_) => {
+                StatusCode::UNAUTHORIZED
+            }
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
-        template::RegisterLogin::new(TemplateName::Login, Some(&self.to_string()))
-            .render_response(self.status_code())
+        let msg = hide_internal!(LoginError, self);
+
+        Login::default()
+            .error_msg(&msg)
+            .response(self.status_code())
+            .unwrap()
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct RegisterForm {
+    #[validate(length(min = 1, message = "An username is required"))]
     username: String,
+    #[validate(
+        length(min = 1, message = "An username is required"),
+        must_match = "password_check"
+    )]
     password: String,
+    #[validate(email(message = "An username is required"))]
     email: String,
+
+    #[validate(must_match(other = "password", message = "Passwords are not the same"))]
     password_check: String,
 }
 
 pub async fn register_site() -> HttpResponse {
-    template::RegisterLogin::new(TemplateName::Register, None).render_response(StatusCode::OK)
-}
-
-fn bad_request(err_msg: &str, template_name: TemplateName) -> HttpResponse {
-    template::RegisterLogin::new(template_name, Some(err_msg))
-        .render_response(StatusCode::BAD_REQUEST)
+    template::Register::default()
+        .response(StatusCode::OK)
+        .unwrap()
 }
 
 pub async fn register(
     state: web::Data<State>,
     form: web::Form<RegisterForm>,
 ) -> Result<HttpResponse, RegisterError> {
-    if form.password != form.password_check {
-        return Ok(bad_request(
-            "A password repeat does not match password",
-            TemplateName::Register,
-        ));
-    } else if form.username.is_empty() {
-        return Ok(bad_request(
-            "A username is required",
-            TemplateName::Register,
-        ));
-    } else if !EmailAddress::is_valid(&form.email) {
-        return Ok(bad_request(
-            "This email address is not valid",
-            TemplateName::Register,
-        ));
-    } else if form.password.is_empty() || form.password_check.is_empty() {
-        return Ok(bad_request(
-            "A password is required",
-            TemplateName::Register,
-        ));
-    }
-
+    form.validate()?;
     let mut client = state.db_pool.get().await?;
     let trx = client.transaction().await?;
     let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
@@ -123,16 +145,17 @@ pub async fn register(
 }
 
 pub async fn login_site() -> HttpResponse {
-    template::RegisterLogin::new(TemplateName::Login, None).render_response(StatusCode::OK)
+    template::Login::default().response(StatusCode::OK).unwrap()
 }
 pub async fn logout(session: Session) -> HttpResponse {
-    SessionStorage::forget(&session);
+    Account::forget(&session);
     redirect("/login")
 }
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Validate, Deserialize)]
 pub struct LoginForm {
+    #[validate(length(min = 1, message = "An username is required"))]
     password: String,
+    #[validate(email(message = "An email address is required"))]
     email: String,
 }
 
@@ -141,41 +164,23 @@ pub async fn login(
     session: Session,
     form: web::Form<LoginForm>,
 ) -> Result<HttpResponse, LoginError> {
-    if form.password.is_empty() {
-        return Ok(bad_request("A username is required", TemplateName::Login));
-    } else if form.email.is_empty() {
-        return Ok(bad_request(
-            "A email address is required",
-            TemplateName::Login,
-        ));
-    }
+    form.validate()?;
     let client = state.db_pool.get().await?;
-    let stmt = client
-        .prepare("SELECT username, email, id, password_hash FROM Account WHERE email = $1")
-        .await?;
+    let stmt = client.prepare(inc_sql!("get/account")).await?;
     let row = client
         .query_one(&stmt, &[&form.email])
         .await
         .map_err(|_| LoginError::UserNotFound)?;
     let account: Account = Account::from_row(row)?;
-    if bcrypt::verify(&form.password, &account.password_hash).unwrap() {
+    if bcrypt::verify(&form.password, &account.password_hash()).unwrap() {
         //id.remember(account.account_name.clone());
-        SessionStorage::create(&session, account.username, account.id)
-            .map_err(|e| LoginError::Session(e))?;
-        Ok(redirect("/profile"))
+        account.save(&session).map_err(|_| LoginError::Session)?;
+        Ok(redirect("/auth/profile"))
     } else {
         Err(LoginError::WrongPassword.into())
     }
 }
 
-#[derive(Debug, PostgresMapper)]
-#[pg_mapper(table = "account")]
-struct Account {
-    pub username: String,
-    pub email: String,
-    pub password_hash: String,
-    pub id: i32,
-}
 #[cfg(test)]
 mod tests {
     // use super::*;
@@ -185,7 +190,7 @@ mod tests {
     #[tokio::test]
     async fn test_login_get() {
         let mut app =
-            test::init_service(App::new().route("/web/login", web::get().to(login_site))).await;
+            test::init_service(App::default().route("/web/login", web::get().to(login_site))).await;
         let req = test::TestRequest::get().uri("/web/login").to_request();
         let resp = test::call_service(&mut app, req).await;
         assert_eq!(

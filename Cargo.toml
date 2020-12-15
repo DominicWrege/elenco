@@ -9,10 +9,10 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0.117", features=["derive"] }
 serde_json = "1.0"
-actix-web = "3.3.1"
+actix-web = "3.3"
 rss = "1.9.0"
 reqwest = { version= "0.10.8", features = ["rustls-tls"] }
-askama = { version = "0.10.3", features=["with-actix-web"]}
+askama = { version = "0.10.5", features = ["with-actix-web"] }
 thiserror = "1.0.22"
 bcrypt = "0.9.0"
 anyhow = "1.0.34"
@@ -22,7 +22,7 @@ tokio-postgres = { version = "0.5.0" , features = ["with-chrono-0_4"] }
 tokio-pg-mapper = "0.1.8"
 tokio-pg-mapper-derive = "0.1.5"
 actix-files = "0.4.0"
-rand = "0.7.3"
+rand = "0.8"
 futures-util = "0.3.8"
 time = "0.2.22"
 email_address = "0.2.0"
@@ -33,6 +33,8 @@ env_logger = "0.8.1"
 chrono = "0.4.19"
 log = "0.4.11"
 askama_actix = "0.11.1"
+validator = {version = "0.12", features=["derive"] }
+isolang = "1.0.0"
 
 [dependencies.tokio]
 version = "0.2.23"

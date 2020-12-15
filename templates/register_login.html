@@ -2,13 +2,6 @@
 
 {% block content %}
 
-
     {% include "error_msg.html" %}
-
-    {% if template == TemplateName::Login %}
-        {% include "login_form.html" %}
-    {% else if template == TemplateName::Register %}
-        {% include "register_form.html" %}
-    {% endif %}
-
+    {% block inner_content %} {% endblock %}
 {% endblock %}

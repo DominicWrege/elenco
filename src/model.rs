@@ -1,25 +1,52 @@
 use chrono::offset::Utc;
 use chrono::{DateTime, Duration};
+use isolang::Language;
+use postgres_types::{FromSql, ToSql};
 use reqwest::Url;
+use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, convert::TryFrom};
 use tokio_pg_mapper_derive::PostgresMapper;
-
-use postgres_types::{FromSql, ToSql};
-
-#[derive(Debug, ToSql, FromSql)]
+#[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy)]
+#[postgres(name = "permission")]
 pub enum Permission {
+    #[postgres(name = "admin")]
     Admin,
+    #[postgres(name = "user")]
     User,
 }
-#[derive(Debug)]
-pub struct PreviewFeedContent<'a> {
-    pub url: &'a Url,
-    pub img: Option<Url>,
-    pub title: &'a str,
-    pub description: &'a str,
-    pub author: String,
-    pub episodes: Vec<EpisodePreview<'a>>,
+
+impl Default for Permission {
+    fn default() -> Self {
+        Self::User
+    }
 }
+
+#[derive(Debug, PostgresMapper, Serialize, Deserialize, Clone)]
+#[pg_mapper(table = "account")]
+pub struct Account {
+    username: String,
+    email: String,
+    #[serde(skip_serializing, skip_deserializing)]
+    password_hash: String,
+    id: i32,
+    pub permission: Permission,
+}
+
+impl Account {
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+    pub fn username(&self) -> &str {
+        self.username.as_str()
+    }
+    pub fn permission(&self) -> Permission {
+        self.permission
+    }
+    pub fn password_hash(&self) -> &str {
+        self.password_hash.as_str()
+    }
+}
+
 #[derive(Debug)]
 pub struct RawFeed<'a> {
     pub url: Url,
@@ -29,19 +56,34 @@ pub struct RawFeed<'a> {
     pub author: Option<&'a str>,
     pub episodes: Vec<EpisodeRow<'a>>,
     pub subtitle: Option<&'a str>,
-    pub language: Option<&'a str>,
+    pub language_code: Option<&'a str>,
     pub link_web: Url,
     pub categories: BTreeMap<&'a str, Vec<&'a str>>,
 }
 
-#[derive(Debug, PostgresMapper)]
+#[derive(Debug, PostgresMapper, Serialize)]
 #[pg_mapper(table = "feed")]
-pub struct FeedSmall2 {
+pub struct Feed {
+    pub id: i32,
+
+    pub url: String,
     pub title: String,
     pub img_path: String,
+    // TODO this is the creater not the submitter
     pub author_name: String,
     pub link_web: String,
+    // TODO enum is better than string
+    #[serde(skip_serializing)]
     pub status: String,
+    #[serde(skip_serializing)]
+    pub submitted: DateTime<Utc>,
+    #[serde(skip_serializing)]
+    pub last_modified: DateTime<Utc>,
+    pub description: String,
+    // TODO format this
+    pub language: String,
+    #[serde(skip_serializing)]
+    pub username: String,
 }
 
 impl<'a> RawFeed<'a> {
@@ -49,11 +91,20 @@ impl<'a> RawFeed<'a> {
         self.link_web.as_str()
     }
     pub fn url(&self) -> &str {
-        self.link_web.as_str()
+        self.url.as_str()
     }
     pub fn img_path(&self) -> Option<&str> {
         self.img_path.as_ref().and_then(|i| Some(i.as_str()))
     }
+    // pub fn flat_categories(&self, &str) -> String {
+    //     // self.categories
+    //     //     .iter()
+    //     //     .map(|(key, value)| value.iter())
+    //     //     .cloned()
+    //     //     .collect::<Vec<_>>()
+    //     //     .join(", ")
+
+    // }
 }
 #[derive(Debug)]
 pub struct EpisodeRow<'a> {
@@ -61,7 +112,7 @@ pub struct EpisodeRow<'a> {
     pub description: Option<&'a str>,
     pub published: Option<DateTime<Utc>>,
     pub keywords: Option<Vec<&'a str>>,
-    pub duration: Option<i32>,
+    pub duration: Option<i64>,
     pub show_notes: Option<&'a str>,
     pub url: Option<Url>,
     pub media_url: Url,
@@ -75,14 +126,19 @@ impl<'a> EpisodeRow<'a> {
     pub fn media_url(&self) -> &str {
         self.media_url.as_str()
     }
+    pub fn format_duration(&self) -> String {
+        if let Some(seconds) = self.duration {
+            let duration = chrono::Duration::seconds(seconds as i64);
+            let seconds = duration.num_seconds() % 60;
+            let minutes = (duration.num_seconds() / 60) % 60;
+            let hours = duration.num_hours();
+
+            format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
+        } else {
+            "None".to_string()
+        }
+    }
 }
-#[derive(Debug)]
-pub struct EpisodePreview<'a> {
-    pub title: &'a str,
-    pub link: Option<Url>,
-    pub duration: &'a str,
-}
-// TODO use
 
 impl<'a> RawFeed<'a> {
     fn parse_categories(feed: &'a rss::Channel) -> BTreeMap<&str, Vec<&str>> {
@@ -111,28 +167,29 @@ impl<'a> RawFeed<'a> {
     }
 }
 
-impl<'a> TryFrom<&'a rss::Channel> for RawFeed<'a> {
-    type Error = anyhow::Error;
-
-    fn try_from(feed: &'a rss::Channel) -> Result<Self, Self::Error> {
+impl<'a> RawFeed<'a> {
+    pub fn parse(feed: &'a rss::Channel, url: Url) -> Result<Self, anyhow::Error> {
         use super::podcast_util::{episode_list, parse_img_url};
 
         Ok(Self {
-            url: Url::parse(feed.link())?,
+            url,
             img_path: parse_img_url(&feed),
             title: feed.title(),
             description: feed.description(),
             author: feed.itunes_ext().and_then(|it| it.author()),
             episodes: episode_list(&feed),
             subtitle: feed.itunes_ext().and_then(|it| it.subtitle()),
-            language: feed.language(), // better lang codes?!
+            language_code: feed.language().map(|code| &code[..2]), // better lang codes?!
             link_web: Url::parse(feed.link())?,
             categories: Self::parse_categories(&feed),
         })
     }
+    pub fn language(&self) -> Option<Language> {
+        self.language_code
+            .and_then(|code| Language::from_639_1(code).or_else(|| Language::from_locale(code)))
+    }
 }
 
-// TODO return Err if shity input
 // TODO add Field Media Typ
 // TODO check iuntes show notes
 impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
@@ -140,27 +197,28 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
         Ok(Self {
-            title: item.title().expect("No title, FIX ME!!!!!"),
+            title: item
+                .title()
+                .ok_or_else(|| anyhow::format_err!("field title is required"))?,
             description: item.description().map(|d| d.into()),
             published: item.pub_date().and_then(|d| parse_datetime_rfc822(d).ok()),
             keywords: item
                 .itunes_ext()
-                .and_then(|it| it.keywords())
+                .and_then(|itunes| itunes.keywords())
                 .map(|k| k.split(",").collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
-                .and_then(|it| it.duration())
+                .and_then(|itunes| itunes.duration())
                 .and_then(|d| parse_duration_from_str(d))
-                .map(|x| x.num_seconds() as i32),
-            show_notes: item.content().or_else(|| {
-                item.itunes_ext()
-                    .and_then(|it| it.summary().and_then(|su| Some(su.into())))
-            }),
+                .map(|x| x.num_seconds() as i64),
+            show_notes: item
+                .content()
+                .or(item.itunes_ext().and_then(|itunes| itunes.summary())),
             url: item.link().and_then(|u| Url::parse(u).ok()),
             media_url: item
                 .enclosure()
                 .and_then(|e| Url::parse(e.url()).ok())
-                .expect("No Media, FIX ME!!!!!"),
+                .ok_or_else(|| anyhow::format_err!("field enclosure is required"))?,
             explicit: parse_explicit(item.itunes_ext()),
             guid: item.guid().map(|g| g.value()),
         })
@@ -172,21 +230,6 @@ fn parse_explicit(it_ext: Option<&rss::extension::itunes::ITunesItemExtension>) 
         it_ext.and_then(|ext| ext.explicit()),
         Some("Yes") | Some("yes") | Some("true") | Some("True") | Some("explicit")
     )
-}
-
-impl<'a> TryFrom<&'a rss::Item> for EpisodePreview<'a> {
-    type Error = anyhow::Error;
-
-    fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
-        Ok(Self {
-            title: item.title().unwrap_or_default(),
-            link: item.link().and_then(|u| Url::parse(u).ok()),
-            duration: item
-                .itunes_ext()
-                .and_then(|o| o.duration())
-                .unwrap_or_default(),
-        })
-    }
 }
 
 // after RFC https://tools.ietf.org/html/rfc822

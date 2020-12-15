@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ prefix }}/static/pure-min.css">
-    <link rel="stylesheet" href="{{ prefix }}/static/style.css">
-    <link rel="stylesheet" href="{{ prefix }}/static/modal-alert.css">
-    <script src="{{ prefix }}/static/script.js"></script>
+    <link rel="stylesheet" href="/static/pure-min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/modal-alert.css">
+    <script src="/static/script.js"></script>
     <title>{{ title }} Podcast Dir</title>
 </head>
 
@@ -20,12 +20,15 @@
             {% match permission %}
                 {% when Some with(p) %}
                         <li class="pure-menu-item">
-                            <a href="{{ prefix }}/profile" class="pure-menu-link">My Profile</a>
+                            <a href="{{ prefix }}/auth/profile" class="pure-menu-link">My Profile</a>
+                        </li>
+                        <li class="pure-menu-item">
+                            <a href="{{ prefix }}/auth/logout" class="pure-menu-link">Logout</a>
                         </li>
                     {% match p %}
                         {% when Permission::Admin %}
                             <li class="pure-menu-item">
-                                <a href="{{ prefix }}/admin/manage" class="pure-menu-link">Moderator</a>
+                                <a href="{{ prefix }}/auth/admin/manage" class="pure-menu-link">Moderator</a>
                             </li>
                         {% when Permission::User %}
                         {% endmatch%}

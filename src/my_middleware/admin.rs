@@ -5,7 +5,6 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{session, util};
 use actix_session::UserSession;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse};
 use actix_web::Error;
@@ -58,12 +57,13 @@ where
         let mut srv = self.service.clone();
         // let inner = self.inner.clone();
         use crate::db::admin::is_moderator;
-        use crate::session::SessionStorage;
+        use crate::model::Account;
         Box::pin(async move {
             let state = req.app_data::<web::Data<crate::State>>().unwrap();
             let db = &state.db_pool;
-            let user_id = SessionStorage::user_id(&req.get_session());
+            let user_id = Account::get_account(&req.get_session()).unwrap().id();
             //TODO
+            dbg!(&req.path());
             if let Ok(client) = db.get().await {
                 if let Ok(true) = is_moderator(&client, user_id).await {
                     return srv.call(req).await;

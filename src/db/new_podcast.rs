@@ -1,10 +1,12 @@
 use std::collections::BTreeMap;
 
-use crate::model::{EpisodeRow, RawFeed};
+use crate::{
+    inc_sql,
+    model::{EpisodeRow, RawFeed},
+};
 use deadpool_postgres::Client;
 
 use futures_util::future;
-use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Transaction;
 
 pub async fn insert_feed<'a>(
@@ -15,7 +17,7 @@ pub async fn insert_feed<'a>(
     let trx = client.transaction().await?;
     let autor_id = insert_or_get_author_id(&trx, feed_content.author).await;
 
-    let language = if let Some(lang) = feed_content.language {
+    let language = if let Some(lang) = feed_content.language_code {
         insert_or_get_language_id(&trx, lang).await.ok()
     } else {
         None
@@ -31,7 +33,7 @@ pub async fn insert_feed<'a>(
         )
         .await?;
 
-    let r = trx
+    let row = trx
         .query_one(
             &stmnt,
             &[
@@ -47,7 +49,7 @@ pub async fn insert_feed<'a>(
             ],
         )
         .await?;
-    let new_feed_id: i32 = r.get("id");
+    let new_feed_id: i32 = row.get("id");
 
     insert_feed_catagories(&trx, &feed_content.categories, new_feed_id).await?;
     insert_episodes(&trx, new_feed_id, &feed_content.episodes).await?;
@@ -55,42 +57,11 @@ pub async fn insert_feed<'a>(
     Ok(())
 }
 
-#[derive(Debug, PostgresMapper, serde::Serialize)]
-#[pg_mapper(table = "feed")]
-pub struct SmallFeed {
-    pub id: i32,
-    pub url: String,
-    pub img_path: Option<String>,
-    pub title: String,
-    pub description: String,
-    pub author_id: i32,
-}
-
 pub async fn insert_or_get_language_id(
     trx: &Transaction<'_>,
     category: &str,
 ) -> Result<i32, tokio_postgres::Error> {
-    let stmnt = trx
-        .prepare(
-            "
-            WITH inserted as (
-                INSERT INTO
-                feed_language(name)
-                VALUES
-                    ($1)
-                ON CONFLICT DO NOTHING
-                RETURNING ID
-            )
-            SELECT id FROM inserted
-        
-            UNION ALL
-        
-            SELECT id
-            FROM feed_language
-            WHERE name = $1
-    ",
-        )
-        .await?;
+    let stmnt = trx.prepare(inc_sql!("insert/language")).await?;
     let row = trx.query_one(&stmnt, &[&category]).await?;
     Ok(row.get("id"))
 }
@@ -117,28 +88,7 @@ async fn insert_feed_catagories(
 
 async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str>) -> Option<i32> {
     if let Some(name) = author_name {
-        let stmnt = trx
-            .prepare(
-                "
-            WITH inserted as (
-                INSERT INTO
-                    author(name)
-                VALUES
-                    ($1)
-                ON CONFLICT DO NOTHING
-                RETURNING ID
-            )
-            SELECT id FROM inserted
-        
-            UNION ALL
-        
-            SELECT id
-            FROM author
-            WHERE name = $1
-    ",
-            )
-            .await
-            .ok();
+        let stmnt = trx.prepare(inc_sql!("insert/author")).await.ok();
         if let Some(s) = stmnt {
             return trx
                 .query_one(&s, &[&name])
@@ -170,17 +120,7 @@ async fn insert_one_episode(
     feed_id: i32,
     ep: &EpisodeRow<'_>,
 ) -> Result<(), tokio_postgres::Error> {
-    let stmnt = trx
-        .prepare(
-            "
-        INSERT INTO  
-            episode(title, description, published, explicit, keywords, 
-                    duration, show_notes, url, media_url, feed_id )
-            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-
-    ",
-        )
-        .await?;
+    let stmnt = trx.prepare(inc_sql!("insert/episode")).await?;
     trx.execute(
         &stmnt,
         &[
@@ -219,41 +159,8 @@ async fn insert_or_get_category_id(
     category: &str,
     parent_id: Option<i32>,
 ) -> Result<i32, tokio_postgres::Error> {
-    const WITHOUT_PARENT: &str = "
-        WITH inserted as (
-            INSERT INTO
-            category(description)
-            VALUES
-                ($1)
-            ON CONFLICT DO NOTHING
-            RETURNING ID
-        )
-        SELECT id FROM inserted
-
-        UNION ALL
-
-        SELECT id
-        FROM category
-        WHERE description = $1
-    ";
-    const WITH_PARENT: &str = "
-        WITH inserted as (
-            INSERT INTO
-            category(description, parent_id)
-            VALUES
-                ($1,$2)
-            ON CONFLICT DO NOTHING
-            RETURNING ID
-        )
-        SELECT id FROM inserted
-
-        UNION ALL
-
-        SELECT id
-        FROM category
-        WHERE description = $1
-    ";
-
+    const WITHOUT_PARENT: &str = inc_sql!("insert/category");
+    const WITH_PARENT: &str = inc_sql!("insert/category_with_parent");
     let stmnt = trx
         .prepare(if parent_id.is_some() {
             WITH_PARENT

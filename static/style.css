@@ -1,6 +1,7 @@
 main {
 	display: grid;
-	justify-content: center;
+    justify-content: center;
+    padding: 0 2rem;
 }
 
 input {
@@ -22,6 +23,7 @@ label {
 }
 
 .error-msg {
+    max-width: 500px;
 	margin-top: 1.5em;
 	padding: 1em;
 	word-wrap: normal;
@@ -51,7 +53,7 @@ body {
 }
 
 .podcast-container img {
-	max-height: 15rem;
+	max-height: 12rem;
 }
 
 .width100 {
@@ -65,7 +67,7 @@ button.width100 {
 .podcast-container {
 	display: grid;
 	grid-template-columns: 16em 32em;
-	grid-column-gap: 1.5em;
+	grid-column-gap: 0.2rem;
 	margin-top: 2rem;
 }
 
@@ -108,6 +110,7 @@ tbody tr:nth-child(even) {
 	width: 85vw;
 }
 .card {
+    max-width: 50vw;
     background-color: #fff;
 	border-radius: 3px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
@@ -169,3 +172,41 @@ form button {
     left: 0;
     background-color: #e0e0e0;
 }
+
+
+.error-page {
+    margin-top: 9rem;
+}
+
+.button-success {
+    background: rgb(28, 184, 65);
+    /* this is a green */
+}
+
+.button-error {
+    background: #f44336;
+}
+
+.button-secondary {
+    background: rgb(66, 184, 221);
+}
+.button-small {
+    font-size: 85%;
+}
+
+table.pure-table button {
+    margin: 0.5em;
+    color: #fff;
+}
+
+p.sub-category {
+    margin-left: 2em;
+}
+
+
+
+/* div.podcast-details{
+    grid-row: 2;
+    position: relative;
+    bottom: 65px;
+} */

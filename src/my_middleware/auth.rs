@@ -44,15 +44,9 @@ where
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        use crate::session::SessionStorage;
-        match SessionStorage::get(&req.get_session()) {
+        use crate::model::Account;
+        match Account::get_account(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
-            None if req.path().starts_with("/web") && req.path().contains("/login")
-                || req.path().contains("/static")
-                || req.path().contains("/register") =>
-            {
-                Either::Left(self.service.call(req))
-            }
             None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
         }
     }

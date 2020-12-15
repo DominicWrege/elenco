@@ -1,18 +1,25 @@
 use crate::{
-    db::{api::fetch_feeds, api::fetch_feeds_by_name, api::DbError, new_podcast::SmallFeed},
+    db::{api::fetch_feeds, api::fetch_feeds_by_name},
+    model::Feed,
     State,
 };
-use actix_web::{web, web::Json};
 
+use crate::db::error::DbError;
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::StatusCode;
+use actix_web::{web, web::Json};
+use std::convert::From;
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ApiError {
-    #[error("Internal error: {0}")]
-    General(#[from] anyhow::Error),
     #[error("DB error: {0}")]
     DB(#[from] DbError),
+}
+
+impl From<deadpool_postgres::PoolError> for ApiError {
+    fn from(error: deadpool_postgres::PoolError) -> Self {
+        Self::DB(DbError::Deadpool(error))
+    }
 }
 #[derive(Debug, serde::Serialize)]
 pub struct JsonError {
@@ -30,19 +37,15 @@ impl actix_web::ResponseError for ApiError {
     }
 }
 
-type ApiFeedsResponse = Result<Json<Vec<SmallFeed>>, ApiError>;
-
-pub async fn all_feeds(state: web::Data<State>) -> ApiFeedsResponse {
-    Ok(Json(
-        fetch_feeds(&mut state.db_pool.get().await.unwrap()).await?,
-    ))
+pub async fn all_feeds(state: web::Data<State>) -> Result<Json<Vec<Feed>>, ApiError> {
+    let mut client = state.db_pool.get().await?;
+    Ok(Json(fetch_feeds(&mut client).await?))
 }
 
 pub async fn feeds_by_name(
     web::Path(title): web::Path<String>,
     state: web::Data<State>,
-) -> ApiFeedsResponse {
-    Ok(Json(
-        fetch_feeds_by_name(&state.db_pool.get().await.unwrap(), &title).await?,
-    ))
+) -> Result<Json<Vec<Feed>>, ApiError> {
+    let mut client = state.db_pool.get().await?;
+    Ok(Json(fetch_feeds_by_name(&mut client, &title).await?))
 }

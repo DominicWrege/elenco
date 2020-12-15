@@ -1,36 +1,38 @@
 use askama::Template;
 use thiserror::Error;
 
-use actix_web::{dev::HttpResponseBuilder, HttpResponse, ResponseError};
-
-use crate::template::FeedPreviewSite;
+use crate::{
+    generic_handler_err,
+    template::{self},
+};
 use actix_web::http::StatusCode;
+use actix_web::{HttpResponse, ResponseError};
+
+// #[derive(Debug, Error)]
+// pub enum GeneralError {
+//     #[error("Internal error")]
+//     Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
+// }
 
 #[derive(Debug, Error)]
-pub enum HttpError {
-    #[error("An Invalid RSS Feed was provided!. {0}")]
-    InvalidRssFeed(#[from] rss::Error),
-    #[error("{0}")]
-    Connection(#[from] reqwest::Error),
-    #[error("DB error: {0}")]
-    DB(#[from] anyhow::Error),
-    #[error("Template error: {0}")]
-    Template(#[from] actix_web::Error),
-}
+#[error("Internal error")]
+pub struct GeneralError(Box<dyn std::error::Error + Send + Sync + 'static>);
 
-impl ResponseError for HttpError {
+generic_handler_err!(GeneralError, GeneralError);
+
+impl ResponseError for GeneralError {
     fn status_code(&self) -> StatusCode {
-        StatusCode::BAD_REQUEST
+        StatusCode::INTERNAL_SERVER_ERROR
     }
 
     fn error_response(&self) -> HttpResponse {
-        log::error!("{:#?}", &self);
-        HttpResponseBuilder::new(self.status_code())
-            .content_type("text/html")
-            .body(
-                FeedPreviewSite::new(None, Some(self.to_string()))
-                    .render()
-                    .unwrap(),
-            )
+        HttpResponse::build(self.status_code()).body(
+            template::ErrorSite {
+                status_code: self.status_code(),
+                permission: None,
+            }
+            .render()
+            .unwrap(),
+        )
     }
 }

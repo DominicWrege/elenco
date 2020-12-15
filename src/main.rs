@@ -7,11 +7,13 @@ mod routes;
 mod util;
 use deadpool_postgres::Pool;
 use rand::Rng;
+mod macros;
 mod model;
 mod my_middleware;
 mod podcast_util;
 mod session;
 mod template;
+
 #[derive(Clone)]
 pub struct State {
     db_pool: Pool,
@@ -27,9 +29,10 @@ async fn run() -> Result<(), anyhow::Error> {
     let _private_key = rand::thread_rng().gen::<[u8; 32]>();
     HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
             .data(state.clone())
             .wrap(middleware::Compress::default())
+            .wrap(Logger::new("ip: %a status: %s time: %Dms req: %r"))
+            .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .route("/", web::get().to(|| util::redirect("/login")))
             .service(
                 web::scope("/api")
@@ -41,8 +44,6 @@ async fn run() -> Result<(), anyhow::Error> {
             )
             .service(
                 web::scope("/web")
-                    .service(actix_files::Files::new("/static", "./static").show_files_listing())
-                    .wrap(my_middleware::auth::CheckLogin)
                     .wrap(
                         CookieSession::private(&[1; 32])
                             .name("auth")
@@ -53,11 +54,12 @@ async fn run() -> Result<(), anyhow::Error> {
                             .same_site(SameSite::Strict)
                             .lazy(true),
                     )
-                    .configure(routes::register_auth_routes)
+                    .configure(routes::login_register)
                     .service(
-                        web::scope("/admin")
-                            .wrap(my_middleware::admin::Moderator)
-                            .route("/manage", web::get().to(handler::moderator::manage)),
+                        web::scope("/auth")
+                            .wrap(my_middleware::auth::CheckLogin)
+                            .configure(routes::user)
+                            .configure(routes::admin),
                     ),
             )
     })

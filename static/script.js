@@ -1,4 +1,4 @@
-function showCustomAlter(message, type) {
+function showCustomAltert(message, type) {
     const alertElement = document.querySelector("div#modal-alert");
     if (alertElement) {
         alertElement.textContent = message;
@@ -14,6 +14,6 @@ function showCustomAlter(message, type) {
     }
 }
 
-window.addEventListener("load", () => {
-    // showCustomAlter("This is an Alert!", "ok");
-});
+// window.addEventListener("load", () => {
+//     showCustomAltert("This is an Alert!", "ok");
+// });

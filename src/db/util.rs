@@ -3,7 +3,7 @@ use tokio_postgres::{tls::NoTlsStream, Socket};
 
 mod embedded {
     use refinery::embed_migrations;
-    embed_migrations!("./migrations");
+    embed_migrations!("./sql/migrations");
 }
 
 struct DBContext {

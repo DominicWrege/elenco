@@ -1,9 +1,95 @@
 {% extends "base.html" %}
-
 {% block content %}
+<script src="/static/manage.js"></script>
+<div>
+<h2>Feeds For Review</h2>
+    {% if queued_feeds.len() > 0 -%}
+        <table class="pure-table">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>title</th>
+                    <th>author</th>
+                    <th>username</th>
+                    <th>website</th>
+                    <th>description</th>
+                    <th>submitted</th>
+                    <th>action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for feed in queued_feeds %}
+                <tr>
+                    <td class="feed-id">{{ feed.id }}</td>
+                    <td>{{ feed.title }}</td>
+                    <td>{{ feed.author_name }}</td>
+                    <td>
+                        {{ feed.username }}
+                    </td>
+                    <td><a href="{{ feed.link_web }}">website</a></td>
+                    <td>
+                        <p>
+                            {{ feed.description }}
+                        </p>
+                    </td>
+                    <td>
+                        {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%g")}}
+                    </td>
+                    <td class="action">
+                        <button class="allow button-small button-success pure-button">Allow</button>
+                        <button class="reject button-small button-error pure-button">Reject</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else -%}
+        <p>Inbox Zero. :D</p> 
+    {% endif -%}
+</div>
+<br>
+<div>
+    <h2>Last 5 Reviewed Feeds</h2>
+    {% if review_feeds.len() > 0 -%}
+        <table class="pure-table">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>title</th>
+                    <th>author</th>
+                    <th>username</th>
+                    <th>website</th>
+                    <th>description</th>
+                    <th>submitted</th>
+                    <th>reviewed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for feed in review_feeds %}
+                <tr>
+                    <td class="feed-id">{{ feed.id }}</td>
+                    <td>{{ feed.title }}</td>
+                    <td>{{ feed.author_name }}</td>
+                    <td>
+                        {{ feed.username }}
+                    </td>
+                    <td><a href="{{ feed.link_web }}">website</a></td>
+                    <td>
+                        <p>
+                            {{ feed.description }}
+                        </p>
+                    </td>
+                    <td>
+                        {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%g")}}
+                    </td>
+                    <td>
+                        {{ feed.last_modified.time().format("%H:%M") }}, {{feed.last_modified.date().format("%d.%m.%g")}}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif -%}
 
-<h2>Modertor!!1111111</h2>
-<h2><em>Mach dich kapuut!1</em></h2>
-<p>🐊🐊🐊🐊🐊🐊🐊</p>
-    
-{% endblock %}
+</div>
+{% endblock %}:
