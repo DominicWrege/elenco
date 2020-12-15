@@ -1,3 +1,4 @@
+use crate::model::Permission;
 use crate::{
     model::{FeedSmall2, PreviewFeedContent},
     podcast_util::{episode_list, parse_author, parse_img_url},
@@ -5,13 +6,12 @@ use crate::{
 use actix_web::{dev::HttpResponseBuilder, HttpResponse};
 use askama_actix::Template;
 use reqwest::Url;
-
 #[derive(Template)]
 #[template(path = "register_login.html")]
 pub struct RegisterLogin<'a> {
     error_msg: Option<&'a str>,
     template: TemplateName,
-    status: bool,
+    permission: Option<Permission>,
 }
 
 impl<'a> RegisterLogin<'a> {
@@ -19,7 +19,7 @@ impl<'a> RegisterLogin<'a> {
         Self {
             template,
             error_msg,
-            status: false,
+            permission: None,
         }
     }
 
@@ -40,7 +40,7 @@ pub enum TemplateName {
 #[template(path = "profile.html")]
 pub struct ProfileSite {
     pub username: String,
-    pub status: bool,
+    pub permission: Option<Permission>,
     pub submitted_feeds: Vec<FeedSmall2>,
 }
 
@@ -48,14 +48,14 @@ pub struct ProfileSite {
 #[template(path = "feed_form.html")]
 pub struct FeedPreviewSite<'a> {
     metadata: Option<PreviewFeedContent<'a>>,
-    status: bool,
+    permission: Option<Permission>,
     error_msg: Option<String>,
 }
 
 #[derive(Template, Debug)]
 #[template(path = "moderator.html")]
 pub struct ModeratorSite {
-    pub status: bool,
+    pub permission: Option<Permission>,
 }
 
 impl<'a> FeedPreviewSite<'a> {
@@ -65,7 +65,7 @@ impl<'a> FeedPreviewSite<'a> {
     ) -> FeedPreviewSite<'a> {
         FeedPreviewSite {
             metadata,
-            status: true,
+            permission: Some(Permission::User),
             error_msg: err,
         }
     }

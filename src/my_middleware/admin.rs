@@ -63,7 +63,7 @@ where
             let state = req.app_data::<web::Data<crate::State>>().unwrap();
             let db = &state.db_pool;
             let user_id = SessionStorage::user_id(&req.get_session());
-
+            //TODO
             if let Ok(client) = db.get().await {
                 if let Ok(true) = is_moderator(&client, user_id).await {
                     return srv.call(req).await;

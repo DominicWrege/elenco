@@ -17,22 +17,29 @@
         <span class="pure-menu-heading"><b>{{ title }}</b></span>
         <ul class="pure-menu-list">
 
-            {% if status %}
-                <li class="pure-menu-item">
-                    <a href="{{ prefix }}/profile" class="pure-menu-link">My Profile</a>
-                </li>
-            {% else %}
-                <li class="pure-menu-item">
-                    <a href="{{ prefix }}/login" class="pure-menu-link">Login</a>
-                </li>
-            <li class="pure-menu-item">
-                <a href="{{ prefix }}/register" class="pure-menu-link">Register</a>
-            </li>
-            {% endif %}
+            {% match permission %}
+                {% when Some with(p) %}
+                        <li class="pure-menu-item">
+                            <a href="{{ prefix }}/profile" class="pure-menu-link">My Profile</a>
+                        </li>
+                    {% match p %}
+                        {% when Permission::Admin %}
+                            <li class="pure-menu-item">
+                                <a href="{{ prefix }}/admin/manage" class="pure-menu-link">Moderator</a>
+                            </li>
+                        {% when Permission::User %}
+                        {% endmatch%}
+                    {% when None %}
+                        <li class="pure-menu-item">
+                            <a href="{{ prefix }}/login" class="pure-menu-link">Login</a>
+                        </li>
+                        <li class="pure-menu-item">
+                            <a href="{{ prefix }}/register" class="pure-menu-link">Register</a>
+                        </li>
+            {% endmatch %}
             <li class="pure-menu-item">
                 <a href="/api/feeds" target="_blank" class="pure-menu-link">API (Feeds)</a>
             </li>
-
         </ul>
     </div>
     <main>{% block content %} {% endblock %}</main>
