@@ -37,6 +37,11 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
             .route(
                 "/update-feed-status",
                 web::patch().to(handler::moderator::review_feed),
+            )
+            .service(
+                web::resource("register")
+                    .route(web::post().to(handler::moderator::register))
+                    .route(web::get().to(handler::moderator::register_site)),
             ),
     );
 }

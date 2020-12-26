@@ -1,9 +1,14 @@
-use super::error::GeneralError;
+use super::{
+    auth::{new_account, RegisterError, RegisterForm},
+    error::GeneralError,
+};
 use crate::{
     db::admin::{queued_feeds, reviewed_feed},
     inc_sql,
     model::Permission,
-    template, State,
+    template::{self, RegisterModerator},
+    util::redirect,
+    State,
 };
 use actix_web::{
     web::{self, Data},
@@ -11,10 +16,7 @@ use actix_web::{
 };
 use postgres_types::{FromSql, ToSql};
 use serde::Deserialize;
-pub async fn manage(
-    _ses: actix_session::Session,
-    state: Data<State>,
-) -> Result<template::ModeratorSite, GeneralError> {
+pub async fn manage(state: Data<State>) -> Result<template::ModeratorSite, GeneralError> {
     let mut client = state.db_pool.get().await?;
     Ok(template::ModeratorSite {
         permission: Some(Permission::Admin),
@@ -45,12 +47,25 @@ pub async fn review_feed(
     state: Data<State>,
 ) -> Result<HttpResponse, GeneralError> {
     let Payload { action, feed_id } = json.into_inner();
-    dbg!(&feed_id);
-    dbg!(&action);
     let mut client = state.db_pool.get().await?;
     let trx = client.transaction().await?;
     let stmnt = trx.prepare(inc_sql!("update/review_feed")).await?;
     trx.execute(&stmnt, &[&action, &feed_id]).await?;
     trx.commit().await?;
     Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn register(
+    form: web::Form<RegisterForm>,
+    state: Data<State>,
+) -> Result<HttpResponse, RegisterError> {
+    let mut client = state.db_pool.get().await?;
+    new_account(&mut client, &form, Permission::Admin).await?;
+    Ok(redirect("/auth/admin/manage"))
+}
+
+pub async fn register_site() -> RegisterModerator {
+    RegisterModerator {
+        permission: Some(Permission::Admin),
+    }
 }

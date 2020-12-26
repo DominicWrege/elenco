@@ -2,12 +2,13 @@ use std::fmt::Display;
 
 use crate::{
     generic_handler_err, hide_internal, inc_sql,
-    model::Account,
+    model::{Account, Permission},
     template::{self},
     validation_handler_err, wrap_err,
 };
 use crate::{util::redirect, State};
 use actix_web::{web, HttpResponse, ResponseError};
+use tokio_postgres::Client;
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
 use crate::template::LoginRegister;
@@ -132,16 +133,29 @@ pub async fn register(
 ) -> Result<HttpResponse, RegisterError> {
     form.validate()?;
     let mut client = state.db_pool.get().await?;
+    new_account(&mut client, &form, Permission::User).await?;
+    Ok(redirect("/login"))
+}
+
+pub async fn new_account(
+    client: &mut Client,
+    form: &RegisterForm,
+    permission: Permission,
+) -> Result<(), RegisterError> {
     let trx = client.transaction().await?;
     let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
+
     let stmt = trx
-        .prepare("INSERT INTO Account(username, password_hash, email) Values($1, $2, $3)")
+        .prepare("INSERT INTO Account(username, password_hash, email, account_type) Values($1, $2, $3, $4)")
         .await?;
-    trx.execute(&stmt, &[&form.username, &pwd_hash, &form.email])
-        .await
-        .map_err(|_e| RegisterError::EmailOrUsernameExists)?;
-    trx.commit().await?;
-    Ok(redirect("/login"))
+    trx.execute(
+        &stmt,
+        &[&form.username, &pwd_hash, &form.email, &permission],
+    )
+    .await
+    .map_err(|_e| RegisterError::EmailOrUsernameExists)?;
+
+    Ok(())
 }
 
 pub async fn login_site() -> HttpResponse {

@@ -13,8 +13,8 @@ impl Account {
         session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
     }
     pub fn forget(session: &Session) {
+        session.purge();
         session.remove(SESSION_KEY_ACCOUNT);
-        session.clear();
     }
 }
 

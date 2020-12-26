@@ -5,17 +5,21 @@
 
 <h2>My Podcasts</h2>
 <div class="feed-list-grid">
-    {% for feed in submitted_feeds %}
-        <div class="card">
-            <img src="{{ feed.img_path }}"></img>
-            <div>
-                <a href="{{feed.link_web }}" target="_blank"><h3>{{ feed.title }}</h3></a>
-                <small>{{ feed.author_name }}</small>
-                <p>Status: {{ feed.status }}</p>
+    {% if submitted_feeds.len() == 0  -%}
+        <p>Looks like have zero submitted Podcasts. Click here to submit a <a href="new-feed">new Podcast.</a></p>
+    {% else -%}
+        {% for feed in submitted_feeds %}
+            <div class="card">
+                <img src="{{ feed.img_path }}"></img>
+                <div>
+                    <a href="{{feed.link_web }}" target="_blank"><h3>{{ feed.title }}</h3></a>
+                    <small>{{ feed.author_name }}</small>
+                    <p>Status: {{ feed.status }}</p>
+                </div>
+                
             </div>
-            
-        </div>
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
 </div>
 
 

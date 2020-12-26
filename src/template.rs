@@ -2,7 +2,6 @@ use crate::model::Feed;
 use crate::model::{Permission, RawFeed};
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};
-use chrono;
 
 #[derive(Template, Default)]
 #[template(path = "register.html")]
@@ -32,10 +31,13 @@ pub struct ErrorSite {
     pub permission: Option<Permission>,
 }
 
+#[derive(Template)]
+#[template(path = "register_moderator.html")]
+pub struct RegisterModerator {
+    pub permission: Option<Permission>,
+}
+
 pub trait LoginRegister: TemplateIntoResponse + Template {
-    fn bad_request(&self) -> HttpResponse {
-        HttpResponse::BadRequest().body(self.render().unwrap())
-    }
     fn response(&self, status_code: StatusCode) -> Result<HttpResponse, askama::Error> {
         Ok(HttpResponse::build(status_code)
             .content_type("text/html")
