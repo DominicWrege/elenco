@@ -14,7 +14,7 @@ pub async fn fetch_feeds(client: &mut Client) -> Result<Vec<Feed>, DbError> {
 pub async fn fetch_feeds_by_name(client: &Client, name: &str) -> Result<Vec<Feed>, DbError> {
     let stmnt = client
         .prepare(
-            "SELECT id, url, img_path, title, description, author_id FROM feed WHERE title LIKE concat('%', $1::text,'%') ORDER BY id",
+            "select * from AllFeeds WHERE status = 'online' AND title LIKE concat('%', $1::text,'%') ORDER BY id",
         )
         .await?;
     let rows = client.query(&stmnt, &[&name.to_string()]).await?;

@@ -20,10 +20,13 @@
             {% match permission %}
                 {% when Some with(p) %}
                         <li class="pure-menu-item">
+                            <a href="{{ prefix }}/auth/logout" class="pure-menu-link">Logout</a>
+                        </li>
+                        <li class="pure-menu-item">
                             <a href="{{ prefix }}/auth/profile" class="pure-menu-link">My Profile</a>
                         </li>
                         <li class="pure-menu-item">
-                            <a href="{{ prefix }}/auth/logout" class="pure-menu-link">Logout</a>
+                            <a href="{{ prefix }}/auth/new-feed" class="pure-menu-link">New Podcast</a>
                         </li>
                     {% match p %}
                         {% when Permission::Admin %}

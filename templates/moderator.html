@@ -49,7 +49,7 @@
 </div>
 <br>
 <div>
-    <h2>Last 5 Reviewed Feeds</h2>
+    <h2>Last 10 Reviewed Feeds</h2>
     {% if review_feeds.len() > 0 -%}
         <table class="pure-table">
             <thead>
@@ -76,7 +76,7 @@
                     <td><a href="{{ feed.link_web }}">website</a></td>
                     <td>
                         <p>
-                            {{ feed.description }}
+                            {{ feed.description | safe }}
                         </p>
                     </td>
                     <td>

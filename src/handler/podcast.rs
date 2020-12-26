@@ -3,6 +3,7 @@ use crate::{
     model::{Account, Permission},
     session::{cache_feed_url, feed_url},
     template::FeedPreviewSite,
+    util::redirect,
 };
 use crate::{model::RawFeed, State};
 use actix_session::Session;
@@ -65,9 +66,8 @@ pub async fn save_feed(
     let channel = rss::Channel::read_from(feed_bytes)?;
     let raw_feed = RawFeed::parse(&channel, feed_url)?;
     insert_feed(&mut state.db_pool.get().await?, &raw_feed, user_id).await?;
-    Ok(HttpResponse::Found()
-        .header(http::header::LOCATION, "/auth/profile")
-        .finish())
+
+    Ok(redirect("/auth/profile"))
 }
 
 pub async fn feed_preview(
