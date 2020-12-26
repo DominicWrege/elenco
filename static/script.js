@@ -14,6 +14,15 @@ function showCustomAltert(message, type) {
     }
 }
 
-// window.addEventListener("load", () => {
-//     showCustomAltert("This is an Alert!", "ok");
-// });
+window.addEventListener("load", () => {
+    highlightSeletcedMenu();
+});
+
+function highlightSeletcedMenu() {
+    let path = location.pathname;
+    if (path.indexOf("/web/auth/admin") === 0) {
+        path = "/web/auth/admin/manage";
+    }
+    const link = document.querySelector(`ul.pure-menu-list a.pure-menu-link[href='${path}']`).parentElement;
+    link.classList.add("pure-menu-selected");
+}

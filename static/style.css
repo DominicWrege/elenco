@@ -1,7 +1,14 @@
+body{
+    display: flex;
+}
+
 main {
-	display: grid;
+    padding: 2rem;
+    width: 100%;
+    height: 100%;
+    margin-left: 180px;
+    display: grid;
     justify-content: center;
-    padding: 1rem 2rem;
 }
 
 input {
@@ -36,8 +43,30 @@ body {
     background: #f3f4f573;
 }
 .menu {
-	background: #efefef;
-	padding: 0.5em;
+    background: #efefef;
+    padding: 0.5em;
+    width: 180px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+}
+
+span.pure-menu-heading h2{
+    margin-inline-end: 0;
+    margin: 0;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    letter-spacing: 0.1em;
+    font-size: 1.5em;
+}
+
+.menu ul li {
+    margin-top: 1rem;
+}
+
+ul.pure-menu-list li.pure-menu-selected{
+    font-weight: bold;
 }
 
 .mr-1em {
@@ -203,11 +232,12 @@ p.sub-category {
     margin-left: 2em;
 }
 
-.pure-menu-horizontal .pure-menu-list {
-    /* display: inline-block; */
-    display: inline-flex;
-    /* flex-direction: revert; */
-    flex-direction: row-reverse;
+.menu ul.pure-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 /* div.podcast-details{
@@ -215,3 +245,10 @@ p.sub-category {
     position: relative;
     bottom: 65px;
 } */
+
+h2{
+    font-size: 1.25em;
+}
+h3 {
+    font-size: 1.1em;
+}
