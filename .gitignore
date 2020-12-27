@@ -29,3 +29,4 @@ __pycache__/
 /llvm/
 /mingw-build/
 /src/tools/x/target
+img-cache

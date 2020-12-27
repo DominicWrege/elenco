@@ -1,63 +1,91 @@
 use std::collections::BTreeMap;
 
-use crate::{
-    inc_sql,
-    model::{EpisodeRow, RawFeed},
-};
+use crate::handler::feed_preview::PreviewError;
+use crate::model::episode::EpisodeRow;
+use crate::model::feed::RawFeed;
+use crate::{img_cache::RowImg, inc_sql};
 use deadpool_postgres::Client;
-
 use futures_util::future;
 use tokio_postgres::Transaction;
+#[derive(Debug)]
+struct Context<'a> {
+    user: &'a i32,
+    autor: &'a Option<i32>,
+    language: &'a Option<i32>,
+    img: &'a Option<i32>,
+    feed: &'a RawFeed<'a>,
+}
 
-pub async fn insert_feed<'a>(
+pub async fn save(
     client: &mut Client,
-    feed_content: &RawFeed<'a>,
+    feed_content: &RawFeed<'_>,
     user_id: i32,
-) -> Result<(), anyhow::Error> {
+    img: Option<RowImg>,
+) -> Result<(), PreviewError> {
     let trx = client.transaction().await?;
     let autor_id = insert_or_get_author_id(&trx, feed_content.author).await;
-
     let language = if let Some(lang) = feed_content.language_code {
         insert_or_get_language_id(&trx, lang).await.ok()
     } else {
         None
     };
-    let stmnt = trx
-        .prepare(
-            "
-                INSERT INTO feed(
-                    submitter_id, author_id, title, img_path, 
-                    description, subtitle, url, language, link_web
-                )
-                VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
-        )
-        .await?;
+
+    let img_id: Option<i32> = if let Some(img) = img {
+        insert_or_get_img_id(&trx, &img).await.ok()
+    } else {
+        None
+    };
+
+    let context = Context {
+        user: &user_id,
+        autor: &autor_id,
+        language: &language,
+        img: &img_id,
+        feed: feed_content,
+    };
+    let feed_id = insert_feed(&trx, &context).await?;
+    future::try_join(
+        insert_feed_catagories(&trx, &feed_content.categories, feed_id),
+        insert_episodes(&trx, feed_id, &feed_content.episodes),
+    )
+    .await?;
+    trx.commit().await?;
+    Ok(())
+}
+
+async fn insert_feed(trx: &Transaction<'_>, context: &Context<'_>) -> Result<i32, PreviewError> {
+    let stmnt = trx.prepare(inc_sql!("insert/feed")).await?;
 
     let row = trx
         .query_one(
             &stmnt,
             &[
-                &user_id,
-                &autor_id,
-                &feed_content.title,
-                &feed_content.img_path(),
-                &feed_content.description,
-                &feed_content.subtitle,
-                &feed_content.url(),
-                &language,
-                &feed_content.link_web(),
+                &context.user,
+                context.autor,
+                &context.feed.title,
+                &context.feed.description,
+                context.img,
+                &context.feed.subtitle,
+                &context.feed.url(),
+                context.language,
+                &context.feed.link_web(),
             ],
         )
         .await?;
-    let new_feed_id: i32 = row.get("id");
-
-    insert_feed_catagories(&trx, &feed_content.categories, new_feed_id).await?;
-    insert_episodes(&trx, new_feed_id, &feed_content.episodes).await?;
-    trx.commit().await?;
-    Ok(())
+    Ok(row.get("id"))
 }
 
-pub async fn insert_or_get_language_id(
+async fn insert_or_get_img_id(trx: &Transaction<'_>, img: &RowImg) -> Result<i32, PreviewError> {
+    let stmnt = trx.prepare(inc_sql!("insert/img")).await?;
+
+    let row = trx
+        .query_one(&stmnt, &[&img.link.as_ref(), &img.hash, &img.filename])
+        .await?;
+
+    Ok(row.get("id"))
+}
+
+async fn insert_or_get_language_id(
     trx: &Transaction<'_>,
     category: &str,
 ) -> Result<i32, tokio_postgres::Error> {

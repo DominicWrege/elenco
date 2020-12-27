@@ -1,26 +1,18 @@
-use crate::{
-    db::{api::fetch_feeds, api::fetch_feeds_by_name},
-    model::Feed,
-    State,
-};
-
-use crate::db::error::DbError;
+use crate::{db::rows_into_vec, inc_sql, model::feed::Feed};
+use crate::{model::api::Category, State};
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::http::StatusCode;
 use actix_web::{web, web::Json};
-use std::convert::From;
+use serde_json;
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ApiError {
-    #[error("DB error: {0}")]
-    DB(#[from] DbError),
+    #[error("Other error: {0}")]
+    Tokio(#[from] tokio_postgres::Error),
+    #[error("Pool error: {0}")]
+    Pool(#[from] deadpool_postgres::PoolError),
 }
 
-impl From<deadpool_postgres::PoolError> for ApiError {
-    fn from(error: deadpool_postgres::PoolError) -> Self {
-        Self::DB(DbError::Deadpool(error))
-    }
-}
 #[derive(Debug, serde::Serialize)]
 pub struct JsonError {
     error: String,
@@ -38,14 +30,44 @@ impl actix_web::ResponseError for ApiError {
 }
 
 pub async fn all_feeds(state: web::Data<State>) -> Result<Json<Vec<Feed>>, ApiError> {
-    let mut client = state.db_pool.get().await?;
-    Ok(Json(fetch_feeds(&mut client).await?))
+    let client = state.db_pool.get().await?;
+    let rows = client.query(inc_sql!("get/all_feeds"), &[]).await?;
+    Ok(Json(rows_into_vec(rows)))
 }
 
 pub async fn feeds_by_name(
     web::Path(title): web::Path<String>,
     state: web::Data<State>,
 ) -> Result<Json<Vec<Feed>>, ApiError> {
-    let mut client = state.db_pool.get().await?;
-    Ok(Json(fetch_feeds_by_name(&mut client, &title).await?))
+    let client = state.db_pool.get().await?;
+    let stmnt = client
+    .prepare(
+        "select * from AllFeeds WHERE status = 'online' AND title LIKE concat('%', $1::text,'%') ORDER BY id",
+    )
+    .await?;
+    let rows = client.query(&stmnt, &[&title.to_string()]).await?;
+    Ok(Json(rows_into_vec(rows)))
+}
+
+pub async fn all_categories(state: web::Data<State>) -> Result<Json<Vec<Category>>, ApiError> {
+    let client = state.db_pool.get().await?;
+
+    let stmnt = inc_sql!("get/all_categories");
+
+    let rows = client.query(stmnt, &[]).await?;
+    let categories = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
+
+    Ok(Json(categories))
+}
+
+pub async fn category_by_id(
+    state: web::Data<State>,
+    path: web::Path<i32>,
+) -> Result<Json<Category>, ApiError> {
+    let client = state.db_pool.get().await?;
+    let category_id = path.into_inner();
+    let stmnt = client.prepare(inc_sql!("get/category_by_id")).await?;
+    let row = client.query_one(&stmnt, &[&category_id]).await?;
+
+    Ok(Json(row.into()))
 }

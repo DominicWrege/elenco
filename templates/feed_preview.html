@@ -1,25 +1,25 @@
-{% match metadata %}
+{% match context %}
     {% when Some with (content) %}
         <div class="podcast-container" >
             <div class="podcast-detail-container">
-                {% match content.img_path %}
+                {% match content.feed.img %}
                     {% when Some with (img) %}
                         <img src="{{ img }}" id="p-img" class="pure-img" />
                     {% when None %}
                 {% endmatch %}
                 <div class="podcast-details">
-                    {% match content.link_web.host_str() %}
+                    {% match content.feed.link_web.host_str() %}
                         {% when Some with (website) %}
-                        <p><a href="{{ content.link_web}}" target="_blank">{{  website }}</a></p>
+                        <p><a href="{{ content.feed.link_web}}" target="_blank">{{  website }}</a></p>
                             {% when None %}
                     {% endmatch %}
-                    <p>{{ content.language().unwrap_or_default() }}</p>
-                    {% for (top_category, sub_categories) in content.categories %}
-                    {%if sub_categories.is_empty() -%}
-                        <p>{{ top_category }}</p>
-                    {% else -%}
-                        <p>{{ top_category }}:</p>
-                    {% endif -%}
+                    <p>{{ content.feed.language().unwrap_or_default() }}</p>
+                    {% for (top_category, sub_categories) in content.feed.categories %}
+                        {%if sub_categories.is_empty() -%}
+                            <p>{{ top_category }}</p>
+                        {% else -%}
+                            <p>{{ top_category }}:</p>
+                        {% endif -%}
                         {% for category in sub_categories %}
                             <p class="sub-category">{{ category }}</p>
                         {% endfor %}
@@ -28,17 +28,24 @@
             </div>
             <div id="text-box">
                 <div class="flex podcast-header-form">
-                    <h3 class="podcast-title">{{ content.title }}</h3>
+                    <h3 class="podcast-title">{{ content.feed.title }}</h3>
+                    {% if content.feed_exists -%}
+                    <div class="container-disabled-button">
+                        <button class="pure-button pure-button-disabled">save</button>
+                        <p>Duplicate Podcast</p>
+                    </div>
+                    {% else -%}
                     <form id="save-container" method="POST" action="save-feed">
                         <button type="submit" class="pure-button pure-button-primary">Save</button>
                     </form>
+                    {% endif -%}
                 </div>
-                <small>{{ content.author.unwrap_or_default() }}</small>
-                <p>{{ content.description|safe }}</p>
+                <small>{{ content.feed.author.unwrap_or_default() }}</small>
+                <p>{{ content.feed.description|safe }}</p>
             </div>
         </div>
         <div id="episodes">
-            <h3>Episodes ({{ content.episodes.len() }})</h3>
+            <h3>Episodes ({{ content.feed.episodes.len() }})</h3>
             <div class="pure-table-container">
                 <table class="pure-table">
                     <thead>
@@ -50,7 +57,7 @@
                     </thead>
                     <tbody>
                         <tbody>
-                            {% for episode in content.episodes %}
+                            {% for episode in content.feed.episodes %}
                                 <tr>
                                     <td>{{ episode.title }}</td>
                                     <td>

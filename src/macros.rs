@@ -34,8 +34,8 @@ macro_rules! generic_handler_err {
                 $err(e.into())
             }
         }
-        impl From<crate::db::error::DbError> for $ty {
-            fn from(e: crate::db::error::DbError) -> Self {
+        impl From<anyhow::Error> for $ty {
+            fn from(e: anyhow::Error) -> Self {
                 $err(e.into())
             }
         }

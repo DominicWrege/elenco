@@ -1,5 +1,4 @@
-use crate::model::Feed;
-use crate::model::{Permission, RawFeed};
+use crate::model::{Permission, feed::{Feed, RawFeed}};
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};
 
@@ -61,11 +60,16 @@ impl<'a> Register<'a> {
         self
     }
 }
+#[derive(Debug)]
+pub struct Context<'a> {
+    pub feed: RawFeed<'a>,
+    pub feed_exists: bool,
+}
 
 #[derive(Template, Debug)]
 #[template(path = "feed_form.html")]
 pub struct FeedPreviewSite<'a> {
-    pub metadata: Option<RawFeed<'a>>,
+    pub context: Option<Context<'a>>,
     pub permission: Option<Permission>,
     pub error_msg: Option<String>,
 }
@@ -76,4 +80,10 @@ pub struct ModeratorSite {
     pub permission: Option<Permission>,
     pub queued_feeds: Vec<Feed>,
     pub review_feeds: Vec<Feed>,
+}
+
+#[derive(Template, Debug, Default)]
+#[template(path = "not_found.html")]
+pub struct NotFound {
+    pub permission: Option<Permission>,
 }

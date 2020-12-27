@@ -3,7 +3,7 @@ use super::{
     error::GeneralError,
 };
 use crate::{
-    db::admin::{queued_feeds, reviewed_feed},
+    db::rows_into_vec,
     inc_sql,
     model::Permission,
     template::{self, RegisterModerator},
@@ -16,12 +16,17 @@ use actix_web::{
 };
 use postgres_types::{FromSql, ToSql};
 use serde::Deserialize;
+
 pub async fn manage(state: Data<State>) -> Result<template::ModeratorSite, GeneralError> {
-    let mut client = state.db_pool.get().await?;
+    let client = state.db_pool.get().await?;
+    let queued_feeds = client.query(inc_sql!("get/queued_feeds"), &[]).await?;
+    let reviewed_feed = client
+        .query(inc_sql!("get/last_reviewed_feeds"), &[])
+        .await?;
     Ok(template::ModeratorSite {
         permission: Some(Permission::Admin),
-        queued_feeds: queued_feeds(&mut client).await?,
-        review_feeds: reviewed_feed(&mut client).await?,
+        queued_feeds: rows_into_vec(queued_feeds),
+        review_feeds: rows_into_vec(reviewed_feed),
     })
 }
 #[derive(Debug, Deserialize, ToSql, FromSql)]
@@ -69,3 +74,4 @@ pub async fn register_site() -> RegisterModerator {
         permission: Some(Permission::Admin),
     }
 }
+

@@ -56,7 +56,7 @@ where
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let mut srv = self.service.clone();
         // let inner = self.inner.clone();
-        use crate::db::admin::is_moderator;
+        use crate::db::is_moderator;
         use crate::model::Account;
         Box::pin(async move {
             let state = req.app_data::<web::Data<crate::State>>().unwrap();

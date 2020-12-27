@@ -1,47 +1,51 @@
 use crate::{
-    db::new_podcast::insert_feed,
-    model::{Account, Permission},
-    session::{cache_feed_url, feed_url},
-    template::FeedPreviewSite,
+    db::{error::Field, feed_exits, new_feed::save},
+    hide_internal,
+    model::{feed::RawFeed, Account, Permission},
+    session_storage::{cache_feed_url, feed_url},
+    template::{Context, FeedPreviewSite},
     util::redirect,
+    State,
 };
-use crate::{model::RawFeed, State};
+
 use actix_session::Session;
-use actix_web::{http, web, HttpResponse, ResponseError};
+use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
 use reqwest::Url;
 use thiserror::Error;
 
 use actix_web::http::StatusCode;
 
-// TODO some anyhow::Eror -> parse error ??
-// FIX ME better error
+// show session and and parsing error
 #[derive(Debug, Error)]
 pub enum PreviewError {
-    #[error("An Invalid RSS Feed was provided!. {0}")]
+    #[error("Invalid RSS Feed {0}")]
     InvalidRssFeed(#[from] rss::Error),
-    #[error("{0}")]
-    Connection(#[from] reqwest::Error),
-    #[error("DB error: {0}")]
-    General(#[from] anyhow::Error),
-    #[error("Pool error: {0}")]
-    Pool(#[from] deadpool_postgres::PoolError),
+    #[error("Could not fetch URL {0}")]
+    Fetch(#[from] reqwest::Error),
+    #[error("Internal error")]
+    Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
+    #[error("Podcast {0} already exists.")]
+    Duplicate(Field),
 }
 
 impl ResponseError for PreviewError {
     fn status_code(&self) -> StatusCode {
-        StatusCode::BAD_REQUEST
+        match self {
+            PreviewError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::BAD_REQUEST,
+        }
     }
 
     fn error_response(&self) -> HttpResponse {
-        log::error!("{:#?}", &self);
+        let message = hide_internal!(PreviewError, self);
         HttpResponse::build(self.status_code())
             .content_type("text/html")
             .body(
                 FeedPreviewSite {
-                    metadata: None,
                     permission: Some(Permission::User),
-                    error_msg: Some(self.to_string()),
+                    error_msg: Some(message),
+                    context: None,
                 }
                 .render()
                 .unwrap(),
@@ -60,12 +64,26 @@ pub async fn save_feed(
     ses: Session,
 ) -> Result<HttpResponse, PreviewError> {
     let user_id = Account::get_account(&ses).unwrap().id();
-    let feed_url = feed_url(&ses).unwrap();
+    let feed_url =
+        feed_url(&ses).ok_or_else(|| anyhow::anyhow!("session error: cache_feed_url not found"))?;
     let resp_bytes = reqwest::get(feed_url.clone()).await?.text().await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     let raw_feed = RawFeed::parse(&channel, feed_url)?;
-    insert_feed(&mut state.db_pool.get().await?, &raw_feed, user_id).await?;
+    let img_cache = state.img_cache.clone();
+    let cached_img = if let Some(img_url) = &raw_feed.img {
+        img_cache.download(img_url.clone()).await.ok()
+    } else {
+        None
+    };
+
+    save(
+        &mut state.db_pool.get().await?,
+        &raw_feed,
+        user_id,
+        cached_img,
+    )
+    .await?;
 
     Ok(redirect("/auth/profile"))
 }
@@ -73,18 +91,25 @@ pub async fn save_feed(
 pub async fn feed_preview(
     form: web::Form<FeedForm>,
     session: Session,
+    state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewError> {
     let url = form.feed.clone();
     let resp_bytes = reqwest::get(url.clone()).await?.bytes().await.unwrap();
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    cache_feed_url(&session, url.clone())
-        .map_err(|_| PreviewError::General(anyhow::anyhow!("cache feed, session error ..")))?;
+    cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
+    let client = state.db_pool.get().await?;
+    let raw_feed = RawFeed::parse(&channel, url.clone())?;
+
+    let context = Context {
+        feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
+        feed: raw_feed,
+    };
 
     let template = FeedPreviewSite {
-        metadata: Some(RawFeed::parse(&channel, url.clone())?),
         permission: Account::get_account(&session).map(|acount| acount.permission()),
         error_msg: None,
+        context: Some(context),
     }
     .render()
     .unwrap();
@@ -94,8 +119,8 @@ pub async fn feed_preview(
 
 pub async fn feed_form<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {
     Ok(FeedPreviewSite {
-        metadata: None,
         permission: Account::get_account(&session).map(|acount| acount.permission()),
         error_msg: None,
+        context: None,
     })
 }

@@ -8,12 +8,6 @@ use crate::{
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 
-// #[derive(Debug, Error)]
-// pub enum GeneralError {
-//     #[error("Internal error")]
-//     Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
-// }
-
 #[derive(Debug, Error)]
 #[error("Internal error")]
 pub struct GeneralError(Box<dyn std::error::Error + Send + Sync + 'static>);
@@ -35,4 +29,13 @@ impl ResponseError for GeneralError {
             .unwrap(),
         )
     }
+}
+
+pub async fn not_found(session: actix_session::Session) -> HttpResponse {
+    let html = template::NotFound {
+        permission: crate::session_storage::permission(&session),
+    }
+    .render()
+    .unwrap();
+    HttpResponse::build(StatusCode::NOT_FOUND).body(html)
 }

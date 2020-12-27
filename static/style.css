@@ -30,7 +30,7 @@ label {
 }
 
 .error-msg {
-    max-width: 500px;
+    max-width: 600px;
 	margin-top: 1.5em;
 	padding: 1em;
 	word-wrap: normal;
@@ -251,4 +251,16 @@ h2{
 }
 h3 {
     font-size: 1.1em;
+}
+
+.podcast-header-form .container-disabled-button{
+    display: flex;
+    /* justify-content: center; */
+    align-content: baseline;
+    align-items: baseline;
+}
+
+.podcast-header-form .container-disabled-button p{
+    color: #e7615d;
+    margin-left: 0.5em;
 }
