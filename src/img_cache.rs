@@ -1,6 +1,6 @@
 use blake3;
 use reqwest::Url;
-use std::{path::PathBuf, rc::Rc, sync::Arc};
+use std::{path::PathBuf};
 
 use tree_magic_mini::{self, match_u8};
 #[derive(Debug, Clone)]
@@ -70,7 +70,7 @@ mod test {
     use super::*;
     #[tokio::test]
     async fn test_download_file() {
-        let img_cache = ImageCache::new(PathBuf::from("img-cache")).await.unwrap();
+        let img_cache = ImageCache::new("img-cache").await.unwrap();
         let url_jpeg =
             Url::parse("http://www.bitsundso.de/wp-content/uploads/2012/05/bitsundso1400.jpg")
                 .unwrap();

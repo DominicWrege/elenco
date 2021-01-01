@@ -7,7 +7,7 @@ use crate::{model::api::Category, State};
 use actix_web::http::StatusCode;
 use actix_web::{dev::HttpResponseBuilder, HttpResponse};
 use actix_web::{web, web::Json};
-use anyhow::anyhow;
+
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ApiError {
