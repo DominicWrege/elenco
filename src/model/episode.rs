@@ -21,7 +21,7 @@ pub struct EpisodeRow<'a> {
 }
 impl<'a> EpisodeRow<'a> {
     pub fn url(&self) -> Option<&str> {
-        self.url.as_ref().and_then(|url| Some(url.as_str()))
+        self.url.as_ref().map(|url| url.as_str())
     }
     pub fn media_url(&self) -> &str {
         self.media_url.as_str()
@@ -53,12 +53,12 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
             title: item
                 .title()
                 .ok_or_else(|| anyhow::format_err!("field title is required"))?,
-            description: item.description().map(|d| d.into()),
+            description: item.description(),
             published: item.pub_date().and_then(|d| parse_datetime_rfc822(d).ok()),
             keywords: item
                 .itunes_ext()
                 .and_then(|itunes| itunes.keywords())
-                .map(|k| k.split(",").collect::<Vec<_>>()),
+                .map(|k| k.split(',').collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
                 .and_then(|itunes| itunes.duration())

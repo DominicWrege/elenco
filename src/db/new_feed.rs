@@ -137,7 +137,7 @@ async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str
 async fn insert_episodes(
     trx: &Transaction<'_>,
     feed_id: i32,
-    episodes: &Vec<EpisodeRow<'_>>,
+    episodes: &[EpisodeRow<'_>],
 ) -> Result<(), tokio_postgres::Error> {
     future::try_join_all(
         episodes

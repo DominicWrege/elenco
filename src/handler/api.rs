@@ -66,9 +66,9 @@ pub async fn feeds_by(
     let feed_stmnt = client.prepare(inc_sql!("get/online_feed_by_id")).await?;
     let categories_stmnt = client.prepare(inc_sql!("get/categories_by_feed")).await?;
     let feed_row = client
-        .query_opt(&feed_stmnt, &[&feed_id])
-        .await?
-        .ok_or_else(|| ApiError::FeedNotFound(feed_id))?;
+        .query_one(&feed_stmnt, &[&feed_id])
+        .await
+        .map_err(|_e| ApiError::FeedNotFound(feed_id))?;
     let categories = client
         .query(&categories_stmnt, &[&feed_id])
         .await?

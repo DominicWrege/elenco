@@ -14,7 +14,7 @@ fn digit_thing(s: &str) -> Option<i64> {
             _ => s.trim_start_matches('0').parse::<u16>().ok().map(i64::from),
         },
         1 => s.parse().ok(),
-        0 | _ => None,
+        _ => None,
     }
 }
 pub fn parse_duration_from_str(s: &str) -> Option<Duration> {
@@ -29,7 +29,7 @@ pub fn parse_duration_from_str(s: &str) -> Option<Duration> {
     let mut minutes = digit_thing(m)?;
     if 60 <= minutes {
         hours = minutes / 60;
-        minutes = minutes % 60;
+        minutes %= 60;
     };
     let seconds = digit_thing(s)?;
     if seconds >= 60 {

@@ -192,7 +192,7 @@ pub async fn login(
         account.save(&session).map_err(|_| LoginError::Session)?;
         Ok(redirect("/auth/profile"))
     } else {
-        Err(LoginError::WrongPassword.into())
+        Err(LoginError::WrongPassword)
     }
 }
 

@@ -25,9 +25,5 @@ pub fn cache_feed_url(session: &Session, url: url::Url) -> Result<(), actix_web:
 }
 
 pub fn feed_url(session: &Session) -> Option<url::Url> {
-    session
-        .get::<url::Url>(FEED_URL)
-        .ok()
-        .flatten()
-        .map(|url| url)
+    session.get::<url::Url>(FEED_URL).ok().flatten()
 }
