@@ -29,6 +29,7 @@ pub struct Feed {
     pub last_modified: DateTime<Utc>,
     pub description: String,
     pub language: String,
+    pub subtitle: String,
     #[serde(skip_serializing)]
     pub username: String,
 }

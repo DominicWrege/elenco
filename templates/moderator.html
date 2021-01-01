@@ -12,6 +12,8 @@
                 <tr>
                     <th>id</th>
                     <th>title</th>
+                    <th>subtitle</th>
+                    <th>url</th>
                     <th>author</th>
                     <th>username</th>
                     <th>website</th>
@@ -25,6 +27,12 @@
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td>{{ feed.title }}</td>
+                    <td>
+                        {{ feed.subtitle }}
+                    </td>
+                    <td>
+                        <a href="{{ feed.url }}">feed</a>
+                    </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
                         {{ feed.username }}
@@ -59,6 +67,7 @@
                 <tr>
                     <th>id</th>
                     <th>title</th>
+                    <th>subtitle</th>
                     <th>author</th>
                     <th>username</th>
                     <th>website</th>
@@ -73,6 +82,9 @@
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td>{{ feed.title }}</td>
+                    <td>
+                        {{ feed.subtitle }}
+                    </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
                         {{ feed.username }}

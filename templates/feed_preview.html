@@ -45,38 +45,42 @@
             </div>
         </div>
         <div id="episodes">
-            <h3>Episodes ({{ content.feed.episodes.len() }})</h3>
-            <div class="pure-table-container">
-                <table class="pure-table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Link</th>
-                            <th>Duration</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            {% if content.feed.episodes.len() > 0 -%}
+                <h3>Episodes ({{ content.feed.episodes.len() }})</h3>
+                <div class="pure-table-container">
+                    <table class="pure-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Link</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            {% for episode in content.feed.episodes %}
-                                <tr>
-                                    <td>{{ episode.title }}</td>
-                                    <td>
-                                        {% match episode.url %}
-                                            {% when Some with (url) %}
-                                                <a href="{{ url }}" target="_blank">go to episode</a>
-                                            {% when None %}
-                                                <div>None</div>
-                                        {% endmatch %}
-                                    </td>
-                                    <td>
-                                        {{ episode.format_duration() }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
+                            <tbody>
+                                {% for episode in content.feed.episodes %}
+                                    <tr>
+                                        <td>{{ episode.title }}</td>
+                                        <td>
+                                            {% match episode.url %}
+                                                {% when Some with (url) %}
+                                                    <a href="{{ url }}" target="_blank">go to episode</a>
+                                                {% when None %}
+                                                    <div>None</div>
+                                            {% endmatch %}
+                                        </td>
+                                        <td>
+                                            {{ episode.format_duration() }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
                         </tbody>
-                    </tbody>
-                </table>
-            </div>
+                    </table>
+                </div>
+            {% else -%}
+                <p>Looks like this is not a Podcast or has no episodes.</p>
+            {% endif -%}
         </div>
     {% when None %}
 {% endmatch %}
