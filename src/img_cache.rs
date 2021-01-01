@@ -1,6 +1,6 @@
 use blake3;
 use reqwest::Url;
-use std::path::PathBuf;
+use std::{path::PathBuf, rc::Rc, sync::Arc};
 
 use tree_magic_mini::{self, match_u8};
 #[derive(Debug, Clone)]
@@ -9,10 +9,10 @@ pub struct ImageCache {
 }
 
 #[derive(Debug)]
-pub struct RowImg {
+pub struct RowImg<'a> {
     pub hash: String,
     pub filename: String,
-    pub link: Url,
+    pub link: &'a Url,
 }
 
 impl ImageCache {
@@ -23,7 +23,7 @@ impl ImageCache {
             path: PathBuf::from(dir),
         })
     }
-    pub async fn download(mut self, url: Url) -> Result<RowImg, anyhow::Error> {
+    pub async fn download(mut self, url: &'_ Url) -> Result<RowImg<'_>, anyhow::Error> {
         let bytes = reqwest::get(url.clone()).await?.bytes().await?;
         let extension = extension_from_guessed_mime(&bytes)?;
         let hash = self.hash_and_set_path(&bytes, extension);
@@ -43,7 +43,7 @@ impl ImageCache {
         Ok(RowImg {
             link: url,
             filename: format!("{}.{}", &hash, extension),
-            hash: hash,
+            hash,
         })
     }
 

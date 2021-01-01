@@ -20,7 +20,7 @@ pub async fn save(
     client: &mut Client,
     feed_content: &RawFeed<'_>,
     user_id: i32,
-    img: Option<RowImg>,
+    img: Option<RowImg<'_>>,
 ) -> Result<(), PreviewError> {
     let trx = client.transaction().await?;
     let autor_id = insert_or_get_author_id(&trx, feed_content.author).await;
@@ -30,8 +30,8 @@ pub async fn save(
         None
     };
 
-    let img_id: Option<i32> = if let Some(img) = img {
-        insert_or_get_img_id(&trx, &img).await.ok()
+    let img_id: Option<i32> = if let Some(img) = &img {
+        insert_or_get_img_id(&trx, img).await.ok()
     } else {
         None
     };
@@ -75,11 +75,17 @@ async fn insert_feed(trx: &Transaction<'_>, context: &Context<'_>) -> Result<i32
     Ok(row.get("id"))
 }
 
-async fn insert_or_get_img_id(trx: &Transaction<'_>, img: &RowImg) -> Result<i32, PreviewError> {
+async fn insert_or_get_img_id(
+    trx: &Transaction<'_>,
+    img: &RowImg<'_>,
+) -> Result<i32, PreviewError> {
     let stmnt = trx.prepare(inc_sql!("insert/img")).await?;
 
     let row = trx
-        .query_one(&stmnt, &[&img.link.as_ref(), &img.hash, &img.filename])
+        .query_one(
+            &stmnt,
+            &[&img.link.clone().as_str(), &img.hash, &img.filename],
+        )
         .await?;
 
     Ok(row.get("id"))

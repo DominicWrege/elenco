@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::Arc};
+
 use crate::{
     db::{error::Field, feed_exits, new_feed::save},
     hide_internal,
@@ -72,7 +74,7 @@ pub async fn save_feed(
     let raw_feed = RawFeed::parse(&channel, feed_url)?;
     let img_cache = state.img_cache.clone();
     let cached_img = if let Some(img_url) = &raw_feed.img {
-        img_cache.download(img_url.clone()).await.ok()
+        img_cache.download(img_url).await.ok()
     } else {
         None
     };
