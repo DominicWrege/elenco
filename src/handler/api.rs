@@ -1,5 +1,5 @@
 use crate::{
-    db::rows_into_vec,
+    db::{categories_for_feed, rows_into_vec},
     inc_sql,
     model::{api::FeedJson, feed::Feed},
 };
@@ -43,40 +43,38 @@ pub async fn all_feeds(state: web::Data<State>) -> Result<Json<Vec<Feed>>, ApiEr
     Ok(Json(rows_into_vec(rows)))
 }
 
-pub async fn feeds_by_name(
-    web::Path(title): web::Path<String>,
+pub async fn search_feed(
+    term: web::Path<String>,
     state: web::Data<State>,
-) -> Result<Json<Vec<Feed>>, ApiError> {
+) -> Result<HttpResponse, ApiError> {
     let client = state.db_pool.get().await?;
-    let stmnt = client
-    .prepare(
-        "select * from AllFeeds WHERE status = 'online' AND title LIKE concat('%', $1::text,'%') ORDER BY id",
-    )
-    .await?;
-    let rows = client.query(&stmnt, &[&title.to_string()]).await?;
-    Ok(Json(rows_into_vec(rows)))
+    let feed_stmnt = client.prepare(inc_sql!("get/search_online_feeds")).await?;
+
+    let feeds_row = client.query(&feed_stmnt, &[&term.as_str()]).await?;
+    let mut feeds = Vec::new();
+    for row in &feeds_row {
+        let category_id = row.get("id");
+        let categories = categories_for_feed(&client, category_id).await?;
+        let feed = FeedJson::from(row, categories);
+        feeds.push(feed);
+    }
+
+    Ok(HttpResponse::Ok().json(feeds))
 }
 
-pub async fn feeds_by(
+pub async fn feed_by(
     path: web::Path<i32>,
     state: web::Data<State>,
 ) -> Result<HttpResponse, ApiError> {
     let feed_id = path.into_inner();
     let client = state.db_pool.get().await?;
     let feed_stmnt = client.prepare(inc_sql!("get/online_feed_by_id")).await?;
-    let categories_stmnt = client.prepare(inc_sql!("get/categories_by_feed")).await?;
     let feed_row = client
         .query_one(&feed_stmnt, &[&feed_id])
         .await
         .map_err(|_e| ApiError::FeedNotFound(feed_id))?;
-    let categories = client
-        .query(&categories_stmnt, &[&feed_id])
-        .await?
-        .into_iter()
-        .map(|row| row.into())
-        .collect::<Vec<Category>>();
-
-    Ok(HttpResponse::Ok().json(FeedJson::from(&feed_row, &categories)))
+    let categories = categories_for_feed(&client, feed_id).await?;
+    Ok(HttpResponse::Ok().json(FeedJson::from(&feed_row, categories)))
 }
 
 pub async fn all_categories(state: web::Data<State>) -> Result<Json<Vec<Category>>, ApiError> {
@@ -104,6 +102,5 @@ pub async fn category_by(
         client.query_one(&stmnt, &[&category_name]).await
     };
     let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
-
-    Ok(Json(row.into()))
+    Ok(Json(Category::from(row)))
 }

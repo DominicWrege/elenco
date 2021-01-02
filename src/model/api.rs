@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize, Serializer};
 #[derive(Debug, Serialize)]
-pub struct FeedJson<'a> {
+pub struct FeedJson {
     pub id: i32,
     pub url: String,
     pub title: String,
@@ -13,7 +13,7 @@ pub struct FeedJson<'a> {
     pub language: String,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
-    pub categories: &'a [Category],
+    pub categories: Vec<Category>,
 }
 
 pub fn serialize_datetime<S>(date: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
@@ -36,8 +36,8 @@ pub struct SubCategory {
     description: String,
 }
 
-impl<'a> FeedJson<'a> {
-    pub fn from(row: &tokio_postgres::Row, categories: &'a [Category]) -> Self {
+impl FeedJson {
+    pub fn from(row: &tokio_postgres::Row, categories: Vec<Category>) -> Self {
         Self {
             id: row.get("id"),
             url: row.get("url"),
@@ -56,12 +56,12 @@ impl<'a> FeedJson<'a> {
 
 impl From<tokio_postgres::Row> for Category {
     fn from(row: tokio_postgres::Row) -> Self {
-        let id: i32 = row.get(0);
-        let description: String = row.get(1);
+        let id: i32 = row.get("id");
+        let description: String = row.get("description");
         Category {
             description,
             id,
-            childreen: serde_json::from_value(row.get(2)).unwrap(),
+            childreen: serde_json::from_value(row.get("subcategories")).unwrap(),
         }
     }
 }

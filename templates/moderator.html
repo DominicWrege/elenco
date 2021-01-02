@@ -28,7 +28,12 @@
                     <td class="feed-id">{{ feed.id }}</td>
                     <td>{{ feed.title }}</td>
                     <td>
-                        {{ feed.subtitle }}
+                        {% match feed.subtitle %}
+                        {% when Some with (subtitle) %}
+                            {{ subtitle }}
+                        {% when None %}
+                            <p></p>
+                        {% endmatch %}
                     </td>
                     <td>
                         <a href="{{ feed.url }}">feed</a>
@@ -83,7 +88,12 @@
                     <td class="feed-id">{{ feed.id }}</td>
                     <td>{{ feed.title }}</td>
                     <td>
-                        {{ feed.subtitle }}
+                        {% match feed.subtitle %}
+                            {% when Some with (subtitle) %}
+                                {{ subtitle }}
+                            {% when None %}
+                                <p></p>
+                        {% endmatch %}
                     </td>
                     <td>{{ feed.author_name }}</td>
                     <td>

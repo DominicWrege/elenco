@@ -47,9 +47,12 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn api(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/search/{title}").route(web::get().to(handler::api::feeds_by_name)))
-        .service(web::resource("/feeds").route(web::get().to(handler::api::all_feeds)))
-        .route("feed/{id}", web::get().to(handler::api::feeds_by))
+    cfg.service(web::resource("/feeds").route(web::get().to(handler::api::all_feeds)))
+        .service(
+            web::scope("/feed")
+                .route("/{id}", web::get().to(handler::api::feed_by))
+                .route("/search/{term}", web::get().to(handler::api::search_feed)),
+        )
         .route("/categories", web::get().to(handler::api::all_categories))
         .route(
             "/category/{category_id_name}",
