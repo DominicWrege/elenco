@@ -47,15 +47,22 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 }
 
 pub fn api(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/feeds").route(web::get().to(handler::api::all_feeds)))
-        .service(
-            web::scope("/feed")
-                .route("/{id}", web::get().to(handler::api::feed_by))
-                .route("/search/{term}", web::get().to(handler::api::search_feed)),
-        )
-        .route("/categories", web::get().to(handler::api::all_categories))
-        .route(
-            "/category/{category_id_name}",
-            web::get().to(handler::api::category_by),
-        );
+    cfg.service(
+        web::scope("/feeds")
+            .route("", web::get().to(handler::api::all_feeds))
+            .route("/{term}", web::get().to(handler::api::search_feed)),
+    )
+    .route("/feed/{id}", web::get().to(handler::api::feed_by))
+    .route("/categories", web::get().to(handler::api::all_categories))
+    .service(
+        web::scope("/category")
+            .route(
+                "/{category}",
+                web::get().to(handler::api::category_by),
+            )
+            .route(
+                "/{category}/feeds",
+                web::get().to(handler::api::feeds_by_category),
+            ),
+    );
 }

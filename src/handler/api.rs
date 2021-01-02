@@ -8,7 +8,9 @@ use actix_web::http::StatusCode;
 use actix_web::{dev::HttpResponseBuilder, HttpResponse};
 use actix_web::{web, web::Json};
 
+use futures_util::future;
 use thiserror::Error;
+use tokio_postgres::Client;
 #[derive(Error, Debug)]
 pub enum ApiError {
     #[error("other error: {0}")]
@@ -51,21 +53,19 @@ pub async fn search_feed(
     let feed_stmnt = client.prepare(inc_sql!("get/search_online_feeds")).await?;
 
     let feeds_row = client.query(&feed_stmnt, &[&term.as_str()]).await?;
-    let mut feeds = Vec::new();
-    for row in &feeds_row {
-        let category_id = row.get("id");
-        let categories = categories_for_feed(&client, category_id).await?;
-        let feed = FeedJson::from(row, categories);
-        feeds.push(feed);
-    }
-
+    let feeds = future::try_join_all(
+        feeds_row
+            .into_iter()
+            .map(|row| FeedJson::from2(&client, row)),
+    )
+    .await?;
     Ok(HttpResponse::Ok().json(feeds))
 }
 
 pub async fn feed_by(
     path: web::Path<i32>,
     state: web::Data<State>,
-) -> Result<HttpResponse, ApiError> {
+) -> Result<Json<FeedJson>, ApiError> {
     let feed_id = path.into_inner();
     let client = state.db_pool.get().await?;
     let feed_stmnt = client.prepare(inc_sql!("get/online_feed_by_id")).await?;
@@ -74,14 +74,14 @@ pub async fn feed_by(
         .await
         .map_err(|_e| ApiError::FeedNotFound(feed_id))?;
     let categories = categories_for_feed(&client, feed_id).await?;
-    Ok(HttpResponse::Ok().json(FeedJson::from(&feed_row, categories)))
+
+    Ok(Json(FeedJson::from(&feed_row, categories)))
 }
 
 pub async fn all_categories(state: web::Data<State>) -> Result<Json<Vec<Category>>, ApiError> {
     let client = state.db_pool.get().await?;
 
     let stmnt = inc_sql!("get/all_categories");
-
     let rows = client.query(stmnt, &[]).await?;
     let categories = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
 
@@ -103,4 +103,28 @@ pub async fn category_by(
     };
     let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
     Ok(Json(Category::from(row)))
+}
+
+pub async fn feeds_by_category(
+    state: web::Data<State>,
+    category: web::Path<String>,
+) -> Result<Json<Vec<FeedJson>>, ApiError> {
+    let client = state.db_pool.get().await?;
+
+    let rows = if let Ok(category_id) = category.parse::<i32>() {
+        let stmnt = client
+            .prepare(inc_sql!("get/all_feeds_by_category_id"))
+            .await?;
+        client.query(&stmnt, &[&category_id]).await?
+    } else {
+        let category_name = category.as_str();
+        let stmnt = client
+            .prepare(inc_sql!("get/all_feeds_by_category_name"))
+            .await?;
+        client.query(&stmnt, &[&category_name]).await?
+    };
+    let feeds =
+        future::try_join_all(rows.into_iter().map(|row| FeedJson::from2(&client, row))).await?;
+
+    Ok(Json(feeds))
 }

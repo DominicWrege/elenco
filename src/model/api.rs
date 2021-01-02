@@ -1,5 +1,7 @@
+use crate::handler::api::ApiError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize, Serializer};
+use tokio_postgres::Client;
 #[derive(Debug, Serialize)]
 pub struct FeedJson {
     pub id: i32,
@@ -51,6 +53,12 @@ impl FeedJson {
             last_modified: row.get("last_modified"),
             categories,
         }
+    }
+    pub async fn from2(client: &Client, row: tokio_postgres::Row) -> Result<FeedJson, ApiError> {
+        use crate::db::categories_for_feed;
+        let category_id = row.get("id");
+        let categories = categories_for_feed(&client, category_id).await?;
+        Ok(FeedJson::from(&row, categories))
     }
 }
 
