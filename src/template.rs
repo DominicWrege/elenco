@@ -27,7 +27,7 @@ pub struct ProfileSite {
     pub submitted_feeds: Vec<Feed>,
 }
 #[derive(Template)]
-#[template(path = "error.html")]
+#[template(path = "error/general.html")]
 pub struct ErrorSite {
     pub status_code: StatusCode,
     pub permission: Option<Permission>,
@@ -86,7 +86,7 @@ pub struct ModeratorSite {
 }
 
 #[derive(Template, Debug, Default)]
-#[template(path = "not_found.html")]
+#[template(path = "error/not_found.html")]
 pub struct NotFound {
     pub permission: Option<Permission>,
 }
