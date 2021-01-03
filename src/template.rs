@@ -1,16 +1,19 @@
-use crate::model::{Permission, feed::{Feed, RawFeed}};
+use crate::model::{
+    feed::{Feed, RawFeed},
+    Permission,
+};
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};
 
 #[derive(Template, Default)]
-#[template(path = "register.html")]
+#[template(path = "auth/register.html")]
 pub struct Register<'a> {
     error_msg: Option<&'a str>,
     permission: Option<Permission>,
 }
 
 #[derive(Template, Default)]
-#[template(path = "login.html")]
+#[template(path = "auth/login.html")]
 pub struct Login<'a> {
     error_msg: Option<&'a str>,
     permission: Option<Permission>,
@@ -31,7 +34,7 @@ pub struct ErrorSite {
 }
 
 #[derive(Template)]
-#[template(path = "register_moderator.html")]
+#[template(path = "auth/register_moderator.html")]
 pub struct RegisterModerator {
     pub permission: Option<Permission>,
 }
@@ -67,7 +70,7 @@ pub struct Context<'a> {
 }
 
 #[derive(Template, Debug)]
-#[template(path = "feed_form.html")]
+#[template(path = "feed/feed_form.html")]
 pub struct FeedPreviewSite<'a> {
     pub context: Option<Context<'a>>,
     pub permission: Option<Permission>,
