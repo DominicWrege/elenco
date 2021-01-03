@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use reqwest::Url;
 use serde::{Deserialize, Serialize, Serializer};
 use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Client;
@@ -9,8 +10,8 @@ pub struct Feed {
     pub id: i32,
     pub url: String,
     pub title: String,
-    pub author: String,
     pub img: Option<String>,
+    pub author: String,
     pub link_web: String,
     pub description: String,
     pub subtitle: Option<String>,
@@ -18,6 +19,12 @@ pub struct Feed {
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
+}
+
+impl Feed {
+    pub fn website(&self) -> Option<Url> {
+        Url::parse(&self.link_web).ok()
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -68,14 +75,14 @@ where
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Category {
     id: i32,
-    description: String,
-    childreen: Vec<SubCategory>,
+    pub description: String,
+    pub childreen: Vec<SubCategory>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SubCategory {
     id: i32,
-    description: String,
+    pub description: String,
 }
 
 impl FeedEpsiode {
@@ -118,6 +125,12 @@ impl Feed {
             last_modified: feed_row.get("last_modified"),
             categories: categories_for_feed(&client, feed_id).await?,
         })
+    }
+    pub fn compare_subtile_description(&self) -> bool {
+        self.subtitle
+            .as_ref()
+            .map(|subtitle| subtitle == &self.description)
+            .is_some()
     }
 }
 

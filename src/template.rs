@@ -1,10 +1,9 @@
-use crate::model::{
-    feed::{Feed, RawFeed},
-    Permission,
+use crate::{
+    handler::{moderator::ModeratorFeed, profile::ProfileFeed},
+    model::{self, channel::RawFeed, item::EpisodeSmall, Permission},
 };
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};
-
 #[derive(Template, Default)]
 #[template(path = "auth/register.html")]
 pub struct Register<'a> {
@@ -24,7 +23,7 @@ pub struct Login<'a> {
 pub struct ProfileSite {
     pub username: String,
     pub permission: Option<Permission>,
-    pub submitted_feeds: Vec<Feed>,
+    pub submitted_feeds: Vec<ProfileFeed>,
 }
 #[derive(Template)]
 #[template(path = "error/general.html")]
@@ -81,12 +80,31 @@ pub struct FeedPreviewSite<'a> {
 #[template(path = "moderator.html")]
 pub struct ModeratorSite {
     pub permission: Option<Permission>,
-    pub queued_feeds: Vec<Feed>,
-    pub review_feeds: Vec<Feed>,
+    pub queued_feeds: Vec<ModeratorFeed>,
+    pub review_feeds: Vec<ModeratorFeed>,
 }
 
 #[derive(Template, Debug, Default)]
 #[template(path = "error/not_found.html")]
 pub struct NotFound {
     pub permission: Option<Permission>,
+}
+
+impl NotFound {
+    pub fn render_response(session: &actix_session::Session) -> HttpResponse {
+        let html = Self {
+            permission: crate::session_storage::permission(&session),
+        }
+        .render()
+        .unwrap();
+        HttpResponse::build(StatusCode::NOT_FOUND).body(html)
+    }
+}
+
+#[derive(Template, Debug)]
+#[template(path = "feed/feed_detail.html")]
+pub struct FeedDetailSite {
+    pub permission: Option<Permission>,
+    pub feed: model::json::Feed,
+    pub episodes: Vec<EpisodeSmall>,
 }

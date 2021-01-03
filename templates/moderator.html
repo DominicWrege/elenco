@@ -26,7 +26,7 @@
                 {% for feed in queued_feeds %}
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
-                    <td>{{ feed.title }}</td>
+                    <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
                     <td>
                         {% match feed.subtitle %}
                         {% when Some with (subtitle) %}
@@ -86,7 +86,7 @@
                 {% for feed in review_feeds %}
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
-                    <td>{{ feed.title }}</td>
+                    <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
                     <td>
                         {% match feed.subtitle %}
                             {% when Some with (subtitle) %}

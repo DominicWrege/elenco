@@ -1,9 +1,7 @@
-
-
 use crate::{
     db::{error::Field, feed_exits, new_feed::save},
     hide_internal,
-    model::{feed::RawFeed, Account, Permission},
+    model::{channel::RawFeed, Account, Permission},
     session_storage::{cache_feed_url, feed_url},
     template::{Context, FeedPreviewSite},
     util::redirect,
@@ -11,12 +9,11 @@ use crate::{
 };
 
 use actix_session::Session;
+use actix_web::http::StatusCode;
 use actix_web::{web, HttpResponse, ResponseError};
 use askama::Template;
 use reqwest::Url;
 use thiserror::Error;
-
-use actix_web::http::StatusCode;
 
 // show session and and parsing error
 #[derive(Debug, Error)]
@@ -65,7 +62,7 @@ pub async fn save_feed(
     state: web::Data<State>,
     ses: Session,
 ) -> Result<HttpResponse, PreviewError> {
-    let user_id = Account::get_account(&ses).unwrap().id();
+    let user_id = Account::from_session(&ses).unwrap().id();
     let feed_url =
         feed_url(&ses).ok_or_else(|| anyhow::anyhow!("session error: cache_feed_url not found"))?;
     let resp_bytes = reqwest::get(feed_url.clone()).await?.text().await?;
@@ -90,7 +87,7 @@ pub async fn save_feed(
     Ok(redirect("/auth/profile"))
 }
 
-pub async fn feed_preview(
+pub async fn create_preview(
     form: web::Form<FeedForm>,
     session: Session,
     state: web::Data<State>,
@@ -109,19 +106,19 @@ pub async fn feed_preview(
     };
 
     let template = FeedPreviewSite {
-        permission: Account::get_account(&session).map(|acount| acount.permission()),
+        permission: Account::from_session(&session).map(|acount| acount.permission()),
         error_msg: None,
         context: Some(context),
     }
     .render()
     .unwrap();
 
-    Ok(HttpResponse::Ok().body(template))
+    Ok(HttpResponse::Ok().content_type("text/html").body(template))
 }
 
-pub async fn feed_form<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {
+pub async fn form_template<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {
     Ok(FeedPreviewSite {
-        permission: Account::get_account(&session).map(|acount| acount.permission()),
+        permission: Account::from_session(&session).map(|acount| acount.permission()),
         error_msg: None,
         context: None,
     })

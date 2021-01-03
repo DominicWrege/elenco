@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use crate::handler::feed_preview::PreviewError;
-use crate::model::episode::EpisodeRow;
-use crate::model::feed::RawFeed;
+use crate::model::item::EpisodeRow;
+use crate::model::channel::RawFeed;
 use crate::{img_cache::RowImg, inc_sql};
 use deadpool_postgres::Client;
 use futures_util::future;

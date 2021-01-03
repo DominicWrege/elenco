@@ -32,10 +32,5 @@ impl ResponseError for GeneralError {
 }
 
 pub async fn not_found(session: actix_session::Session) -> HttpResponse {
-    let html = template::NotFound {
-        permission: crate::session_storage::permission(&session),
-    }
-    .render()
-    .unwrap();
-    HttpResponse::build(StatusCode::NOT_FOUND).body(html)
+    template::NotFound::render_response(&session)
 }

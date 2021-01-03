@@ -11,8 +11,8 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         .service(web::resource("/profile").route(web::get().to(profile::site)))
         .service(
             web::resource("/new-feed")
-                .route(web::get().to(feed_preview::feed_form))
-                .route(web::post().to(feed_preview::feed_preview)),
+                .route(web::get().to(feed_preview::form_template))
+                .route(web::post().to(feed_preview::create_preview)),
         )
         .service(web::resource("/save-feed").route(web::post().to(feed_preview::save_feed)));
 }

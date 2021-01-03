@@ -9,7 +9,7 @@ impl Account {
     pub fn save(&self, session: &Session) -> Result<(), actix_web::Error> {
         session.set(SESSION_KEY_ACCOUNT, self)
     }
-    pub fn get_account(session: &Session) -> Option<Account> {
+    pub fn from_session(session: &Session) -> Option<Account> {
         session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
     }
 }
@@ -18,7 +18,7 @@ pub fn forget(session: &Session) {
     session.remove(SESSION_KEY_ACCOUNT);
 }
 pub fn permission(session: &Session) -> Option<Permission> {
-    Account::get_account(&session).map(|a| a.permission)
+    Account::from_session(&session).map(|a| a.permission)
 }
 pub fn cache_feed_url(session: &Session, url: url::Url) -> Result<(), actix_web::Error> {
     session.set(FEED_URL, url)

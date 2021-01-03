@@ -9,9 +9,9 @@
                 {% endmatch %}
                 <div class="podcast-details">
                     {% match content.feed.link_web.host_str() %}
-                        {% when Some with (website) %}
-                        <p><a href="{{ content.feed.link_web}}" target="_blank">{{  website }}</a></p>
-                            {% when None %}
+                        {% when Some with (website_host) %}
+                            <p><a href="{{ content.feed.link_web }}" target="_blank">{{  website_host }}</a></p>
+                        {% when None %}
                     {% endmatch %}
                     <p>{{ content.feed.language().unwrap_or_default() }}</p>
                     {% for (top_category, sub_categories) in content.feed.categories %}

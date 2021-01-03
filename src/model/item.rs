@@ -3,9 +3,22 @@ use chrono::DateTime;
 use reqwest::Url;
 use std::convert::{TryFrom, TryInto};
 
-use crate::time_date::{parse_datetime_rfc822, parse_duration_from_str};
+use crate::time_date::{self, parse_datetime_rfc822, parse_duration_from_str};
+use tokio_pg_mapper_derive::PostgresMapper;
+#[derive(Debug, PostgresMapper)]
+#[pg_mapper(table = "episode")]
+pub struct EpisodeSmall {
+    pub title: String,
+    pub duration: Option<i64>,
+    pub url: Option<String>,
+}
 
-use super::parse_explicit;
+impl EpisodeSmall {
+    pub fn format_duration(&self) -> String {
+        time_date::format_duration(self.duration)
+    }
+}
+
 #[derive(Debug)]
 pub struct EpisodeRow<'a> {
     pub title: &'a str,
@@ -27,16 +40,7 @@ impl<'a> EpisodeRow<'a> {
         self.media_url.as_str()
     }
     pub fn format_duration(&self) -> String {
-        if let Some(seconds) = self.duration {
-            let duration = chrono::Duration::seconds(seconds as i64);
-            let seconds = duration.num_seconds() % 60;
-            let minutes = (duration.num_seconds() / 60) % 60;
-            let hours = duration.num_hours();
-
-            format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
-        } else {
-            "None".to_string()
-        }
+        time_date::format_duration(self.duration)
     }
     pub fn from(items: &[rss::Item]) -> Vec<EpisodeRow> {
         items.iter().flat_map(|item| item.try_into().ok()).collect()
@@ -76,4 +80,10 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
             guid: item.guid().map(|g| g.value()),
         })
     }
+}
+fn parse_explicit(it_ext: Option<&rss::extension::itunes::ITunesItemExtension>) -> bool {
+    matches!(
+        it_ext.and_then(|ext| ext.explicit()),
+        Some("Yes") | Some("yes") | Some("true") | Some("True") | Some("explicit")
+    )
 }

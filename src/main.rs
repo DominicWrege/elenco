@@ -61,15 +61,16 @@ async fn run() -> Result<(), anyhow::Error> {
                         web::get().to(handler::serve_img),
                     )
                     .configure(routes::login_register)
-                    .route("404", web::get().to(handler::error::not_found))
+                    .route("404", web::get().to(handler::general_error::not_found))
                     .service(
                         web::scope("/auth")
                             .wrap(my_middleware::auth::CheckLogin)
+                            .route("/feed/{feed_id}", web::get().to(handler::feed_detail::site))
                             .configure(routes::user)
                             .configure(routes::admin),
                     ),
             )
-            .default_service(web::route().to(handler::error::not_found))
+            .default_service(web::route().to(handler::general_error::not_found))
     })
     .bind("0.0.0.0:8080")?
     .run()

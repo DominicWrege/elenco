@@ -9,21 +9,21 @@
     {% else -%}
         {% for feed in submitted_feeds %}
             <div class="card">
-                {% match feed.img_cache %}
+                {% match feed.img %}
                     {% when Some with (img) %}
                     <img class="pure-img" src="/web/img/{{ img }}"></img>
                     {% when None %}
                     <img class="pure-img" src="/static/placeholder.svg"></img>
                 {% endmatch %}
-                <div>
-                    <a href="{{feed.link_web }}" target="_blank"><h3>{{ feed.title }}</h3></a>
+                <div class="card-text">
+                    <a href="/web/auth/feed/{{feed.id}}"><h3>{{ feed.title }}</h3></a>
                     <small>{{ feed.author_name }}</small>
                     {% match feed.subtitle %}
                         {% when Some with (subtitle) %}
-                            <p>{{ subtitle }}</p>
+                            <p >{{ subtitle }}</p>
                         {% when None %}
                     {% endmatch %}
-                    <p>Status: {{ feed.status }}</p>
+                    <p class="status" status="{{feed.status}}">{{ feed.status }}</p>
                 </div>
                 
             </div>

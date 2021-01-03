@@ -1,11 +1,11 @@
 use super::{
     auth::{new_account, RegisterError, RegisterForm},
-    error::GeneralError,
+    general_error::GeneralError,
 };
 use crate::{
     db::rows_into_vec,
     inc_sql,
-    model::Permission,
+    model::{Permission, Status},
     template::{self, RegisterModerator},
     util::redirect,
     State,
@@ -14,33 +14,43 @@ use actix_web::{
     web::{self, Data},
     HttpResponse,
 };
-use postgres_types::{FromSql, ToSql};
+
+use chrono::{DateTime, Utc};
+
 use serde::Deserialize;
+use tokio_pg_mapper_derive::PostgresMapper;
 
 pub async fn manage(state: Data<State>) -> Result<template::ModeratorSite, GeneralError> {
     let client = state.db_pool.get().await?;
-    let queued_feeds = client.query(inc_sql!("get/feed/queued"), &[]).await?;
-    let reviewed_feed = client
+    let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
+    let reviewed_feed_rows = client
         .query(inc_sql!("get/feed/last_reviewed"), &[])
         .await?;
     Ok(template::ModeratorSite {
         permission: Some(Permission::Admin),
-        queued_feeds: rows_into_vec(queued_feeds),
-        review_feeds: rows_into_vec(reviewed_feed),
+        queued_feeds: rows_into_vec(queued_feed_rows),
+        review_feeds: rows_into_vec(reviewed_feed_rows),
     })
 }
-#[derive(Debug, Deserialize, ToSql, FromSql)]
-#[postgres(name = "feed_status")]
-enum Status {
-    #[postgres(name = "online")]
-    Online,
-    #[postgres(name = "offline")]
-    Offline,
-    #[postgres(name = "blocked")]
-    Blocked,
-    #[postgres(name = "queued")]
-    Queued,
+
+#[derive(Debug, PostgresMapper)]
+#[pg_mapper(table = "feed")]
+pub struct ModeratorFeed {
+    pub id: i32,
+    pub url: String,
+    pub title: String,
+    pub img_cache: Option<String>,
+    pub author_name: String,
+    pub link_web: String,
+    pub status: Status,
+    pub submitted: DateTime<Utc>,
+    pub last_modified: DateTime<Utc>,
+    pub description: String,
+    pub language: String,
+    pub subtitle: Option<String>,
+    pub username: String,
 }
+
 #[derive(Debug, Deserialize)]
 pub struct Payload {
     action: Status,

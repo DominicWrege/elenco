@@ -1,0 +1,88 @@
+{% extends "../base.html" %}
+
+{% block content %}
+<div class="w50">
+    <div class="podcast-container" >
+        <div class="podcast-detail-container">
+            {% match feed.img %}
+                {% when Some with (img) %}
+                    <img src="{{ img }}" id="p-img" class="pure-img" />
+                {% when None %}
+            {% endmatch %}
+            <div class="podcast-details">
+            {% match feed.website() %}
+                {% when Some with (website) %}
+                    {% match website.host_str() %}
+                        {% when Some with (website_host) %}
+                            <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                        {% when None %}
+                    {% endmatch %}
+                {% when None %}
+            {% endmatch %}
+            <p>{{ feed.language }}</p>
+            {% for category in feed.categories %}
+                {%if category.childreen.is_empty() -%}
+                    <p>{{ category.description }}</p>
+                {% else -%}
+                    <p>{{ category.description }}:</p>
+                {% endif -%}
+                {% for subcategory in category.childreen  %}
+                    <p class="sub-category">{{ subcategory.description }}</p>
+                {% endfor %}
+            {% endfor %}
+            </div>
+        </div>
+        <div id="text-box">
+            <div class="flex podcast-header-form">
+                <h3 class="podcast-title">{{ feed.title }}</h3>
+            </div>
+            <small>{{ feed.author}}</small>
+            <p>{{ feed.description|safe }}</p>
+            {% match feed.subtitle %}
+                {% when Some with (subtitle) %}
+                    {% if !feed.compare_subtile_description() -%}
+                        <p>{{ subtitle }}</p>
+                    {% endif %}
+                {% when None %}
+            {% endmatch %}
+        </div>
+    </div>
+    <div id="episodes">
+        {% if episodes.len() > 0 -%}
+            <h3>Episodes ({{ episodes.len() }})</h3>
+            <div class="pure-table-container h550">
+                <table class="pure-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Link</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tbody>
+                            {% for episode in episodes %}
+                                <tr>
+                                    <td>{{ episode.title }}</td>
+                                    <td>
+                                        {% match episode.url %}
+                                            {% when Some with (url) %}
+                                                <a href="{{ url }}" target="_blank">go to episode</a>
+                                            {% when None %}
+                                                <div>None</div>
+                                        {% endmatch %}
+                                    </td>
+                                    <td>{{  episode.format_duration() }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </tbody>
+                </table>
+            </div>
+        {% else -%}
+            <p>Looks like this Podcast has no episodes.</p>
+        {% endif -%}
+    </div>
+</div>
+
+{% endblock %}

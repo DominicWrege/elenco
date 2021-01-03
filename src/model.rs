@@ -1,12 +1,14 @@
+pub mod channel;
+pub mod item;
 pub mod json;
-pub mod episode;
-pub mod feed;
+
+use std::fmt;
 
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-#[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[postgres(name = "permission")]
 pub enum Permission {
     #[postgres(name = "admin")]
@@ -18,6 +20,24 @@ pub enum Permission {
 impl Default for Permission {
     fn default() -> Self {
         Self::User
+    }
+}
+#[derive(Debug, Deserialize, ToSql, FromSql)]
+#[postgres(name = "feed_status")]
+pub enum Status {
+    #[postgres(name = "online")]
+    Online,
+    #[postgres(name = "offline")]
+    Offline,
+    #[postgres(name = "blocked")]
+    Blocked,
+    #[postgres(name = "queued")]
+    Queued,
+}
+
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
@@ -45,11 +65,4 @@ impl Account {
     pub fn password_hash(&self) -> &str {
         self.password_hash.as_str()
     }
-}
-
-fn parse_explicit(it_ext: Option<&rss::extension::itunes::ITunesItemExtension>) -> bool {
-    matches!(
-        it_ext.and_then(|ext| ext.explicit()),
-        Some("Yes") | Some("yes") | Some("true") | Some("True") | Some("explicit")
-    )
 }

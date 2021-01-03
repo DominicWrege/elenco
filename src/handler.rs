@@ -7,7 +7,8 @@ use crate::util::redirect;
 
 pub mod api;
 pub mod auth;
-pub mod error;
+pub mod feed_detail;
+pub mod general_error;
 pub mod moderator;
 pub mod feed_preview;
 pub mod profile;

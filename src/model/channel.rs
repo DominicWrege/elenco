@@ -1,38 +1,8 @@
-use chrono::offset::Utc;
-use chrono::DateTime;
 use isolang::Language;
-// use postgres_types::{FromSql, ToSql};
 use reqwest::Url;
-use serde::Serialize;
+// use postgres_types::{FromSql, ToSql};
+use super::item::EpisodeRow;
 use std::collections::BTreeMap;
-use tokio_pg_mapper_derive::PostgresMapper;
-
-use super::episode::EpisodeRow;
-
-#[derive(Debug, PostgresMapper, Serialize)]
-#[pg_mapper(table = "feed")]
-pub struct Feed {
-    pub id: i32,
-    pub url: String,
-    pub title: String,
-    #[serde(rename(serialize = "img"))]
-    pub img_cache: Option<String>,
-    // this is the creater not the submitter
-    pub author_name: String,
-    pub link_web: String,
-    // TODO enum is better than string
-    #[serde(skip_serializing)]
-    pub status: String,
-    #[serde(skip_serializing)]
-    pub submitted: DateTime<Utc>,
-    #[serde(skip_serializing)]
-    pub last_modified: DateTime<Utc>,
-    pub description: String,
-    pub language: String,
-    pub subtitle: Option<String>,
-    #[serde(skip_serializing)]
-    pub username: String,
-}
 
 #[derive(Debug)]
 pub struct RawFeed<'a> {

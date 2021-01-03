@@ -55,18 +55,16 @@ where
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let mut srv = self.service.clone();
-        // let inner = self.inner.clone();
         use crate::db::is_moderator;
         use crate::model::Account;
         Box::pin(async move {
-            let state = req.app_data::<web::Data<crate::State>>().unwrap();
-            let db = &state.db_pool;
-            let user_id = Account::get_account(&req.get_session()).unwrap().id();
-            //TODO
-            dbg!(&req.path());
-            if let Ok(client) = db.get().await {
-                if let Ok(true) = is_moderator(&client, user_id).await {
-                    return srv.call(req).await;
+            if let Some(state) = req.app_data::<web::Data<crate::State>>() {
+                let db = &state.db_pool;
+                let user_id = Account::from_session(&req.get_session()).unwrap().id();
+                if let Ok(client) = db.get().await {
+                    if let Ok(true) = is_moderator(&client, user_id).await {
+                        return srv.call(req).await;
+                    }
                 }
             }
             let resp = actix_web::HttpResponse::Forbidden().finish().into_body();

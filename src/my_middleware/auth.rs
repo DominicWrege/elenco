@@ -45,7 +45,7 @@ where
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         use crate::model::Account;
-        match Account::get_account(&req.get_session()) {
+        match Account::from_session(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
             None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
         }
