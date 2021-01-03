@@ -5,6 +5,7 @@ use crate::{
 };
 
 use actix_web::web;
+use handler::api;
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/logout").to(logout))
         .service(web::resource("/profile").route(web::get().to(profile::site)))
@@ -49,20 +50,24 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/feeds")
-            .route("", web::get().to(handler::api::all_feeds))
-            .route("/{term}", web::get().to(handler::api::search_feed)),
+            .route("", web::get().to(api::feed::all))
+            .route("/{term}", web::get().to(api::feed::search)),
     )
-    .route("/feed/{id}", web::get().to(handler::api::feed_by))
-    .route("/categories", web::get().to(handler::api::all_categories))
+    .service(
+        web::scope("/feed")
+            .route("/{id}", web::get().to(api::feed::by_name_or_id))
+            .route("/{id}/episodes", web::get().to(api::episode::by_feed_id)),
+    )
+    .route("/categories", web::get().to(api::category::all))
     .service(
         web::scope("/category")
-            .route(
-                "/{category}",
-                web::get().to(handler::api::category_by),
-            )
-            .route(
-                "/{category}/feeds",
-                web::get().to(handler::api::feeds_by_category),
-            ),
+            .route("/{category}", web::get().to(api::category::by_id_or_name))
+            .route("/{category}/feeds", web::get().to(api::feed::by_category)),
+    )
+    .route("/authors", web::get().to(api::author::all))
+    .service(
+        web::scope("author")
+            .route("/{id}/feeds", web::get().to(api::feed::by_author))
+            .route("/{id}", web::get().to(api::author::by_id)),
     );
 }

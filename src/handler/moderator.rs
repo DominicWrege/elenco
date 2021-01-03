@@ -19,9 +19,9 @@ use serde::Deserialize;
 
 pub async fn manage(state: Data<State>) -> Result<template::ModeratorSite, GeneralError> {
     let client = state.db_pool.get().await?;
-    let queued_feeds = client.query(inc_sql!("get/queued_feeds"), &[]).await?;
+    let queued_feeds = client.query(inc_sql!("get/feed/queued"), &[]).await?;
     let reviewed_feed = client
-        .query(inc_sql!("get/last_reviewed_feeds"), &[])
+        .query(inc_sql!("get/feed/last_reviewed"), &[])
         .await?;
     Ok(template::ModeratorSite {
         permission: Some(Permission::Admin),
@@ -74,4 +74,3 @@ pub async fn register_site() -> RegisterModerator {
         permission: Some(Permission::Admin),
     }
 }
-

@@ -1,4 +1,4 @@
-pub mod api;
+pub mod json;
 pub mod episode;
 pub mod feed;
 

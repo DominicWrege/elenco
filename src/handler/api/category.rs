@@ -1,0 +1,31 @@
+use crate::inc_sql;
+use crate::{model::json::Category, State};
+use actix_web::{web, web::Json};
+
+use super::{error::ApiError, ApiJsonResult};
+
+pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
+    let client = state.db_pool.get().await?;
+    let stmnt = inc_sql!("get/category/all");
+    let rows = client.query(stmnt, &[]).await?;
+    let categories = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
+
+    Ok(Json(categories))
+}
+
+pub async fn by_id_or_name(
+    state: web::Data<State>,
+    path: web::Path<String>,
+) -> ApiJsonResult<Category> {
+    let client = state.db_pool.get().await?;
+    let result = if let Ok(category_id) = path.parse::<i32>() {
+        let stmnt = client.prepare(inc_sql!("get/category/by_id")).await?;
+        client.query_one(&stmnt, &[&category_id]).await
+    } else {
+        let category_name = path.as_str();
+        let stmnt = client.prepare(inc_sql!("get/category/by_name")).await?;
+        client.query_one(&stmnt, &[&category_name]).await
+    };
+    let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
+    Ok(Json(Category::from(row)))
+}

@@ -12,7 +12,6 @@ pub enum Field {
     #[error("img")]
     Img,
 }
-
 impl From<tokio_postgres::Error> for PreviewError {
     fn from(error: tokio_postgres::Error) -> Self {
         let source = error
