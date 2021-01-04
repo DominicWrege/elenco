@@ -7,6 +7,7 @@ use crate::{
 use actix_session::CookieSession;
 use actix_web::{cookie::SameSite, web};
 use handler::api;
+
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/logout").to(logout))
         .service(web::resource("/profile").route(web::get().to(profile::site)))

@@ -2,7 +2,9 @@ use crate::{
     db::rows_into_vec,
     inc_sql,
     model::{json::Feed, Account, Permission},
-    session_storage, template, State,
+    session_storage, template,
+    util::redirect,
+    State,
 };
 
 use actix_web::{web, HttpResponse};
@@ -27,7 +29,7 @@ pub async fn site(
             .query_opt(&submitter_check_stmnt, &[&feed_id, &account.id()])
             .await?
         {
-            return Ok(HttpResponse::Forbidden().finish());
+            return Ok(redirect("404"));
         }
     }
 
@@ -49,5 +51,5 @@ pub async fn site(
         }
     }
 
-    Ok(template::NotFound::render_response(&session))
+    Ok(redirect("404"))
 }

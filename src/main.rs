@@ -24,6 +24,7 @@ pub struct State {
     db_pool: Pool,
     img_cache: ImageCache,
 }
+
 async fn run() -> Result<(), anyhow::Error> {
     let state = State {
         db_pool: db::util::connect_and_migrate().await?,
