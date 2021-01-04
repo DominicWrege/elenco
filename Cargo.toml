@@ -37,6 +37,7 @@ isolang = "1.0.0"
 tree_magic_mini = "1.0.0"
 mime = "0.3.16"
 blake3 = "0.3.7"
+envy = "0.4.2"
 
 [dependencies.tokio]
 version = "0.2.23"

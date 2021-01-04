@@ -6,6 +6,27 @@ mod embedded {
     embed_migrations!("./sql/migrations");
 }
 
+fn default_port() -> u16 {
+    5432
+}
+
+#[derive(serde::Deserialize, Debug)]
+struct DBConfig {
+    username: String,
+    password: String,
+    //TODO id or url
+    host: String,
+    databasename: String,
+    #[serde(default = "default_port")]
+    port: u16,
+}
+
+impl DBConfig {
+    pub fn new() -> Result<Self, envy::Error> {
+        envy::prefixed("DB_").from_env::<DBConfig>()
+    }
+}
+
 struct DBContext {
     client: tokio_postgres::Client,
     connection: tokio_postgres::Connection<Socket, NoTlsStream>,
@@ -14,11 +35,12 @@ struct DBContext {
 
 async fn connect_with_conf() -> Result<DBContext, anyhow::Error> {
     let mut config = tokio_postgres::Config::default();
+    let db_config = DBConfig::new()?;
     config
-        .user("harra")
-        .password("hund")
-        .dbname("podcast")
-        .host("127.0.0.1");
+        .user(&db_config.username)
+        .password(&db_config.password)
+        .dbname(&db_config.databasename)
+        .host(&db_config.host);
     let (client, connection) = config.connect(tokio_postgres::NoTls).await?;
     Ok(DBContext {
         client,
