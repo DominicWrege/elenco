@@ -65,9 +65,9 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
                 .map(|k| k.split(',').collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
-                .and_then(|itunes| itunes.duration())
+                .and_then(|itunes| itunes.duration())   
                 .and_then(|d| parse_duration_from_str(d))
-                .map(|x| x.whole_seconds() as i64),
+                .map(|x| x.num_seconds() as i64),
             show_notes: item
                 .content()
                 .or_else(|| item.itunes_ext().and_then(|itunes| itunes.summary())),

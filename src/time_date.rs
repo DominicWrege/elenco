@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use time::Duration;
+use chrono::{DateTime, Duration, Utc};
 
 // after RFC https://tools.ietf.org/html/rfc822
 

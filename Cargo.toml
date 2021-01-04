@@ -24,7 +24,6 @@ tokio-pg-mapper-derive = "0.1.4"
 actix-files = "0.5.0"
 rand = "0.8"
 futures-util = "0.3.8"
-time = "0.2.22"
 email_address = "0.2.0"
 url = { version = "2.2.0", features=["serde"] } 
 actix-session = "0.4.0"

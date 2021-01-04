@@ -50,7 +50,7 @@ async fn run() -> Result<(), anyhow::Error> {
                         CookieSession::private(&[1; 32])
                             .name("auth")
                             .secure(false)
-                            .max_age_time(time::Duration::days(2))
+                            .max_age(chrono::Duration::days(2).num_seconds())
                             .lazy(true)
                             .path("/web/auth")
                             .same_site(SameSite::Strict)
