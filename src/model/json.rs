@@ -5,6 +5,8 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Client;
 
 use crate::handler::api::error::ApiError;
+
+use super::channel::LanguageCodeLookup;
 #[derive(Debug, Serialize)]
 pub struct Feed {
     pub id: i32,
@@ -15,7 +17,7 @@ pub struct Feed {
     pub link_web: String,
     pub description: String,
     pub subtitle: Option<String>,
-    pub language: String,
+    pub language: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
@@ -24,6 +26,12 @@ pub struct Feed {
 impl Feed {
     pub fn website(&self) -> Option<Url> {
         Url::parse(&self.link_web).ok()
+    }
+}
+
+impl LanguageCodeLookup for Feed {
+    fn language_code(&self) -> Option<&str> {
+        self.language.as_ref().map(|l| l.as_str())
     }
 }
 

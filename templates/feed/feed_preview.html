@@ -13,7 +13,7 @@
                             <p><a href="{{ content.feed.link_web }}" target="_blank">{{  website_host }}</a></p>
                         {% when None %}
                     {% endmatch %}
-                    <p>{{ content.feed.language().unwrap_or_default() }}</p>
+                    <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
                     {% for (top_category, sub_categories) in content.feed.categories %}
                         {%if sub_categories.is_empty() -%}
                             <p>{{ top_category }}</p>

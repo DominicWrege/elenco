@@ -19,7 +19,7 @@
                     {% endmatch %}
                 {% when None %}
             {% endmatch %}
-            <p>{{ feed.language }}</p>
+            <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
             {% for category in feed.categories %}
                 {%if category.childreen.is_empty() -%}
                     <p>{{ category.description }}</p>
