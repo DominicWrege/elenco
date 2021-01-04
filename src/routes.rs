@@ -4,7 +4,8 @@ use crate::{
     my_middleware,
 };
 
-use actix_web::web;
+use actix_session::CookieSession;
+use actix_web::{cookie::SameSite, web};
 use handler::api;
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/logout").to(logout))
@@ -49,25 +50,57 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 
 pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/feeds")
-            .route("", web::get().to(api::feed::all))
-            .route("/{term}", web::get().to(api::feed::search)),
-    )
-    .service(
-        web::scope("/feed")
-            .route("/{id}", web::get().to(api::feed::by_name_or_id))
-            .route("/{id}/episodes", web::get().to(api::episode::by_feed_id)),
-    )
-    .route("/categories", web::get().to(api::category::all))
-    .service(
-        web::scope("/category")
-            .route("/{category}", web::get().to(api::category::by_id_or_name))
-            .route("/{category}/feeds", web::get().to(api::feed::by_category)),
-    )
-    .route("/authors", web::get().to(api::author::all))
-    .service(
-        web::scope("author")
-            .route("/{id}/feeds", web::get().to(api::feed::by_author))
-            .route("/{id}", web::get().to(api::author::by_id)),
+        web::scope("/api")
+            .service(
+                web::scope("/feeds")
+                    .route("", web::get().to(api::feed::all))
+                    .route("/{term}", web::get().to(api::feed::search)),
+            )
+            .service(
+                web::scope("/feed")
+                    .route("/{id}", web::get().to(api::feed::by_name_or_id))
+                    .route("/{id}/episodes", web::get().to(api::episode::by_feed_id)),
+            )
+            .route("/categories", web::get().to(api::category::all))
+            .service(
+                web::scope("/category")
+                    .route("/{category}", web::get().to(api::category::by_id_or_name))
+                    .route("/{category}/feeds", web::get().to(api::feed::by_category)),
+            )
+            .route("/authors", web::get().to(api::author::all))
+            .service(
+                web::scope("author")
+                    .route("/{id}/feeds", web::get().to(api::feed::by_author))
+                    .route("/{id}", web::get().to(api::author::by_id)),
+            ),
+    );
+}
+
+pub fn web(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/web")
+            .wrap(
+                CookieSession::private(&[1; 32])
+                    .name("auth")
+                    .secure(false)
+                    .max_age(chrono::Duration::days(2).num_seconds())
+                    .lazy(true)
+                    .path("/web/auth")
+                    .same_site(SameSite::Strict)
+                    .lazy(true),
+            )
+            .route(
+                "/img/{filename:.+(jpeg|jpg|png)$}",
+                web::get().to(handler::serve_img),
+            )
+            .configure(self::login_register)
+            .route("404", web::get().to(handler::general_error::not_found))
+            .service(
+                web::scope("/auth")
+                    .wrap(my_middleware::auth::CheckLogin)
+                    .route("/feed/{feed_id}", web::get().to(handler::feed_detail::site))
+                    .configure(self::user)
+                    .configure(self::admin),
+            ),
     );
 }

@@ -1,6 +1,4 @@
-use actix_session::CookieSession;
 use actix_web::{
-    cookie::SameSite,
     middleware,
     middleware::Logger,
     web::{self},
@@ -43,33 +41,8 @@ async fn run() -> Result<(), anyhow::Error> {
             .wrap(Logger::new("ip: %a status: %s time: %Dms req: %r"))
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .route("/", web::get().to(|| util::redirect("/login")))
-            .service(web::scope("/api").configure(routes::api))
-            .service(
-                web::scope("/web")
-                    .wrap(
-                        CookieSession::private(&[1; 32])
-                            .name("auth")
-                            .secure(false)
-                            .max_age(chrono::Duration::days(2).num_seconds())
-                            .lazy(true)
-                            .path("/web/auth")
-                            .same_site(SameSite::Strict)
-                            .lazy(true),
-                    )
-                    .route(
-                        "/img/{filename:.+(jpeg|jpg|png)$}",
-                        web::get().to(handler::serve_img),
-                    )
-                    .configure(routes::login_register)
-                    .route("404", web::get().to(handler::general_error::not_found))
-                    .service(
-                        web::scope("/auth")
-                            .wrap(my_middleware::auth::CheckLogin)
-                            .route("/feed/{feed_id}", web::get().to(handler::feed_detail::site))
-                            .configure(routes::user)
-                            .configure(routes::admin),
-                    ),
-            )
+            .configure(routes::api)
+            .configure(routes::web)
             .default_service(web::route().to(handler::general_error::not_found))
     })
     .bind("0.0.0.0:8080")?
@@ -80,7 +53,7 @@ async fn run() -> Result<(), anyhow::Error> {
 #[actix_web::main]
 async fn main() {
     if let Err(e) = run().await {
-        eprintln!("{}", e);
+        eprintln!("{:#?}", e);
         std::process::exit(1);
     }
 }
