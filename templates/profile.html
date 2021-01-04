@@ -23,7 +23,7 @@
                             <p >{{ subtitle }}</p>
                         {% when None %}
                     {% endmatch %}
-                    <p class="status" status="{{feed.status}}">{{ feed.status }}</p>
+                    <p class="status" status="{{feed.status}}">{{ feed.status | lowercase }}</p>
                 </div>
                 
             </div>

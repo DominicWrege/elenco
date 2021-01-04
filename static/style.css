@@ -168,7 +168,7 @@ tbody tr:nth-child(even) {
 }
 
 .card div.card-text {
-	padding: 0 1em;
+	padding: 1em 1em 0;
 }
 .feed-list-grid p.status {
     color: #646464;
@@ -176,7 +176,7 @@ tbody tr:nth-child(even) {
 
 .feed-list-grid p.status:before{
     display: inline-block;
-    margin: 0 0.65em 0 0;
+    margin: 1.5px 0.65em 0 0;
     height: 0.8em;
     content: " ";
     text-shadow: none;
@@ -195,9 +195,8 @@ tbody tr:nth-child(even) {
     background-color: #ffeb3b;
 }
 .feed-list-grid p.status[status='Offline']:before{
-    background-color:  #263238
-0
-
+    background-color:  #263238;
+}
 
 
 .card h3 {
