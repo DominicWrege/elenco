@@ -9,3 +9,7 @@ where
         .header(http::header::LOCATION, format!("/web{}", path))
         .finish()
 }
+
+pub fn page_not_found() -> HttpResponse {
+    redirect("/404")
+}
