@@ -42,7 +42,15 @@
                     <td>
                         {{ feed.username }}
                     </td>
-                    <td><a href="{{ feed.link_web }}">website</a></td>
+                    <td>
+                    <td>
+                        {% match feed.link_web %}
+                            {% when Some with (website) %}
+                                <a href="{{ website }}">{{ website }}</a>
+                            {% when None %}
+                                None
+                        {% endmatch %}
+                    </td>
                     <td>
                         <p>
                             {{ feed.description }}
@@ -60,7 +68,7 @@
             </tbody>
         </table>
     {% else -%}
-        <p>Inbox Zero. :D</p> 
+        <p>Inbox Zero.:D</p> 
     {% endif -%}
 </div>
 <br>
@@ -99,7 +107,14 @@
                     <td>
                         {{ feed.username }}
                     </td>
-                    <td><a href="{{ feed.link_web }}">website</a></td>
+                    <td>
+                        {% match feed.link_web %}
+                            {% when Some with (website) %}
+                                <a href="{{ website }}">{{ website }}</a>
+                            {% when None %}
+                                None
+                        {% endmatch %}
+                    </td>
                     <td>
                         
                         {{ feed.description | safe }}

@@ -13,7 +13,7 @@ pub struct Feed {
     pub title: String,
     pub img: Option<String>,
     pub author: String,
-    pub link_web: String,
+    pub link_web: Option<String>,
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
@@ -24,7 +24,7 @@ pub struct Feed {
 
 impl Feed {
     pub fn website(&self) -> Option<Url> {
-        Url::parse(&self.link_web).ok()
+        self.link_web.as_ref().and_then(|str| Url::parse(&str).ok())
     }
 }
 
@@ -41,7 +41,7 @@ pub struct FeedEpsiode {
     pub title: String,
     pub author: String,
     pub img: Option<String>,
-    pub link_web: String,
+    pub link_web: Option<String>,
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,

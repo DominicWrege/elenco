@@ -1,0 +1,1 @@
+ALTER TABLE feed ALTEr column link_web DROP NOT NULL;

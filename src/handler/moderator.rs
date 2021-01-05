@@ -41,7 +41,7 @@ pub struct ModeratorFeed {
     pub title: String,
     pub img_cache: Option<String>,
     pub author_name: String,
-    pub link_web: String,
+    pub link_web: Option<String>,
     pub status: Status,
     pub submitted: DateTime<Utc>,
     pub last_modified: DateTime<Utc>,

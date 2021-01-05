@@ -8,9 +8,13 @@
                     {% when None %}
                 {% endmatch %}
                 <div class="podcast-details">
-                    {% match content.feed.link_web.host_str() %}
-                        {% when Some with (website_host) %}
-                            <p><a href="{{ content.feed.link_web }}" target="_blank">{{  website_host }}</a></p>
+                    {% match content.feed.link_web %}
+                        {% when Some with (website) %}
+                            {% match website.host_str() %}
+                                {% when Some with (website_host) %}
+                                    <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                                {% when None %}
+                            {% endmatch %}
                         {% when None %}
                     {% endmatch %}
                     <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
