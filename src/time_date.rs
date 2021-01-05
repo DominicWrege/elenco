@@ -17,17 +17,20 @@ fn digit_thing(s: &str) -> Option<i64> {
     }
 }
 
-pub fn format_duration(seconds: Option<i64>) -> String {
-    if let Some(seconds) = seconds {
-        let duration = chrono::Duration::seconds(seconds as i64);
-        let seconds = duration.num_seconds() % 60;
-        let minutes = (duration.num_seconds() / 60) % 60;
-        let hours = duration.num_hours();
+pub trait DurationFormator {
+    fn format_duration(&self) -> String {
+        if let Some(seconds) = self.duration() {
+            let duration = chrono::Duration::seconds(seconds as i64);
+            let seconds = duration.num_seconds() % 60;
+            let minutes = (duration.num_seconds() / 60) % 60;
+            let hours = duration.num_hours();
 
-        format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
-    } else {
-        "None".to_string()
+            format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
+        } else {
+            "None".to_string()
+        }
     }
+    fn duration(&self) -> Option<i64>;
 }
 
 pub fn parse_duration_from_str(s: &str) -> Option<Duration> {

@@ -2,7 +2,6 @@ use std::{
     cell::RefCell,
     pin::Pin,
     rc::Rc,
-    str::FromStr,
     task::{Context, Poll},
 };
 

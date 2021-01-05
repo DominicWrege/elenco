@@ -4,9 +4,8 @@ use serde::{Deserialize, Serialize, Serializer};
 use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Client;
 
-use crate::handler::api::error::ApiError;
+use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 
-use super::channel::LanguageCodeLookup;
 #[derive(Debug, Serialize)]
 pub struct Feed {
     pub id: i32,
@@ -45,7 +44,7 @@ pub struct FeedEpsiode {
     pub link_web: String,
     pub description: String,
     pub subtitle: Option<String>,
-    pub language: String,
+    pub language: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,

@@ -3,7 +3,7 @@ use chrono::DateTime;
 use reqwest::Url;
 use std::convert::{TryFrom, TryInto};
 
-use crate::time_date::{self, parse_datetime_rfc822, parse_duration_from_str};
+use crate::time_date::{parse_datetime_rfc822, parse_duration_from_str, DurationFormator};
 use tokio_pg_mapper_derive::PostgresMapper;
 #[derive(Debug, PostgresMapper)]
 #[pg_mapper(table = "episode")]
@@ -13,9 +13,9 @@ pub struct EpisodeSmall {
     pub url: Option<String>,
 }
 
-impl EpisodeSmall {
-    pub fn format_duration(&self) -> String {
-        time_date::format_duration(self.duration)
+impl DurationFormator for EpisodeSmall {
+    fn duration(&self) -> Option<i64> {
+        self.duration
     }
 }
 
@@ -39,11 +39,14 @@ impl<'a> EpisodeRow<'a> {
     pub fn media_url(&self) -> &str {
         self.media_url.as_str()
     }
-    pub fn format_duration(&self) -> String {
-        time_date::format_duration(self.duration)
-    }
     pub fn from(items: &[rss::Item]) -> Vec<EpisodeRow> {
         items.iter().flat_map(|item| item.try_into().ok()).collect()
+    }
+}
+
+impl DurationFormator for EpisodeRow<'_> {
+    fn duration(&self) -> Option<i64> {
+        self.duration
     }
 }
 
@@ -65,7 +68,7 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
                 .map(|k| k.split(',').collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
-                .and_then(|itunes| itunes.duration())   
+                .and_then(|itunes| itunes.duration())
                 .and_then(|d| parse_duration_from_str(d))
                 .map(|x| x.num_seconds() as i64),
             show_notes: item
