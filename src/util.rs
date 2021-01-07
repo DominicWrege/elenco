@@ -24,8 +24,10 @@ impl LanguageCodeLookup for RawFeed<'_> {
 
 pub trait LanguageCodeLookup {
     fn language_lookup(&self) -> Option<Language> {
-        self.language_code()
-            .and_then(|code| Language::from_639_1(code).or_else(|| Language::from_locale(code)))
+        self.language_code().and_then(|code| {
+            Language::from_639_1(code)
+                .or_else(|| Language::from_639_3(code))
+        })
     }
     fn language_code(&self) -> Option<&str>;
 }
