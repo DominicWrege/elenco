@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use crate::handler::feed_preview::PreviewError;
-use crate::model::item::EpisodeRow;
 use crate::model::channel::RawFeed;
+use crate::model::item::EpisodeRow;
 use crate::{img_cache::RowImg, inc_sql};
 use deadpool_postgres::Client;
 use futures_util::future;
@@ -121,6 +121,7 @@ async fn insert_feed_catagories(
 }
 
 async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str>) -> Option<i32> {
+    dbg!(&author_name);
     if let Some(name) = author_name {
         let stmnt = trx.prepare(inc_sql!("insert/author")).await.ok();
         if let Some(s) = stmnt {

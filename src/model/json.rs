@@ -9,11 +9,11 @@ use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 #[derive(Debug, Serialize)]
 pub struct Feed {
     pub id: i32,
-    pub url: String,
+    pub url: Url,
     pub title: String,
     pub img: Option<String>,
     pub author: String,
-    pub link_web: Option<String>,
+    pub link_web: Option<Url>,
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
@@ -23,8 +23,8 @@ pub struct Feed {
 }
 
 impl Feed {
-    pub fn website(&self) -> Option<Url> {
-        self.link_web.as_ref().and_then(|str| Url::parse(&str).ok())
+    pub fn website(&self) -> Option<&Url> {
+        self.link_web.as_ref()
     }
 }
 
@@ -37,11 +37,11 @@ impl LanguageCodeLookup for Feed {
 #[derive(Debug, Serialize)]
 pub struct FeedEpsiode {
     pub id: i32,
-    pub url: String,
+    pub url: Url,
     pub title: String,
     pub author: String,
     pub img: Option<String>,
-    pub link_web: Option<String>,
+    pub link_web: Option<Url>,
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
@@ -100,11 +100,11 @@ impl FeedEpsiode {
     ) -> Result<Self, ApiError> {
         Ok(Self {
             id: row.get("id"),
-            url: row.get("url"),
+            url: Url::parse(row.get("url"))?,
             title: row.get("title"),
             author: row.get("author"),
             img: row.get("img"),
-            link_web: row.get("link_web"),
+            link_web: Url::parse(row.get("link_web")).ok(),
             description: row.get("description"),
             subtitle: row.get("subtitle"),
             language: row.get("language"),
@@ -121,11 +121,11 @@ impl Feed {
         let feed_id = feed_row.get("id");
         Ok(Self {
             id: feed_id,
-            url: feed_row.get("url"),
+            url: Url::parse(feed_row.get("url"))?,
             title: feed_row.get("title"),
             author: feed_row.get("author"),
             img: feed_row.get("img"),
-            link_web: feed_row.get("link_web"),
+            link_web: Url::parse(feed_row.get("link_web")).ok(),
             description: feed_row.get("description"),
             subtitle: feed_row.get("subtitle"),
             language: feed_row.get("language"),

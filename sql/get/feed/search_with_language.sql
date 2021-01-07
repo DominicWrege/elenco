@@ -9,6 +9,7 @@ FROM
            LEFT JOIN img ON f.img_id = img.id
 WHERE 
     f.status = 'online' 
-    AND f.search || author.search @@ to_tsquery($1 || ':*')
+    AND f.search || author.search @@ to_tsquery($1 || ':*') 
+    AND feed_language.name = $2
 ORDER BY 
     ts_rank(f.search || author.search, to_tsquery($1 || ':*')) DESC;

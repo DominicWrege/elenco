@@ -17,7 +17,6 @@
                     <th>author</th>
                     <th>username</th>
                     <th>website</th>
-                    <th>description</th>
                     <th>submitted</th>
                     <th>action</th>
                 </tr>
@@ -43,18 +42,12 @@
                         {{ feed.username }}
                     </td>
                     <td>
-                    <td>
                         {% match feed.link_web %}
                             {% when Some with (website) %}
                                 <a href="{{ website }}">{{ website }}</a>
                             {% when None %}
                                 None
                         {% endmatch %}
-                    </td>
-                    <td>
-                        <p>
-                            {{ feed.description }}
-                        </p>
                     </td>
                     <td>
                         {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%g")}}
@@ -84,7 +77,6 @@
                     <th>author</th>
                     <th>username</th>
                     <th>website</th>
-                    <th>description</th>
                     <th>status</th>
                     <th>submitted</th>
                     <th>reviewed</th>
@@ -114,11 +106,6 @@
                             {% when None %}
                                 None
                         {% endmatch %}
-                    </td>
-                    <td>
-                        
-                        {{ feed.description | safe }}
-                      
                     </td>
                     <td>
                         {{ feed.status }}

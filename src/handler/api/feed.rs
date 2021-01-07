@@ -2,7 +2,7 @@ use crate::State;
 use crate::{
     db::{categories_for_feed, rows_into_vec},
     inc_sql,
-    model::json::{FeedEpsiode, Feed},
+    model::json::{Feed, FeedEpsiode},
 };
 use actix_web::{web, web::Json};
 
@@ -13,28 +13,54 @@ use super::{error::ApiError, ApiJsonResult};
 pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
     let feeds_row = client.query(inc_sql!("get/feed/all"), &[]).await?;
-    let feeds = future::try_join_all(
-        feeds_row
-            .into_iter()
-            .map(|row| Feed::from(&client, row)),
-    )
-    .await?;
+    let feeds =
+        future::try_join_all(feeds_row.into_iter().map(|row| Feed::from(&client, row))).await?;
     Ok(Json(feeds))
 }
 
+#[derive(serde::Deserialize)]
+pub struct SearchQuery {
+    term: String,
+    lang: Option<String>,
+    category: Option<i32>,
+}
+
 pub async fn search(
-    term: web::Path<String>,
+    query: Result<web::Query<SearchQuery>, actix_web::Error>,
     state: web::Data<State>,
 ) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
-    let feed_stmnt = client.prepare(inc_sql!("get/feed/search")).await?;
-    let feeds_row = client.query(&feed_stmnt, &[&term.as_str()]).await?;
-    let feeds = future::try_join_all(
-        feeds_row
-            .into_iter()
-            .map(|row| Feed::from(&client, row)),
-    )
-    .await?;
+    let query = query.map_err(|_e| ApiError::MissingTerm)?;
+    let feeds_row = match &query.lang {
+        Some(lang) => {
+            match &query.category {
+                Some(category) => {
+                    let feed_stmnt = client
+                        .prepare(inc_sql!("get/feed/search_with_language_category"))
+                        .await?;
+                    client
+                        .query(&feed_stmnt, &[&query.term, lang, category])
+                        .await?
+                }
+                None => {
+                    let feed_stmnt = client
+                        .prepare(inc_sql!("get/feed/search_with_language"))
+                        .await?;
+                    client.query(&feed_stmnt, &[&query.term, lang]).await?
+                }
+            };
+            let feed_stmnt = client
+                .prepare(inc_sql!("get/feed/search_with_language"))
+                .await?;
+            client.query(&feed_stmnt, &[&query.term, lang]).await?
+        }
+        None => {
+            let feed_stmnt = client.prepare(inc_sql!("get/feed/search")).await?;
+            client.query(&feed_stmnt, &[&query.term]).await?
+        }
+    };
+    let feeds =
+        future::try_join_all(feeds_row.into_iter().map(|row| Feed::from(&client, row))).await?;
     Ok(Json(feeds))
 }
 
@@ -79,8 +105,7 @@ pub async fn by_category(
         return Err(ApiError::CategoryNotFound(category.into_inner()));
     }
 
-    let feeds =
-        future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
 
     Ok(Json(feeds))
 }
@@ -96,7 +121,6 @@ pub async fn by_author(
     if rows.is_empty() {
         return Err(ApiError::AuthorNotFound(auhtor_id));
     }
-    let feeds =
-        future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
     Ok(Json(feeds))
 }

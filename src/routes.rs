@@ -52,10 +52,11 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
+            .default_service(web::route().to(api::error::not_found))
             .service(
                 web::scope("/feeds")
                     .route("", web::get().to(api::feed::all))
-                    .route("/{term}", web::get().to(api::feed::search)),
+                    .route("/search", web::get().to(api::feed::search)),
             )
             .service(
                 web::scope("/feed")

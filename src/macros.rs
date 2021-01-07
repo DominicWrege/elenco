@@ -39,6 +39,12 @@ macro_rules! generic_handler_err {
                 $err(e.into())
             }
         }
+
+        impl From<url::ParseError> for $ty {
+            fn from(e: url::ParseError) -> Self {
+                $err(e.into())
+            }
+        }
     };
 }
 #[macro_export]
