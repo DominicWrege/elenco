@@ -18,7 +18,7 @@
                         {% when None %}
                     {% endmatch %}
                     <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
-                    {% for (top_category, sub_categories) in content.feed.categories %}
+                    {% for (top_category, sub_categories) in content.feed.categories.iter() %}
                         {%if sub_categories.is_empty() -%}
                             <p>{{ top_category }}</p>
                         {% else -%}
@@ -62,7 +62,7 @@
                         </thead>
                         <tbody>
                             <tbody>
-                                {% for episode in content.feed.episodes %}
+                                {% for episode in content.feed.episodes.iter() %}
                                     <tr>
                                         <td>{{ episode.title }}</td>
                                         <td>

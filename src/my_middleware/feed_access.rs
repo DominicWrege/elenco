@@ -18,13 +18,12 @@ use crate::{inc_sql, model::Permission, util::page_not_found};
 
 pub struct FeedAccess;
 
-impl<S, B> Transform<S> for FeedAccess
+impl<S, B> Transform<S, ServiceRequest> for FeedAccess
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -42,13 +41,12 @@ pub struct FeedAccessMidldleware<S> {
     service: Rc<RefCell<S>>,
 }
 
-impl<S, B> Service for FeedAccessMidldleware<S>
+impl<S, B> Service<ServiceRequest> for FeedAccessMidldleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     #[allow(clippy::type_complexity)]

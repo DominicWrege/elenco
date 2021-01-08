@@ -9,12 +9,11 @@ use actix_web::Error;
 use futures_util::future::{ok, Either, Ready};
 pub struct CheckLogin;
 
-impl<S, B> Transform<S> for CheckLogin
+impl<S, B> Transform<S, ServiceRequest> for CheckLogin
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -29,12 +28,11 @@ pub struct CheckLoginMiddleware<S> {
     service: S,
 }
 
-impl<S, B> Service for CheckLoginMiddleware<S>
+impl<S, B> Service<ServiceRequest> for CheckLoginMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
     S::Future: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;

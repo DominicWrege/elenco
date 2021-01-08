@@ -83,7 +83,7 @@ where
 pub struct Category {
     id: i32,
     pub description: String,
-    pub childreen: Vec<SubCategory>,
+    pub children: Vec<SubCategory>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -150,7 +150,7 @@ impl From<tokio_postgres::Row> for Category {
         Category {
             description,
             id,
-            childreen: serde_json::from_value(row.get("subcategories")).unwrap(),
+            children: serde_json::from_value(row.get("subcategories")).unwrap(),
         }
     }
 }

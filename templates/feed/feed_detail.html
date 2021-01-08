@@ -21,12 +21,12 @@
             {% endmatch %}
             <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
             {% for category in feed.categories %}
-                {%if category.childreen.is_empty() -%}
+                {%if category.children.is_empty() -%}
                     <p>{{ category.description }}</p>
                 {% else -%}
                     <p>{{ category.description }}:</p>
                 {% endif -%}
-                {% for subcategory in category.childreen  %}
+                {% for subcategory in category.children.iter()  %}
                     <p class="sub-category">{{ subcategory.description }}</p>
                 {% endfor %}
             {% endfor %}

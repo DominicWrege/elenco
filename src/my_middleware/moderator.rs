@@ -13,13 +13,12 @@ use futures_util::future::{ok, Future, Ready};
 
 pub struct Moderator;
 
-impl<S, B> Transform<S> for Moderator
+impl<S, B> Transform<S, ServiceRequest> for Moderator
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     type InitError = ();
@@ -37,13 +36,12 @@ pub struct ModeratorMiddleware<S> {
     service: Rc<RefCell<S>>,
 }
 
-impl<S, B> Service for ModeratorMiddleware<S>
+impl<S, B> Service<ServiceRequest> for ModeratorMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
     B: 'static,
 {
-    type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
     #[allow(clippy::type_complexity)]
