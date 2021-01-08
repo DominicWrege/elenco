@@ -1,12 +1,13 @@
 use std::collections::BTreeMap;
 
-use crate::handler::feed_preview::PreviewError;
 use crate::model::channel::RawFeed;
 use crate::model::item::EpisodeRow;
 use crate::{img_cache::RowImg, inc_sql};
 use deadpool_postgres::Client;
 use futures_util::future;
 use tokio_postgres::Transaction;
+
+use super::preview_error::PreviewError;
 #[derive(Debug)]
 struct Context<'a> {
     user: &'a i32,
@@ -93,10 +94,10 @@ async fn insert_or_get_img_id(
 
 async fn insert_or_get_language_id(
     trx: &Transaction<'_>,
-    category: &str,
+    language: &str,
 ) -> Result<i32, tokio_postgres::Error> {
     let stmnt = trx.prepare(inc_sql!("insert/language")).await?;
-    let row = trx.query_one(&stmnt, &[&category]).await?;
+    let row = trx.query_one(&stmnt, &[&language]).await?;
     Ok(row.get("id"))
 }
 
@@ -121,7 +122,6 @@ async fn insert_feed_catagories(
 }
 
 async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str>) -> Option<i32> {
-    dbg!(&author_name);
     if let Some(name) = author_name {
         let stmnt = trx.prepare(inc_sql!("insert/author")).await.ok();
         if let Some(s) = stmnt {

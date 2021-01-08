@@ -92,6 +92,14 @@ pub struct SubCategory {
     pub description: String,
 }
 
+fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
+    if let Some(link) = row.get("link_web") {
+        Url::parse(link).ok()
+    } else {
+        None
+    }
+}
+
 impl FeedEpsiode {
     pub async fn from(
         row: &tokio_postgres::Row,
@@ -104,7 +112,7 @@ impl FeedEpsiode {
             title: row.get("title"),
             author: row.get("author"),
             img: row.get("img"),
-            link_web: Url::parse(row.get("link_web")).ok(),
+            link_web: parse_url(&row),
             description: row.get("description"),
             subtitle: row.get("subtitle"),
             language: row.get("language"),
@@ -125,19 +133,13 @@ impl Feed {
             title: feed_row.get("title"),
             author: feed_row.get("author"),
             img: feed_row.get("img"),
-            link_web: Url::parse(feed_row.get("link_web")).ok(),
+            link_web: parse_url(&feed_row),
             description: feed_row.get("description"),
             subtitle: feed_row.get("subtitle"),
             language: feed_row.get("language"),
             last_modified: feed_row.get("last_modified"),
             categories: categories_for_feed(&client, feed_id).await?,
         })
-    }
-    pub fn compare_subtile_description(&self) -> bool {
-        self.subtitle
-            .as_ref()
-            .map(|subtitle| subtitle == &self.description)
-            .is_some()
     }
 }
 

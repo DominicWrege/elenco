@@ -1,8 +1,8 @@
 WITH inserted as (
     INSERT INTO
-        author(name, search)
+        author(name)
     VALUES
-        ($1, ''::tsvector)
+        ($1)
     ON CONFLICT DO NOTHING
     RETURNING ID
 )

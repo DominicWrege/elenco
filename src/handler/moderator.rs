@@ -45,9 +45,7 @@ pub struct ModeratorFeed {
     pub status: Status,
     pub submitted: DateTime<Utc>,
     pub last_modified: DateTime<Utc>,
-    pub description: String,
     pub language: String,
-    pub subtitle: Option<String>,
     pub username: String,
 }
 

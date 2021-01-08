@@ -1,7 +1,6 @@
 use crate::{
-    db::{error::Field, feed_exits, new_feed::save},
-    hide_internal,
-    model::{channel::RawFeed, Account, Permission},
+    db::{feed_exits, save_feed::save, preview_error::PreviewError},
+    model::{channel::RawFeed, Account},
     session_storage::{cache_feed_url, feed_url},
     template::{Context, FeedPreviewSite},
     util::redirect,
@@ -9,48 +8,9 @@ use crate::{
 };
 
 use actix_session::Session;
-use actix_web::http::StatusCode;
-use actix_web::{web, HttpResponse, ResponseError};
+use actix_web::{web, HttpResponse};
 use askama::Template;
 use reqwest::Url;
-use thiserror::Error;
-
-// show session and and parsing error
-#[derive(Debug, Error)]
-pub enum PreviewError {
-    #[error("Invalid RSS Feed {0}")]
-    InvalidRssFeed(#[from] rss::Error),
-    #[error("Could not fetch URL {0}")]
-    Fetch(#[from] reqwest::Error),
-    #[error("Internal error")]
-    Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
-    #[error("Podcast {0} already exists.")]
-    Duplicate(Field),
-}
-
-impl ResponseError for PreviewError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            PreviewError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            _ => StatusCode::BAD_REQUEST,
-        }
-    }
-
-    fn error_response(&self) -> HttpResponse {
-        let message = hide_internal!(PreviewError, self);
-        HttpResponse::build(self.status_code())
-            .content_type("text/html")
-            .body(
-                FeedPreviewSite {
-                    permission: Some(Permission::User),
-                    error_msg: Some(message),
-                    context: None,
-                }
-                .render()
-                .unwrap(),
-            )
-    }
-}
 
 #[derive(serde::Deserialize)]
 pub struct FeedForm {

@@ -34,17 +34,15 @@
         </div>
         <div id="text-box">
             <div class="flex podcast-header-form">
-                <h3 class="podcast-title">{{ feed.title }}</h3>
+                <h2 class="podcast-title">{{ feed.title }}</h2>
             </div>
             <small>{{ feed.author}}</small>
-            <p>{{ feed.description|safe }}</p>
             {% match feed.subtitle %}
-                {% when Some with (subtitle) %}
-                    {% if !feed.compare_subtile_description() -%}
-                        <p>{{ subtitle }}</p>
-                    {% endif %}
+            {% when Some with (subtitle) %}
+                <p>{{ subtitle }}</p>
                 {% when None %}
             {% endmatch %}
+            <p>{{ feed.description|safe }}</p>
         </div>
     </div>
     <div id="episodes">

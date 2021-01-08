@@ -7,8 +7,8 @@ use crate::{
     model::json::Category,
 };
 
-pub mod error;
-pub mod new_feed;
+pub mod preview_error;
+pub mod save_feed;
 pub mod util;
 
 pub fn rows_into_vec<T>(row: Vec<Row>) -> Vec<T>

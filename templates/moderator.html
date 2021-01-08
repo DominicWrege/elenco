@@ -12,7 +12,6 @@
                 <tr>
                     <th>id</th>
                     <th>title</th>
-                    <th>subtitle</th>
                     <th>url</th>
                     <th>author</th>
                     <th>username</th>
@@ -26,14 +25,6 @@
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
-                    <td>
-                        {% match feed.subtitle %}
-                        {% when Some with (subtitle) %}
-                            {{ subtitle }}
-                        {% when None %}
-                            <p></p>
-                        {% endmatch %}
-                    </td>
                     <td>
                         <a href="{{ feed.url }}">feed</a>
                     </td>
@@ -73,7 +64,6 @@
                 <tr>
                     <th>id</th>
                     <th>title</th>
-                    <th>subtitle</th>
                     <th>author</th>
                     <th>username</th>
                     <th>website</th>
@@ -87,14 +77,6 @@
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
-                    <td>
-                        {% match feed.subtitle %}
-                            {% when Some with (subtitle) %}
-                                {{ subtitle }}
-                            {% when None %}
-                                <p></p>
-                        {% endmatch %}
-                    </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
                         {{ feed.username }}
