@@ -1,16 +1,17 @@
-async function approvehandler(event) {
-    await genericHandler(event, "Online");
-}
+const feedsReviewed = new Set();
 
+async function approvehandler(event) {
+    await genericHandler("Online");
+}
 
 async function rejectHandler(event) {
-    await genericHandler(event, "Blocked");
+    await genericHandler("Blocked");
 }
 
-async function genericHandler(event, action) {
-    const id = extractId(event.target)
+async function genericHandler(action) {
     try {
-        await updateFeed(id, action);
+        let udpates = Array.from(feedsReviewed).map(id => updateFeed(id, action));
+        await Promise.all(udpates);
         location.reload();
     } catch (err) {
         console.error(err);
@@ -30,17 +31,24 @@ async function updateFeed(id, action) {
 }
 
 
-function extractId(target) {
-    const idElement = target.parentElement.parentElement.querySelector(".feed-id");
-    return parseInt(idElement.textContent.trim(), 10);
+function checkboxChanged(event) {
+    const id = event.target.parentElement.nextElementSibling.textContent.trim();
+    const idInt = parseInt(id, 10);
+    if (event.target.checked) {
+        feedsReviewed.add(idInt);
+    } else {
+        feedsReviewed.delete(idInt);
+    }
+    console.log(feedsReviewed);
 }
 
 window.addEventListener("load", () => {
-    for (const button of document.querySelectorAll("td.action button.allow")) {
-        button.addEventListener("click", approvehandler);
-    }
-    for (const button of document.querySelectorAll("td.action button.reject")) {
-        button.addEventListener("click", rejectHandler);
+
+    document.querySelector("button#allowButton").addEventListener("click", approvehandler);
+    document.querySelector("button#rejectButton").addEventListener("click", rejectHandler);
+
+    for (const checkbox of document.querySelectorAll("tr td input.feed-row")) {
+        checkbox.addEventListener("click", checkboxChanged);
     }
 });
 

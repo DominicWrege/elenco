@@ -15,7 +15,7 @@ img {
     height: 12em;
     background-color: #efefef;
 }
-input {
+form.pure-form-stacked input {
 	width: 34vw;
 }
 .pure-menu-heading b {
@@ -300,4 +300,36 @@ h3 {
 .podcast-header-form .container-disabled-button p{
     color: #e7615d;
     margin-left: 0.5em;
+}
+
+input.feed-row.pure-checkbox {
+    height: 1.15em;
+    width: 1.15em;
+}
+
+.feeds-review-header{
+    display: flex;
+    line-height: 0;
+    justify-content: space-between;
+    margin-bottom: 0.85em;
+    margin-top: 1em;
+}
+
+div.actions-feed{
+    display: flex;
+    gap: 1em;
+    
+}
+div.actions-feed button{
+    color: white !important;
+}
+.pure-table {
+    width: 100%;
+}
+tr td.checkbox-container {
+    display: flex;
+    justify-content: center;
+}
+.pure-table td {
+    padding: .5em !important;
 }

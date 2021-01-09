@@ -4,29 +4,40 @@
 <div class="grid">
     <a href="register" class="pure-button">New Moderator</a>
 </div>
+
 <div>
-<h2>Feeds For Review</h2>
+
+<header class="feeds-review-header">
+    <h2>Feeds For Review</h2>
+    <div class="actions-feed">
+        <button id="allowButton" class="allow button-small button-success pure-button">Allow</button>
+        <button id="rejectButton" class="reject button-small button-error pure-button">Reject</button>
+    </div>
+</header>
     {% if queued_feeds.len() > 0 -%}
         <table class="pure-table">
             <thead>
                 <tr>
-                    <th>id</th>
-                    <th>title</th>
-                    <th>url</th>
-                    <th>author</th>
-                    <th>username</th>
-                    <th>website</th>
-                    <th>submitted</th>
-                    <th>action</th>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>URL</th>
+                    <th>Author</th>
+                    <th>Username</th>
+                    <th>Website</th>
+                    <th>Submitted</th>
                 </tr>
             </thead>
             <tbody>
                 {% for feed in queued_feeds %}
                 <tr>
+                    <td class="checkbox-container">
+                        <input type="checkbox" class="feed-row pure-checkbox" />
+                    </td>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
                     <td>
-                        <a href="{{ feed.url }}">feed</a>
+                        <a href="{{ feed.url }}">Feed</a>
                     </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
@@ -42,10 +53,6 @@
                     </td>
                     <td>
                         {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%g")}}
-                    </td>
-                    <td class="action">
-                        <button class="allow button-small button-success pure-button">Allow</button>
-                        <button class="reject button-small button-error pure-button">Reject</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -62,14 +69,15 @@
         <table class="pure-table">
             <thead>
                 <tr>
-                    <th>id</th>
-                    <th>title</th>
-                    <th>author</th>
-                    <th>username</th>
-                    <th>website</th>
-                    <th>status</th>
-                    <th>submitted</th>
-                    <th>reviewed</th>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>URL</th>
+                    <th>Author</th>
+                    <th>Username</th>
+                    <th>Website</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Reviewed</th>
                 </tr>
             </thead>
             <tbody>
@@ -77,6 +85,9 @@
                 <tr>
                     <td class="feed-id">{{ feed.id }}</td>
                     <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
+                    <td>
+                        <a href="{{ feed.url }}">Feed</a>
+                    </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
                         {{ feed.username }}
@@ -93,7 +104,7 @@
                         {{ feed.status }}
                     </td>
                     <td>
-                        {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%g")}}
+                        {{ feed.submitted.time().format("%H:%M") }}, {{feed.submitted.date().format("%d.%m.%Y")}}
                     </td>
                     <td>
                         {{ feed.last_modified.time().format("%H:%M") }}, {{feed.last_modified.date().format("%d.%m.%g")}}
