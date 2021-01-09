@@ -1,8 +1,8 @@
-use crate::time_date::DurationFormator;
 use crate::util::LanguageCodeLookup;
+use crate::{handler::feed_detail::EpisodeSmall, time_date::DurationFormator};
 use crate::{
     handler::{moderator::ModeratorFeed, profile::ProfileFeed},
-    model::{self, channel::RawFeed, item::EpisodeSmall, Permission},
+    model::{self, channel::RawFeed, Permission},
 };
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};

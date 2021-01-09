@@ -2,22 +2,7 @@ use chrono::offset::Utc;
 use chrono::DateTime;
 use reqwest::Url;
 use std::convert::{TryFrom, TryInto};
-
 use crate::time_date::{parse_datetime_rfc822, parse_duration_from_str, DurationFormator};
-use tokio_pg_mapper_derive::PostgresMapper;
-#[derive(Debug, PostgresMapper)]
-#[pg_mapper(table = "episode")]
-pub struct EpisodeSmall {
-    pub title: String,
-    pub duration: Option<i64>,
-    pub url: Option<String>,
-}
-
-impl DurationFormator for EpisodeSmall {
-    fn duration(&self) -> Option<i64> {
-        self.duration
-    }
-}
 
 #[derive(Debug)]
 pub struct EpisodeRow<'a> {

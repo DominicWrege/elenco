@@ -53,6 +53,7 @@
                     <thead>
                         <tr>
                             <th>Title</th>
+                            <th>Published</th>
                             <th>Link</th>
                             <th>Duration</th>
                         </tr>
@@ -60,18 +61,7 @@
                     <tbody>
                         <tbody>
                             {% for episode in episodes %}
-                                <tr>
-                                    <td>{{ episode.title }}</td>
-                                    <td>
-                                        {% match episode.url %}
-                                            {% when Some with (url) %}
-                                                <a href="{{ url }}" target="_blank">go to episode</a>
-                                            {% when None %}
-                                                <div>None</div>
-                                        {% endmatch %}
-                                    </td>
-                                    <td>{{  episode.format_duration() }}</td>
-                                </tr>
+                                {% include "../episode_row.html" %}
                             {% endfor %}
                         </tbody>
                     </tbody>

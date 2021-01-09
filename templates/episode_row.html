@@ -1,0 +1,19 @@
+<tr>
+    <td>{{ episode.title }}</td>
+    <td>
+        {% match episode.published %}
+            {% when Some with (published) %}
+                {{ published.date().format("%d.%m.%Y") }}</td>
+            {% when None %}
+            <div>None</div>
+        {% endmatch %}
+    <td>
+        {% match episode.url %}
+            {% when Some with (url) %}
+                <a href="{{ url }}" target="_blank">go to episode</a>
+            {% when None %}
+                <div>None</div>
+        {% endmatch %}
+    </td>
+    <td>{{  episode.format_duration() }}</td>
+</tr>

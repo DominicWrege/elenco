@@ -35,7 +35,7 @@ impl LanguageCodeLookup for Feed {
 }
 
 #[derive(Debug, Serialize)]
-pub struct FeedEpsiode {
+pub struct FeedEpisode {
     pub id: i32,
     pub url: Url,
     pub title: String,
@@ -48,11 +48,11 @@ pub struct FeedEpsiode {
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
-    pub epsiodes: Vec<Epsiode>,
+    pub epsiodes: Vec<Episode>,
 }
 #[derive(Debug, PostgresMapper, Serialize)]
-#[pg_mapper(table = "epsiode")]
-pub struct Epsiode {
+#[pg_mapper(table = "episode")]
+pub struct Episode {
     pub title: String,
     pub description: String,
     pub explicit: bool,
@@ -100,11 +100,11 @@ fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
     }
 }
 
-impl FeedEpsiode {
+impl FeedEpisode {
     pub async fn from(
         row: &tokio_postgres::Row,
         categories: Vec<Category>,
-        epsiodes: Vec<Epsiode>,
+        epsiodes: Vec<Episode>,
     ) -> Result<Self, ApiError> {
         Ok(Self {
             id: row.get("id"),

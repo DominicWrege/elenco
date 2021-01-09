@@ -2,9 +2,27 @@ use crate::{db::rows_into_vec, inc_sql, model::json::Feed, session_storage, temp
 
 use actix_web::{web, HttpResponse};
 use askama::Template;
+use chrono::{DateTime, Utc};
 use template::FeedDetailSite;
 
 use super::general_error::GeneralError;
+use crate::time_date::DurationFormator;
+use tokio_pg_mapper_derive::PostgresMapper;
+#[derive(Debug, PostgresMapper)]
+#[pg_mapper(table = "episode")]
+pub struct EpisodeSmall {
+    pub title: String,
+    pub duration: Option<i64>,
+    pub url: Option<String>,
+    pub published: Option<DateTime<Utc>>,
+    pub explicit: bool,
+}
+
+impl DurationFormator for EpisodeSmall {
+    fn duration(&self) -> Option<i64> {
+        self.duration
+    }
+}
 
 pub async fn site(
     state: web::Data<State>,

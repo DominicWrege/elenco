@@ -2,7 +2,7 @@ use crate::State;
 use crate::{
     db::{categories_for_feed, rows_into_vec},
     inc_sql,
-    model::json::{Feed, FeedEpsiode},
+    model::json::{Feed, FeedEpisode},
 };
 use actix_web::{web, web::Json};
 
@@ -67,7 +67,7 @@ pub async fn search(
 pub async fn by_name_or_id(
     path: web::Path<i32>,
     state: web::Data<State>,
-) -> ApiJsonResult<FeedEpsiode> {
+) -> ApiJsonResult<FeedEpisode> {
     let feed_id = path.into_inner();
     let client = state.db_pool.get().await?;
     let feed_stmnt = client.prepare(inc_sql!("get/feed/by_id")).await?;
@@ -80,7 +80,7 @@ pub async fn by_name_or_id(
     let epsiodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let epsiode_rows = client.query(&epsiodes_stmnt, &[&feed_id]).await?;
     let epsiodes = rows_into_vec(epsiode_rows);
-    let feed = FeedEpsiode::from(&feed_row, categories, epsiodes).await?;
+    let feed = FeedEpisode::from(&feed_row, categories, epsiodes).await?;
     Ok(Json(feed))
 }
 
