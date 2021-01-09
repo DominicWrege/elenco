@@ -1,5 +1,10 @@
 <tr>
-    <td>{{ episode.title }}</td>
+    <td>
+        {{ episode.title }}
+        {% if episode.explicit -%}
+            <b>E</b>
+        {% endif -%}
+    </td>
     <td>
         {% match episode.published %}
             {% when Some with (published) %}
