@@ -333,6 +333,7 @@ tr td.checkbox-container {
 div.svg-text{
     display: flex;
     gap: 0.5em;
+    line-height: 1;
 }
 td div.title-player{
     display: flex;
