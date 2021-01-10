@@ -8,7 +8,10 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
     let client = state.db_pool.get().await?;
     let stmnt = inc_sql!("get/category/all");
     let rows = client.query(stmnt, &[]).await?;
-    let categories = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
+    let categories = rows
+        .iter()
+        .map(|row| Category::from(row, vec![]))
+        .collect::<Vec<_>>();
 
     Ok(Json(categories))
 }
@@ -27,5 +30,5 @@ pub async fn by_id_or_name(
         client.query_one(&stmnt, &[&category_name]).await
     };
     let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
-    Ok(Json(Category::from(row)))
+    Ok(Json(Category::from(&row, vec![])))
 }

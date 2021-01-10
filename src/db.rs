@@ -38,11 +38,19 @@ pub async fn is_moderator(client: &Client, id: i32) -> Result<bool, GeneralError
 
 pub async fn categories_for_feed(client: &Client, feed_id: i32) -> Result<Vec<Category>, ApiError> {
     let categories_stmnt = client.prepare(inc_sql!("get/category/by_feed_id")).await?;
-    let categories = client
-        .query(&categories_stmnt, &[&feed_id])
-        .await?
-        .into_iter()
-        .map(|row| row.into())
-        .collect::<Vec<Category>>();
+    let categories_rows = client.query(&categories_stmnt, &[&feed_id]).await?;
+    let mut categories = Vec::new();
+    for row in &categories_rows {
+        let subcategories_stmnt = client
+            .prepare(inc_sql!("get/category/sub_by_feed_id"))
+            .await?;
+        let category_id: i32 = row.get("id");
+        let subcategories_rows = client
+            .query(&subcategories_stmnt, &[&feed_id, &category_id])
+            .await?;
+        let subcategories = rows_into_vec(subcategories_rows);
+        categories.push(Category::from(row, subcategories));
+    }
+
     Ok(categories)
 }

@@ -79,17 +79,30 @@ where
     return s.serialize_str(&date.to_rfc3339().to_string());
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Category {
     id: i32,
     pub description: String,
     pub children: Vec<SubCategory>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, PostgresMapper)]
+#[pg_mapper(table = "subCategory")]
 pub struct SubCategory {
     id: i32,
     pub description: String,
+}
+
+impl Category {
+    pub fn from(row: &tokio_postgres::Row, children: Vec<SubCategory>) -> Self {
+        let id: i32 = row.get("id");
+        let description: String = row.get("description");
+        Category {
+            description,
+            id,
+            children,
+        }
+    }
 }
 
 fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
@@ -140,17 +153,5 @@ impl Feed {
             last_modified: feed_row.get("last_modified"),
             categories: categories_for_feed(&client, feed_id).await?,
         })
-    }
-}
-
-impl From<tokio_postgres::Row> for Category {
-    fn from(row: tokio_postgres::Row) -> Self {
-        let id: i32 = row.get("id");
-        let description: String = row.get("description");
-        Category {
-            description,
-            id,
-            children: serde_json::from_value(row.get("subcategories")).unwrap(),
-        }
     }
 }
