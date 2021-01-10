@@ -241,12 +241,12 @@ form button {
 }
 
 .button-success {
-    background: rgb(28, 184, 65);
+    background: #3D9970;
     /* this is a green */
 }
 
 .button-error {
-    background: #f44336;
+    background: #c55e56d1;
 }
 
 .button-secondary {
