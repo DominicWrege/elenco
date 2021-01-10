@@ -86,20 +86,20 @@ ul.pure-menu-list li.pure-menu-selected{
     max-height: 12rem;
     background-color: #efefef;
 }
-
 .width100 {
 	min-width: 45em;
 }
+
 button.width100 {
 	max-width: 16em;
 	min-width: 16em;
 	width: 16em;
 }
 .podcast-container {
-	display: grid;
-	grid-template-columns: 16em 32em;
-	grid-column-gap: 0.2rem;
-	margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 12em 32rem 16rem;
+    grid-column-gap: 2rem;
+    margin-top: 2rem;
 }
 
 form#save-container {
@@ -222,7 +222,7 @@ form button {
 
 .pure-table-container{
     overflow-y: scroll;
-    max-height: 23em;
+    max-height: 30em;
 }
 .pure-table-container table.pure-table {
     width: 100%;
@@ -235,7 +235,6 @@ form button {
     left: 0;
     background-color: #e0e0e0;
 }
-
 
 .error-page {
     margin-top: 9rem;

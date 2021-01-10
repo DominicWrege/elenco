@@ -1,8 +1,8 @@
+use crate::time_date::{parse_datetime_rfc822, parse_duration_from_str, DurationFormator};
 use chrono::offset::Utc;
 use chrono::DateTime;
 use reqwest::Url;
 use std::convert::{TryFrom, TryInto};
-use crate::time_date::{parse_datetime_rfc822, parse_duration_from_str, DurationFormator};
 
 #[derive(Debug)]
 pub struct EpisodeRow<'a> {
@@ -24,8 +24,11 @@ impl<'a> EpisodeRow<'a> {
     pub fn media_url(&self) -> &str {
         self.media_url.as_str()
     }
-    pub fn from(items: &[rss::Item]) -> Vec<EpisodeRow> {
-        items.iter().flat_map(|item| item.try_into().ok()).collect()
+    pub fn from_items(items: &[rss::Item]) -> Vec<EpisodeRow> {
+        let mut items: Vec<EpisodeRow> =
+            items.iter().flat_map(|item| item.try_into().ok()).collect();
+        items.sort_by(|a, b| b.published.cmp(&a.published));
+        items
     }
 }
 

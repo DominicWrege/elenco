@@ -4,41 +4,12 @@
 <script src="/static/js/player.js"></script>
 <div class="w50">
     <div class="podcast-container" >
-        <div class="podcast-detail-container">
             {% match feed.img %}
                 {% when Some with (img) %}
                     <img src="{{ img }}" id="p-img" class="pure-img" />
                 {% when None %}
             {% endmatch %}
-            <div class="podcast-details">
-            {% match feed.website() %}
-                {% when Some with (website) %}
-                    {% match website.host_str() %}
-                        {% when Some with (website_host) %}
-                            <div class="svg-text">
-                                <img src="/static/img/public.svg">
-                                <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
-                            </div>
-                        {% when None %}
-                    {% endmatch %}
-                {% when None %}
-            {% endmatch %}
-            <div class="svg-text">
-                <img src="/static/img/language.svg">
-                <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
-            </div>
-            {% for category in feed.categories %}
-                <div class="svg-text">
-                    <img src="/static/img/list_alt.svg">
-                    <p>{{ category.description }}</p>
-                </div>
-                {% for subcategory in category.children.iter()  %}
-                    <p class="sub-category">{{ subcategory.description }}</p>
-                {% endfor %}
-            {% endfor %}
-            </div>
-        </div>
-        <div id="text-box">
+        <div id="podcast-summary">
             <div class="flex podcast-header-form">
                 <h2 class="podcast-title">{{ feed.title }}</h2>
             </div>
@@ -49,6 +20,33 @@
                 {% when None %}
             {% endmatch %}
             <p>{{ feed.description|safe }}</p>
+        </div>
+        <div class="podcast-detail-container">
+            {% match feed.website() %}
+                {% when Some with (website) %}
+                    {% match website.host_str() %}
+                        {% when Some with (website_host) %}
+                            <div class="svg-text">
+                                <img src="/static/img/public.svg">
+                                <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                            </div>
+                        {% when None %}
+                {% endmatch %}
+            {% when None %}
+        {% endmatch %}
+        <div class="svg-text">
+            <img src="/static/img/language.svg">
+            <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
+        </div>
+        {% for category in feed.categories %}
+            <div class="svg-text">
+                <img src="/static/img/list_alt.svg">
+                <p>{{ category.description }}</p>
+            </div>
+            {% for subcategory in category.children.iter()  %}
+                <p class="sub-category">{{ subcategory.description }}</p>
+            {% endfor %}
+        {% endfor %}
         </div>
     </div>
     <div id="episodes">

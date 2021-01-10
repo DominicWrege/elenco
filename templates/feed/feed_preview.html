@@ -1,48 +1,12 @@
 {% match context %}
     {% when Some with (content) %}
         <div class="podcast-container" >
-            <div class="podcast-detail-container">
-                {% match content.feed.img %}
-                    {% when Some with (img) %}
-                        <img src="{{ img }}" id="p-img" class="pure-img" />
-                    {% when None %}
-                {% endmatch %}
-                <div class="podcast-details">
-                    {% match content.feed.link_web %}
-                        {% when Some with (website) %}
-                            {% match website.host_str() %}
-                                {% when Some with (website_host) %}
-                                    <div class="svg-text">
-                                        <img src="/static/img/public.svg">
-                                        <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
-                                    </div>
-                                {% when None %}
-                            {% endmatch %}
-                        {% when None %}
-                    {% endmatch %}
-                    <div class="svg-text">
-                        <img src="/static/img/language.svg">
-                        <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
-                    </div>
-                    {% for (top_category, sub_categories) in content.feed.categories.iter() %}
-                        {%if sub_categories.is_empty() -%}
-                            <div class="svg-text">
-                                <img src="/static/img/list_alt.svg">
-                                <p>{{ top_category }}</p>
-                            </div>
-                        {% else -%}
-                            <div class="svg-text">
-                                <img src="/static/img/list_alt.svg">
-                                <p>{{ top_category }}:</p>
-                            </div>                
-                        {% endif -%}
-                        {% for category in sub_categories %}
-                            <p class="sub-category">{{ category }}</p>
-                        {% endfor %}
-                    {% endfor %}
-                </div>
-            </div>
-            <div id="text-box">
+            {% match content.feed.img %}
+                {% when Some with (img) %}
+                    <img src="{{ img }}" id="p-img" class="pure-img" />
+                {% when None %}
+            {% endmatch %}
+            <div id="podcast-summary">
                 <div class="flex podcast-header-form">
                     <h2 class="podcast-title">{{ content.feed.title }}</h2>
                     {% if content.feed_exists -%}
@@ -58,6 +22,40 @@
                 </div>
                 <small>{{ content.feed.author.unwrap_or_default() }}</small>
                 <p>{{ content.feed.description|safe }}</p>
+            </div>
+            <div class="podcast-detail-container">
+                {% match content.feed.link_web %}
+                    {% when Some with (website) %}
+                        {% match website.host_str() %}
+                            {% when Some with (website_host) %}
+                                <div class="svg-text">
+                                    <img src="/static/img/public.svg">
+                                    <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                                </div>
+                            {% when None %}
+                        {% endmatch %}
+                    {% when None %}
+                {% endmatch %}
+                <div class="svg-text">
+                    <img src="/static/img/language.svg">
+                    <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
+                </div>
+                {% for (top_category, sub_categories) in content.feed.categories.iter() %}
+                    {%if sub_categories.is_empty() -%}
+                        <div class="svg-text">
+                            <img src="/static/img/list_alt.svg">
+                            <p>{{ top_category }}</p>
+                        </div>
+                    {% else -%}
+                        <div class="svg-text">
+                            <img src="/static/img/list_alt.svg">
+                            <p>{{ top_category }}:</p>
+                        </div>                
+                    {% endif -%}
+                    {% for category in sub_categories %}
+                        <p class="sub-category">{{ category }}</p>
+                    {% endfor %}
+                {% endfor %}
             </div>
         </div>
         <div id="episodes">

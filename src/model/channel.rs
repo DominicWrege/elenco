@@ -39,7 +39,7 @@ impl<'a> RawFeed<'a> {
             title: feed.title(),
             description: feed.description(),
             author: feed.itunes_ext().and_then(|it| it.author()),
-            episodes: EpisodeRow::from(&feed.items()),
+            episodes: EpisodeRow::from_items(&feed.items()),
             subtitle: parse_subtitle(&feed),
             language_code: feed.language().map(|code| &code[..2]),
             categories: parse_categories(&feed),
