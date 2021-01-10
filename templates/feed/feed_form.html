@@ -5,28 +5,29 @@
 {% endmacro %}
 
 {% block content %}
-    <div class="mw80">
-        {% include "../error/error_msg.html" %}
-        <form class="w100  pure-form pure-form-stacked" method="POST" id="d="form1" action="new-feed">
-            <fieldset>
-                <legend>
-                    <h2>Submit A New Podcast</h2>
-                </legend>
-                <label for="stacked-email">Feed URL</label>
-                <div class="flex">
-                    {% match context %}
-                        {% when Some with (content) %}
-                            <input type="url" value="{{ content.feed.url }}" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" autofocus required />
-                        {% when None %}
-                            <input type="url" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" required />
-                    {% endmatch %}
-                    <button type="submit" class="pure-button pure-button-primary">Preview</button>
-                </div>
+<script src="/static/js/player.js"></script>
+<div class="mw80">
+    {% include "../error/error_msg.html" %}
+    <form class="w100  pure-form pure-form-stacked" method="POST" id="d="form1" action="new-feed">
+        <fieldset>
+            <legend>
+                <h2>Submit A New Podcast</h2>
+            </legend>
+            <label for="stacked-email">Feed URL</label>
+            <div class="flex">
+                {% match context %}
+                    {% when Some with (content) %}
+                        <input type="url" value="{{ content.feed.url }}" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" autofocus required />
+                    {% when None %}
+                        <input type="url" class="width100" id="stacked-email" name="feed-url" placeholder="podcast.de/feed" required />
+                {% endmatch %}
+                <button type="submit" class="pure-button pure-button-primary">Preview</button>
+            </div>
 
-            </fieldset>
-        </form>
-        {% include "feed_preview.html" %}
-    </div>
+        </fieldset>
+    </form>
+    {% include "feed_preview.html" %}
+</div>
     
 {% endblock %}
 

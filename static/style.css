@@ -120,8 +120,8 @@ div#episodes > table {
 .w50 {
     min-width: 50vw;
 }
-.h550{
-    max-height: 580px !important;
+.h600{
+    max-height: 660px !important;
 }
 tbody tr:nth-child(even) {
 	background: #f2f2f2;
@@ -333,4 +333,13 @@ tr td.checkbox-container {
 div.svg-text{
     display: flex;
     gap: 0.5em;
+}
+td div.title-player{
+    display: flex;
+    gap: 1em;
+    line-height: 1.5 !important;
+}
+
+img.player-controls {
+    cursor: pointer;
 }

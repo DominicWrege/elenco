@@ -39,7 +39,6 @@ function checkboxChanged(event) {
     } else {
         feedsReviewed.delete(idInt);
     }
-    console.log(feedsReviewed);
 }
 
 window.addEventListener("load", () => {

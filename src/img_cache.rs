@@ -1,6 +1,6 @@
 use blake3;
 use reqwest::Url;
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 use tree_magic_mini::{self, match_u8};
 #[derive(Debug, Clone)]
@@ -65,25 +65,25 @@ fn extension_from_guessed_mime(bytes: &[u8]) -> Result<&'static str, anyhow::Err
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[tokio::test]
-    async fn test_download_file() {
-        let img_cache = ImageCache::new("img-cache").await.unwrap();
-        let url_jpeg =
-            Url::parse("http://www.bitsundso.de/wp-content/uploads/2012/05/bitsundso1400.jpg")
-                .unwrap();
-        log::info!("{:?}", img_cache.download(&url_jpeg,).await.unwrap());
-        assert!(
-            img_cache.download(&url_jpeg,).await.is_ok(),
-            "MIME type is not image/jpeg"
-        );
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     #[tokio::test]
+//     async fn test_download_file() {
+//         let img_cache = ImageCache::new("img-cache").await.unwrap();
+//         let url_jpeg =
+//             Url::parse("http://www.bitsundso.de/wp-content/uploads/2012/05/bitsundso1400.jpg")
+//                 .unwrap();
+//         log::info!("{:?}", img_cache.download(&url_jpeg,).await.unwrap());
+//         assert!(
+//             img_cache.download(&url_jpeg,).await.is_ok(),
+//             "MIME type is not image/jpeg"
+//         );
 
-        let url_png = Url::parse("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/PNG_Test.png/800px-PNG_Test.png").unwrap();
-        assert!(
-            img_cache.download(&url_png).await.is_ok(),
-            "MIME type is not image/png"
-        );
-    }
-}
+//         let url_png = Url::parse("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/PNG_Test.png/800px-PNG_Test.png").unwrap();
+//         assert!(
+//             &img_cache.download(&url_png).await.is_ok(),
+//             "MIME type is not image/png"
+//         );
+//     }
+// }

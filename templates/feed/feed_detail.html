@@ -1,6 +1,7 @@
 {% extends "../base.html" %}
 
 {% block content %}
+<script src="/static/js/player.js"></script>
 <div class="w50">
     <div class="podcast-container" >
         <div class="podcast-detail-container">
@@ -53,7 +54,7 @@
     <div id="episodes">
         {% if episodes.len() > 0 -%}
             <h3>Episodes ({{ episodes.len() }})</h3>
-            <div class="pure-table-container h550">
+            <div class="pure-table-container h600">
                 <table class="pure-table">
                     {% include "../episode/episode_head.html" %}
                     <tbody>

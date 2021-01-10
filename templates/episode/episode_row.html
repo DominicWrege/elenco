@@ -1,14 +1,19 @@
 <tr>
     <td>
-        {% match episode.url %}
-            {% when Some with (url) %}
-                <a href="{{ url }}" target="_blank">{{ episode.title }}</a>
-            {% when None %}
-                {{ episode.title }}
-        {% endmatch %}
-        {% if episode.explicit -%}
-            <b>E</b>
-        {% endif -%}
+        <div class="title-player">
+            <img class="player-controls player-button-play" src="/static/img/play_arrow.svg" alt="play">
+            <img class="player-controls player-button-pause" hidden src="/static/img/pause.svg" alt="stop">
+            <div hidden class="media-url">{{ episode.media_url.as_str() }}</div>
+            {% match episode.url %}
+                {% when Some with (url) %}
+                    <a href="{{ url }}" target="_blank">{{ episode.title }}</a>
+                {% when None %}
+                    {{ episode.title }}
+            {% endmatch %}
+            {% if episode.explicit -%}
+                <b>E</b>
+            {% endif -%}
+        </div>
     </td>
     <td>
         {% match episode.published %}

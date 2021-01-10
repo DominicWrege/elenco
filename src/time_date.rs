@@ -34,24 +34,28 @@ pub trait DurationFormator {
 }
 
 pub fn parse_duration_from_str(s: &str) -> Option<Duration> {
-    let digits = s.split(':').collect::<Vec<_>>();
-
-    let (h, m, s) = match digits.as_slice() {
-        [h, m, s] if s.len() == 2 => (Some(h), m, s),
-        [m, s] if s.len() == 2 => (None, m, s),
-        _ => return None,
-    };
-    let mut hours = digit_thing(h.unwrap_or(&"0"))?;
-    let mut minutes = digit_thing(m)?;
-    if 60 <= minutes {
-        hours = minutes / 60;
-        minutes %= 60;
-    };
-    let seconds = digit_thing(s)?;
-    if seconds >= 60 {
-        return None;
-    };
-    Some(Duration::hours(hours) + Duration::minutes(minutes) + Duration::seconds(seconds))
+    match s.parse::<i64>() {
+        Ok(sec) => Some(Duration::seconds(sec)),
+        Err(_) => {
+            let digits = s.split(':').collect::<Vec<_>>();
+            let (h, m, s) = match digits.as_slice() {
+                [h, m, s] if s.len() == 2 => (Some(h), m, s),
+                [m, s] if s.len() == 2 => (None, m, s),
+                _ => return None,
+            };
+            let mut hours = digit_thing(h.unwrap_or(&"0"))?;
+            let mut minutes = digit_thing(m)?;
+            if 60 <= minutes {
+                hours = minutes / 60;
+                minutes %= 60;
+            };
+            let seconds = digit_thing(s)?;
+            if seconds >= 60 {
+                return None;
+            };
+            Some(Duration::hours(hours) + Duration::minutes(minutes) + Duration::seconds(seconds))
+        }
+    }
 }
 
 #[cfg(test)]
