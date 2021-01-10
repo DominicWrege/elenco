@@ -60,7 +60,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/feed")
-                    .route("/{id}", web::get().to(api::feed::by_name_or_id))
+                    .route("/{id}", web::get().to(api::feed::by_id))
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id)),
             )
             .route("/categories", web::get().to(api::category::all))

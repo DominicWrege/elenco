@@ -64,10 +64,7 @@ pub async fn search(
     Ok(Json(feeds))
 }
 
-pub async fn by_name_or_id(
-    path: web::Path<i32>,
-    state: web::Data<State>,
-) -> ApiJsonResult<FeedEpisode> {
+pub async fn by_id(path: web::Path<i32>, state: web::Data<State>) -> ApiJsonResult<FeedEpisode> {
     let feed_id = path.into_inner();
     let client = state.db_pool.get().await?;
     let feed_stmnt = client.prepare(inc_sql!("get/feed/by_id")).await?;
@@ -75,11 +72,11 @@ pub async fn by_name_or_id(
         .query_one(&feed_stmnt, &[&feed_id])
         .await
         .map_err(|_e| ApiError::FeedNotFound(feed_id))?;
-    let categories = categories_for_feed(&client, feed_row.get("id")).await?;
-
     let epsiodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let epsiode_rows = client.query(&epsiodes_stmnt, &[&feed_id]).await?;
     let epsiodes = rows_into_vec(epsiode_rows);
+    let categories = categories_for_feed(&client, feed_id).await?;
+    dbg!(&categories);
     let feed = FeedEpisode::from(&feed_row, categories, epsiodes).await?;
     Ok(Json(feed))
 }
