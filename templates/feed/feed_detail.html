@@ -14,18 +14,23 @@
                 {% when Some with (website) %}
                     {% match website.host_str() %}
                         {% when Some with (website_host) %}
-                            <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                            <div class="svg-text">
+                                <img src="/static/img/public.svg">
+                                <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                            </div>
                         {% when None %}
                     {% endmatch %}
                 {% when None %}
             {% endmatch %}
-            <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
+            <div class="svg-text">
+                <img src="/static/img/language.svg">
+                <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
+            </div>
             {% for category in feed.categories %}
-                {%if category.children.is_empty() -%}
+                <div class="svg-text">
+                    <img src="/static/img/list_alt.svg">
                     <p>{{ category.description }}</p>
-                {% else -%}
-                    <p>{{ category.description }}:</p>
-                {% endif -%}
+                </div>
                 {% for subcategory in category.children.iter()  %}
                     <p class="sub-category">{{ subcategory.description }}</p>
                 {% endfor %}
@@ -50,20 +55,11 @@
             <h3>Episodes ({{ episodes.len() }})</h3>
             <div class="pure-table-container h550">
                 <table class="pure-table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Published</th>
-                            <th>Link</th>
-                            <th>Duration</th>
-                        </tr>
-                    </thead>
+                    {% include "../episode/episode_head.html" %}
                     <tbody>
-                        <tbody>
-                            {% for episode in episodes %}
-                                {% include "../episode_row.html" %}
-                            {% endfor %}
-                        </tbody>
+                        {% for episode in episodes %}
+                            {% include "../episode/episode_row.html" %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

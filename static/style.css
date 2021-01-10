@@ -11,10 +11,6 @@ main {
     justify-content: center;
 }
 
-img {
-    height: 12em;
-    background-color: #efefef;
-}
 form.pure-form-stacked input {
 	width: 34vw;
 }
@@ -86,8 +82,9 @@ ul.pure-menu-list li.pure-menu-selected{
 	margin-block-end: 0;
 }
 
-.podcast-container img {
-	max-height: 12rem;
+.pure-img {
+    max-height: 12rem;
+    background-color: #efefef;
 }
 
 .width100 {
@@ -266,7 +263,7 @@ table.pure-table button {
 }
 
 p.sub-category {
-    margin-left: 2em;
+    margin-left: 3em;
 }
 
 .menu ul.pure-menu-list {
@@ -332,4 +329,8 @@ tr td.checkbox-container {
 }
 .pure-table td {
     padding: .5em !important;
+}
+div.svg-text{
+    display: flex;
+    gap: 0.5em;
 }

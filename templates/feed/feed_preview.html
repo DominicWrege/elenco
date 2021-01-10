@@ -12,17 +12,29 @@
                         {% when Some with (website) %}
                             {% match website.host_str() %}
                                 {% when Some with (website_host) %}
-                                    <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                                    <div class="svg-text">
+                                        <img src="/static/img/public.svg">
+                                        <p><a href="{{ website }}" target="_blank">{{  website_host }}</a></p>
+                                    </div>
                                 {% when None %}
                             {% endmatch %}
                         {% when None %}
                     {% endmatch %}
-                    <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
+                    <div class="svg-text">
+                        <img src="/static/img/language.svg">
+                        <p>{{ content.feed.language_lookup().unwrap_or_default() }}</p>
+                    </div>
                     {% for (top_category, sub_categories) in content.feed.categories.iter() %}
                         {%if sub_categories.is_empty() -%}
-                            <p>{{ top_category }}</p>
+                            <div class="svg-text">
+                                <img src="/static/img/list_alt.svg">
+                                <p>{{ top_category }}</p>
+                            </div>
                         {% else -%}
-                            <p>{{ top_category }}:</p>
+                            <div class="svg-text">
+                                <img src="/static/img/list_alt.svg">
+                                <p>{{ top_category }}:</p>
+                            </div>                
                         {% endif -%}
                         {% for category in sub_categories %}
                             <p class="sub-category">{{ category }}</p>
@@ -53,20 +65,11 @@
                 <h3>Episodes ({{ content.feed.episodes.len() }})</h3>
                 <div class="pure-table-container">
                     <table class="pure-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Published</th>
-                                <th>Link</th>
-                                <th>Duration</th>
-                            </tr>
-                        </thead>
+                        {% include "../episode/episode_head.html" %}
                         <tbody>
-                            <tbody>
-                                {% for episode in content.feed.episodes.iter() %}
-                                    {% include "../episode_row.html" %}
-                                {% endfor %}
-                            </tbody>
+                            {% for episode in content.feed.episodes.iter() %}
+                                {% include "../episode/episode_row.html" %}
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>

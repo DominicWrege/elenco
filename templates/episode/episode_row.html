@@ -1,6 +1,11 @@
 <tr>
     <td>
-        {{ episode.title }}
+        {% match episode.url %}
+            {% when Some with (url) %}
+                <a href="{{ url }}" target="_blank">{{ episode.title }}</a>
+            {% when None %}
+                {{ episode.title }}
+        {% endmatch %}
         {% if episode.explicit -%}
             <b>E</b>
         {% endif -%}
@@ -12,13 +17,5 @@
             {% when None %}
             <div>None</div>
         {% endmatch %}
-    <td>
-        {% match episode.url %}
-            {% when Some with (url) %}
-                <a href="{{ url }}" target="_blank">go to episode</a>
-            {% when None %}
-                <div>None</div>
-        {% endmatch %}
-    </td>
     <td>{{  episode.format_duration() }}</td>
 </tr>
