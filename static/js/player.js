@@ -73,7 +73,7 @@ class AudioPlayer {
         this.audio.currentTime = this.audio.currentTime + AudioPlayer.skipTime;
     }
     seekBackforward() {
-        this.audio.currentTime = this.audio.currentTime - AudioPlayer.skipTime;
+        this.audio.currentTime = Math.max(this.audio.currentTime - AudioPlayer.skipTime, 0);
     }
 
 }
