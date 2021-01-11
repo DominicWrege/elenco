@@ -28,12 +28,12 @@
                         <p class="status" status="{{feed.status}}">{{ feed.status | lowercase }}</p>
                         {% if feed.status == Status::Online -%}
                             <div class="action">
-                                <img class="action-online" src="/static/img/visibility_off.svg"/>
+                                <img class="action-online" src="/static/img/visibility_on.svg"/>
                                 <div hidden class="feed-id">{{feed.id}}</div>
                             </div>
                         {% else if feed.status == Status::Offline -%}
                             <div class="action">
-                                <img class="action-offline" src="/static/img/visibility_on.svg"/>
+                                <img class="action-offline" src="/static/img/visibility_off.svg"/>
                                 <div hidden class="feed-id">{{feed.id}}</div>
                             </div>
                         {% endif -%}
