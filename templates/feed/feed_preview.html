@@ -3,12 +3,12 @@
         <div class="podcast-container" >
             {% match content.feed.img %}
                 {% when Some with (img) %}
-                    <img src="{{ img }}" id="p-img" class="pure-img" />
+                    <img id="artwork" src="{{ img }}" id="p-img" class="pure-img" />
                 {% when None %}
             {% endmatch %}
             <div id="podcast-summary">
                 <div class="flex podcast-header-form">
-                    <h2 class="podcast-title">{{ content.feed.title }}</h2>
+                    <h2 id="podcast-title">{{ content.feed.title }}</h2>
                     {% if content.feed_exists -%}
                     <div class="container-disabled-button">
                         <button class="pure-button pure-button-disabled">save</button>

@@ -5,41 +5,75 @@ window.addEventListener("load", () => {
     for (const item of document.querySelectorAll("td div img.player-button-pause")) {
         item.addEventListener("click", pausePlayer)
     }
-    const player = new Player();
+    const player = new AudioPlayer();
 
-    function startPlayer(event) {
+    async function startPlayer(event) {
         const target = event.target;
 
         const media_url = target.parentElement.querySelector("div.media-url").textContent;
-        player.play(media_url, target.parentElement);
+        await player.play(media_url, target.parentElement);
     }
-    function pausePlayer(event) {
-        player.pause(event.target);
+    function pausePlayer() {
+        player.pause();
     }
+
+
+    navigator.mediaSession.setActionHandler("play", async () => {
+        await player.resume();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+        player.pause();
+    });
+    navigator.mediaSession.setActionHandler("seekforward", (event) => {
+        player.seekForward();
+    });
+    navigator.mediaSession.setActionHandler("seekbackward", (event) => {
+        player.seekBackforward();
+    });
 });
 
 
-class Player {
+class AudioPlayer {
+    static skipTime = 30;
     constructor() {
         this.audio = null;
         this.playingRow = null;
         this.isPlaying = false;
     }
-    play(url, row) {
+    async play(url, row) {
         if (this.isPlaying) {
-            this.pause(this.playingRow.querySelector(".player-button-pause"));
+            this.pause();
         }
         row.querySelector(".player-button-pause").hidden = false;
         row.querySelector(".player-button-play").hidden = true;
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: row.querySelector(".episode-title").textContent,
+            artist: document.querySelector(".podcast-header-form #podcast-title").textContent,
+        });
         this.audio = new Audio(url);
-        this.audio.play();
+        await this.audio.play();
         this.playingRow = row;
         this.isPlaying = true;
     }
-    pause(target) {
-        target.hidden = true;
+    async resume() {
+        if (!this.isPlaying) {
+            this.isPlaying = true;
+            this.playingRow.querySelector(".player-button-play").hidden = true;
+            this.playingRow.querySelector(".player-button-pause").hidden = false;
+            await this.audio.play();
+        };
+    }
+    pause() {
         this.audio.pause();
         this.isPlaying = false;
         this.playingRow.querySelector(".player-button-play").hidden = false;
+        this.playingRow.querySelector(".player-button-pause").hidden = true;
     }
+    seekForward() {
+        this.audio.currentTime = this.audio.currentTime + AudioPlayer.skipTime;
+    }
+    seekBackforward() {
+        this.audio.currentTime = this.audio.currentTime - AudioPlayer.skipTime;
+    }
+
 }

@@ -6,12 +6,12 @@
     <div class="podcast-container" >
             {% match feed.img %}
                 {% when Some with (img) %}
-                    <img src="{{ img }}" id="p-img" class="pure-img" />
+                    <img id="artwork" src="{{ img }}" id="p-img" class="pure-img" />
                 {% when None %}
             {% endmatch %}
         <div id="podcast-summary">
             <div class="flex podcast-header-form">
-                <h2 class="podcast-title">{{ feed.title }}</h2>
+                <h2 id="podcast-title">{{ feed.title }}</h2>
             </div>
             <small>{{ feed.author}}</small>
             {% match feed.subtitle %}
