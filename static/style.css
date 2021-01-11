@@ -342,20 +342,10 @@ img.player-controls {
     cursor: pointer;
 }
 
-div.card-header{
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-div.card-header .action{
-    width: auto !important;
+.card-text div.feed-status-container{
+    margin-top: 1em;
     cursor: pointer;
-}
-
-div.card-header .pure-menu-has-children>.pure-menu-link:after {
-    content: none;
-}.pure-menu-children {
-    background: #f0f0f0;
-    border-radius: 0.25em;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 2em;
+    align-items: center;
 }
