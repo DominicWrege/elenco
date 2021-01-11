@@ -346,6 +346,6 @@ img.player-controls {
     margin-top: 1em;
     cursor: pointer;
     display: flex;
-    gap: 2em;
+    gap: 1em;
     align-items: center;
 }
