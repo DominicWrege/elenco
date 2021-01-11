@@ -158,7 +158,7 @@ tbody tr:nth-child(even) {
 	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
-.card img {
+.card .pure-img {
 	height: 12em;
 }
 .card h3 {
@@ -166,7 +166,7 @@ tbody tr:nth-child(even) {
 }
 
 .card div.card-text {
-	padding: 1em 1em 0;
+	padding: 0.6em 1em 0;
 }
 .feed-list-grid p.status {
     color: #646464;
@@ -195,7 +195,6 @@ tbody tr:nth-child(even) {
 .feed-list-grid p.status[status='Offline']:before{
     background-color:  #263238;
 }
-
 
 .card h3 {
 	font-size: 1.2em;
@@ -341,4 +340,22 @@ td div.title-player{
 
 img.player-controls {
     cursor: pointer;
+}
+
+div.card-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+div.card-header .action{
+    width: auto !important;
+    cursor: pointer;
+}
+
+div.card-header .pure-menu-has-children>.pure-menu-link:after {
+    content: none;
+}.pure-menu-children {
+    background: #f0f0f0;
+    border-radius: 0.25em;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }

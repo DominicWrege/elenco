@@ -1,3 +1,5 @@
+import { updateFeed, showCustomAlert } from "./util.js";
+
 const feedsReviewed = new Set();
 
 async function approvehandler(event) {
@@ -10,26 +12,17 @@ async function rejectHandler(event) {
 
 async function genericHandler(action) {
     try {
-        let udpates = Array.from(feedsReviewed).map(id => updateFeed(id, action));
-        await Promise.all(udpates);
-        location.reload();
+        if (feedsReviewed.size === 0) {
+            showCustomAlert("Please select a row before.", "error");
+        } else {
+            let udpates = Array.from(feedsReviewed).map(id => updateFeed(id, action));
+            await Promise.all(udpates);
+            location.reload();
+        }
     } catch (err) {
         console.error(err);
     }
 }
-
-async function updateFeed(id, action) {
-    const options = {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ feed_id: id, action })
-    };
-    return fetch("update-feed-status", options);
-
-}
-
 
 function checkboxChanged(event) {
     const id = event.target.parentElement.nextElementSibling.textContent.trim();

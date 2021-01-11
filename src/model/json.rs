@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
+use deadpool_postgres::Client;
 use reqwest::Url;
 use serde::{Deserialize, Serialize, Serializer};
 use tokio_pg_mapper_derive::PostgresMapper;
-use tokio_postgres::Client;
 
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 

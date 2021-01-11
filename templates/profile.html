@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script type="module" src="/static/js/profile.js"></script>
 <h2>Welcome back {{ username }}.</h2>
 <h2>My Podcasts</h2>
 <div class="feed-list-grid">
@@ -13,11 +14,26 @@
                     {% when Some with (img) %}
                     <img class="pure-img" src="/web/img/{{ img }}"></img>
                     {% when None %}
-                    <img class="pure-img" src="/static/placeholder.svg"></img>
+                    <img class="pure-img" src="/static/img/placeholder.svg"></img>
                 {% endmatch %}
                 <div class="card-text">
-                    <a href="/web/auth/feed/{{feed.id}}"><h3>{{ feed.title }}</h3></a>
-                    <small>{{ feed.author_name }}</small>
+                    <div class="card-header">
+                        <div>
+                            <a href="/web/auth/feed/{{feed.id}}"><h3>{{ feed.title }}</h3></a>
+                            <small>{{ feed.author_name }}</small>
+                        </div>
+                        {% if feed.status == Status::Online -%}
+                        <div class="action">
+                            <img class="action-online" src="/static/img/visibility_off.svg"/>
+                            <div hidden class="feed-id">{{feed.id}}</div>
+                        </div>
+                        {% else if feed.status == Status::Offline -%}
+                            <div class="action">
+                                <img class="action-offline" src="/static/img/visibility_on.svg"/>
+                                <div hidden class="feed-id">{{feed.id}}</div>
+                            </div>
+                        {% endif -%}
+                    </div>
                     {% match feed.subtitle %}
                         {% when Some with (subtitle) %}
                             <p >{{ subtitle }}</p>

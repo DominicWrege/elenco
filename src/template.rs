@@ -2,7 +2,7 @@ use crate::util::LanguageCodeLookup;
 use crate::{handler::feed_detail::EpisodeSmall, time_date::DurationFormator};
 use crate::{
     handler::{moderator::ModeratorFeed, profile::ProfileFeed},
-    model::{self, channel::RawFeed, Permission},
+    model::{self, channel::RawFeed, Permission, Status},
 };
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};

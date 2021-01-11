@@ -22,7 +22,7 @@ impl Default for Permission {
         Self::User
     }
 }
-#[derive(Debug, Deserialize, ToSql, FromSql)]
+#[derive(Debug, Deserialize, ToSql, FromSql, PartialEq)]
 #[postgres(name = "feed_status")]
 pub enum Status {
     #[postgres(name = "online")]

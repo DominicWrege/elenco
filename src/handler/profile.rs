@@ -4,7 +4,10 @@ use crate::{
 };
 use crate::{template::ProfileSite, State};
 use actix_session::Session;
-use actix_web::web;
+use actix_web::{
+    web::{self, Data},
+    HttpResponse,
+};
 
 use super::general_error::GeneralError;
 use crate::db::rows_into_vec;
@@ -34,4 +37,28 @@ pub async fn site(session: Session, state: web::Data<State>) -> Result<ProfileSi
         permission: Some(account.permission()),
         submitted_feeds: feeds,
     })
+}
+#[derive(Debug, serde::Deserialize)]
+pub struct Payload {
+    action: Status,
+    feed_id: i32,
+}
+
+pub async fn update_feed(
+    json: web::Json<Payload>,
+    state: Data<State>,
+    session: Session,
+) -> Result<HttpResponse, GeneralError> {
+    let account_id = Account::from_session(&session).unwrap().id();
+    dbg!(account_id);
+    let Payload { action, feed_id } = json.into_inner();
+    dbg!(&action);
+    dbg!(&feed_id);
+    let mut client = state.db_pool.get().await?;
+    let trx = client.transaction().await?;
+    let stmnt = trx.prepare(inc_sql!("update/profile_update_feed")).await?;
+    trx.execute(&stmnt, &[&action, &feed_id, &account_id])
+        .await?;
+    trx.commit().await?;
+    Ok(HttpResponse::Ok().finish())
 }

@@ -18,7 +18,7 @@
                             <a href="{{ prefix }}/auth/admin/manage" class="pure-menu-link">Moderator</a>
                         </li>
                     {% when Permission::User %}
-                    {% endmatch%}
+                {% endmatch%}
                 {% when None %}
                     <li class="pure-menu-item">
                         <a href="{{ prefix }}/login" class="pure-menu-link">Login</a>

@@ -1,0 +1,21 @@
+
+<div class="pure-menu pure-menu-horizontal dropdown">
+    <ul class="pure-menu-list">
+        <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+            <img class="pure-menu-link" src="/static/img/arrow_drop_down.svg" alt="arrow_drop_down" />
+            <ul class="pure-menu-children">
+            {% if feed.status == Status::Online -%}
+                <li class="pure-menu-item">
+                    <img class="action-online pure-menu-link" src="/static/img/visibility_off.svg"/>
+                    <div hidden class="feed-id">{{feed.id}}</div>
+                </li>
+            {% else if feed.status == Status::Offline -%}
+                <li class="pure-menu-item">
+                    <img class="action-offline pure-menu-link" src="/static/img/visibility_on.svg"/>
+                    <div hidden class="feed-id">{{feed.id}}</div>
+                </li>
+            {% endif -%}
+            </ul>
+        </li>
+    </ul>
+</div>

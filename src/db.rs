@@ -1,11 +1,11 @@
-use tokio_pg_mapper::FromTokioPostgresRow;
-use tokio_postgres::{Client, Row};
-
 use crate::{
     handler::{api::error::ApiError, general_error::GeneralError},
     inc_sql,
     model::json::Category,
 };
+use deadpool_postgres::Client;
+use tokio_pg_mapper::FromTokioPostgresRow;
+use tokio_postgres::Row;
 
 pub mod preview_error;
 pub mod save_feed;

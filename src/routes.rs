@@ -10,7 +10,11 @@ use handler::api;
 
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/logout").to(logout))
-        .service(web::resource("/profile").route(web::get().to(profile::site)))
+        .service(
+            web::scope("/profile")
+                .route("", web::get().to(profile::site))
+                .route("update-feed", web::patch().to(profile::update_feed)),
+        )
         .service(
             web::resource("/new-feed")
                 .route(web::get().to(feed_preview::form_template))
