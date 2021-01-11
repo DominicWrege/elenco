@@ -86,7 +86,7 @@ pub struct Category {
     pub children: Vec<SubCategory>,
 }
 
-#[derive(Clone, Debug, Serialize, PostgresMapper)]
+#[derive(Clone, Debug, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "subCategory")]
 pub struct SubCategory {
     id: i32,

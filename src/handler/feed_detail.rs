@@ -1,4 +1,4 @@
-use crate::{db::rows_into_vec, inc_sql, model::json::Feed, session_storage, template, State};
+use crate::{inc_sql, model::json::Feed, session_storage, template, State};
 
 use actix_web::{web, HttpResponse};
 use askama::Template;

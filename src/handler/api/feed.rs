@@ -76,7 +76,6 @@ pub async fn by_id(path: web::Path<i32>, state: web::Data<State>) -> ApiJsonResu
     let epsiode_rows = client.query(&epsiodes_stmnt, &[&feed_id]).await?;
     let epsiodes = rows_into_vec(epsiode_rows);
     let categories = categories_for_feed(&client, feed_id).await?;
-    dbg!(&categories);
     let feed = FeedEpisode::from(&feed_row, categories, epsiodes).await?;
     Ok(Json(feed))
 }

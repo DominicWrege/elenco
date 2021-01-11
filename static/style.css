@@ -82,6 +82,11 @@ ul.pure-menu-list li.pure-menu-selected{
 	margin-block-end: 0;
 }
 
+.left{
+    left: 2em;
+    position: relative;
+}
+
 .pure-img {
     max-height: 12rem;
     background-color: #efefef;

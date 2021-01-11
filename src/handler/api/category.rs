@@ -10,7 +10,12 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
     let rows = client.query(stmnt, &[]).await?;
     let categories = rows
         .iter()
-        .map(|row| Category::from(row, vec![]))
+        .map(|row| {
+            Category::from(
+                row,
+                serde_json::from_value(row.get("subcategories")).unwrap(),
+            )
+        })
         .collect::<Vec<_>>();
 
     Ok(Json(categories))
@@ -30,5 +35,9 @@ pub async fn by_id_or_name(
         client.query_one(&stmnt, &[&category_name]).await
     };
     let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
-    Ok(Json(Category::from(&row, vec![])))
+    let catgories = Category::from(
+        &row,
+        serde_json::from_value(row.get("subcategories")).unwrap(),
+    );
+    Ok(Json(catgories))
 }
