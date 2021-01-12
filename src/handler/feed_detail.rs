@@ -1,3 +1,5 @@
+use std::convert::{TryFrom, TryInto};
+
 use crate::{inc_sql, model::json::Feed, session_storage, template, State};
 
 use actix_web::{web, HttpResponse};
@@ -18,16 +20,18 @@ pub struct EpisodeSmall {
     pub media_url: Url,
 }
 
-impl From<tokio_postgres::Row> for EpisodeSmall {
-    fn from(row: tokio_postgres::Row) -> Self {
-        Self {
+impl TryFrom<tokio_postgres::Row> for EpisodeSmall {
+    type Error = url::ParseError;
+
+    fn try_from(row: tokio_postgres::Row) -> Result<Self, Self::Error> {
+        Ok(Self {
             title: row.get("title"),
             duration: row.get("duration"),
             url: row.get("url"),
             published: row.get("published"),
             explicit: row.get("explicit"),
-            media_url: Url::parse(row.get("media_url")).unwrap(),
-        }
+            media_url: Url::parse(row.get("media_url"))?,
+        })
     }
 }
 
@@ -53,7 +57,7 @@ pub async fn site(
         .query(&epsiodes_stmnt, &[&feed_id])
         .await?
         .into_iter()
-        .map(|row| row.into())
+        .filter_map(|row| row.try_into().ok())
         .collect::<Vec<_>>();
     let feed = Feed::from(&client, feed_row)
         .await

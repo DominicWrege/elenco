@@ -14,10 +14,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Author>> {
     Ok(Json(authors))
 }
 
-pub async fn by_id(
-    state: web::Data<State>,
-    auhtor_id: web::Path<i32>,
-) -> ApiJsonResult<Author> {
+pub async fn by_id(state: web::Data<State>, auhtor_id: web::Path<i32>) -> ApiJsonResult<Author> {
     let client = state.db_pool.get().await?;
     let auhtor_id = auhtor_id.into_inner();
     let stmnt = client.prepare(inc_sql!("get/author/by_id")).await?;
@@ -25,6 +22,6 @@ pub async fn by_id(
         .query_one(&stmnt, &[&auhtor_id])
         .await
         .map_err(|_e| ApiError::AuthorNotFound(auhtor_id))?;
-    let author = Author::from_row(row).unwrap();
+    let author = Author::from_row(row)?;
     Ok(Json(author))
 }

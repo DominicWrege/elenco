@@ -1,11 +1,11 @@
 use crate::{
     handler::auth::{login, login_site, logout, register, register_site},
-    handler::{self, feed_preview, profile},
+    handler::{self, feed_preview, general_error::render_500, profile},
     my_middleware,
 };
 
 use actix_session::CookieSession;
-use actix_web::{cookie::SameSite, web};
+use actix_web::{cookie::SameSite, http, middleware::ErrorHandlers, web};
 use handler::api;
 
 pub fn user(cfg: &mut web::ServiceConfig) {
@@ -85,6 +85,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
 pub fn web(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/web")
+            .wrap(ErrorHandlers::new().handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
             .wrap(
                 CookieSession::private(&[1; 32])
                     .name("auth")

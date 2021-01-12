@@ -8,7 +8,7 @@ use thiserror::Error;
 use tokio_postgres::error::{DbError, SqlState};
 // show session and and parsing error
 
-#[derive(Error)]
+#[derive(Error, Debug)]
 pub enum PreviewError {
     #[error("Invalid RSS Feed {0}")]
     InvalidRssFeed(#[from] rss::Error),
@@ -20,12 +20,6 @@ pub enum PreviewError {
     Duplicate(Field),
 }
 
-impl Debug for PreviewError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
-    }
-}
-
 impl ResponseError for PreviewError {
     fn status_code(&self) -> StatusCode {
         match self {
@@ -35,6 +29,7 @@ impl ResponseError for PreviewError {
     }
 
     fn error_response(&self) -> HttpResponse {
+        log::error!("{}", self.to_string());
         let message = hide_internal!(PreviewError, self);
         HttpResponse::build(self.status_code())
             .content_type("text/html")

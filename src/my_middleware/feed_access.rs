@@ -5,15 +5,15 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{inc_sql, model::Permission, util::page_not_found};
+use crate::{handler::general_error::log_error, inc_sql, model::Permission, util::page_not_found};
 use actix_session::UserSession;
 use actix_web::Error;
+use actix_web::Result;
 use actix_web::{dev::Transform, web};
 use actix_web::{
     dev::{Service, ServiceRequest, ServiceResponse},
     HttpResponse,
 };
-use actix_web::{error, Result};
 use anyhow::anyhow;
 use futures_util::future::{ok, Future, Ready};
 
@@ -63,21 +63,17 @@ where
         Box::pin(async move {
             let state = req
                 .app_data::<web::Data<crate::State>>()
-                .ok_or_else(|| error::ErrorInternalServerError(anyhow!("state error")))?;
+                .ok_or_else(|| log_error(anyhow!("state error")))?;
 
-            let client = state
-                .db_pool
-                .get()
-                .await
-                .map_err(|err| error::ErrorInternalServerError(err))?;
+            let client = state.db_pool.get().await.map_err(log_error)?;
             let account = Account::from_session(&req.get_session())
-                .ok_or_else(|| error::ErrorInternalServerError(anyhow!("session error")))?;
+                .ok_or_else(|| log_error(anyhow!("session error")))?;
             if account.permission() != Permission::Admin {
                 if let Ok(feed_id) = &req.match_info().path()[1..].parse::<i32>() {
                     let submitter_check_stmnt = client
                         .prepare(inc_sql!("get/feed/submitter_check"))
                         .await
-                        .map_err(|err| error::ErrorInternalServerError(err))?;
+                        .map_err(log_error)?;
                     if client
                         .query_one(&submitter_check_stmnt, &[&feed_id, &account.id()])
                         .await

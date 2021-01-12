@@ -144,7 +144,8 @@ pub async fn new_account(
     permission: Permission,
 ) -> Result<(), RegisterError> {
     let trx = client.transaction().await?;
-    let pwd_hash = bcrypt::hash(&form.password, 8).unwrap();
+    let pwd_hash =
+        bcrypt::hash(&form.password, 8).map_err(|err| RegisterError::Internal(err.into()))?;
 
     let stmt = trx
         .prepare("INSERT INTO Account(username, password_hash, email, account_type) Values($1, $2, $3, $4)")

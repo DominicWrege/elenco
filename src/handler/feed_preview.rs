@@ -1,5 +1,5 @@
 use crate::{
-    db::{feed_exits, save_feed::save, preview_error::PreviewError},
+    db::{feed_exits, preview_error::PreviewError, save_feed::save},
     model::{channel::RawFeed, Account},
     session_storage::{cache_feed_url, feed_url},
     template::{Context, FeedPreviewSite},
@@ -53,7 +53,7 @@ pub async fn create_preview(
     state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewError> {
     let url = form.feed.clone();
-    let resp_bytes = reqwest::get(url.clone()).await?.bytes().await.unwrap();
+    let resp_bytes = reqwest::get(url.clone()).await?.error_for_status()?.bytes().await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;

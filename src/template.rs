@@ -34,6 +34,17 @@ pub struct ErrorSite {
     pub permission: Option<Permission>,
 }
 
+impl ErrorSite {
+    pub fn html() -> String {
+        Self {
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            permission: None,
+        }
+        .render()
+        .unwrap()
+    }
+}
+
 #[derive(Template)]
 #[template(path = "auth/register_moderator.html")]
 pub struct RegisterModerator {

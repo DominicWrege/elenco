@@ -8,6 +8,7 @@ use actix_web::{
     web::{self, Data},
     HttpResponse,
 };
+use anyhow::anyhow;
 
 use super::general_error::GeneralError;
 use crate::db::rows_into_vec;
@@ -27,7 +28,7 @@ pub struct ProfileFeed {
 }
 
 pub async fn site(session: Session, state: web::Data<State>) -> Result<ProfileSite, GeneralError> {
-    let account = Account::from_session(&session).unwrap();
+    let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;
     let rows = client.query(&stmnt, &[&account.id()]).await?;
@@ -49,7 +50,9 @@ pub async fn update_feed(
     state: Data<State>,
     session: Session,
 ) -> Result<HttpResponse, GeneralError> {
-    let account_id = Account::from_session(&session).unwrap().id();
+    let account_id = Account::from_session(&session)
+        .ok_or_else(|| anyhow!("session error"))?
+        .id();
     dbg!(account_id);
     let Payload { action, feed_id } = json.into_inner();
     dbg!(&action);
