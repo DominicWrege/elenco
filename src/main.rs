@@ -31,7 +31,7 @@ async fn run() -> Result<(), anyhow::Error> {
         img_cache: ImageCache::new("img-cache").await?,
     };
     if std::env::var_os("RUST_LOG").is_none() {
-        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_LOG", "elenco=info,actix_web=info");
     }
     env_logger::init();
     let _private_key = rand::thread_rng().gen::<[u8; 32]>();

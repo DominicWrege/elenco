@@ -17,6 +17,8 @@ pub enum ApiError {
     AuthorNotFound(i32),
     #[error("missing field `term`")]
     MissingTerm,
+    #[error("bad request")]
+    BadRequest,
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -37,20 +39,17 @@ pub async fn not_found() -> HttpResponse {
 impl actix_web::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
-            ApiError::FeedNotFound(_)
-            | ApiError::CategoryNotFound(_)
-            | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
-            ApiError::MissingTerm => StatusCode::BAD_REQUEST,
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::BAD_REQUEST,
         }
     }
 
     fn error_response(&self) -> actix_web::HttpResponse {
+        log::error!("{}", self.to_string());
         let status = self.status_code();
-        let error_msg = hide_internal!(ApiError, self);
 
         HttpResponse::build(status).json(JsonError {
-            error: error_msg,
+            error: hide_internal!(ApiError, self),
             status: status.as_u16(),
         })
     }

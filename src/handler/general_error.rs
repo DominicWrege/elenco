@@ -5,20 +5,13 @@ use crate::{
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
 use askama::Template;
-use std::fmt::Debug;
 use thiserror::Error;
 
-#[derive(Error)]
+#[derive(Error, Debug)]
 #[error("{0:#?}")]
 pub struct GeneralError(Box<dyn std::error::Error + Send + Sync + 'static>);
 
 generic_handler_err!(GeneralError, GeneralError);
-
-impl Debug for GeneralError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self)
-    }
-}
 
 impl ResponseError for GeneralError {
     fn status_code(&self) -> StatusCode {
@@ -26,6 +19,7 @@ impl ResponseError for GeneralError {
     }
 
     fn error_response(&self) -> HttpResponse {
+        log::error!("{:#?}", self.to_string());
         HttpResponse::build(self.status_code()).body(
             template::ErrorSite {
                 status_code: self.status_code(),

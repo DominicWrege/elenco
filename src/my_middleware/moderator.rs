@@ -9,8 +9,9 @@ use actix_session::UserSession;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse};
 use actix_web::Error;
 use actix_web::{dev::Transform, web};
+use actix_web::{error, Result};
+use anyhow::anyhow;
 use futures_util::future::{ok, Future, Ready};
-
 pub struct Moderator;
 
 impl<S, B> Transform<S, ServiceRequest> for Moderator
@@ -56,17 +57,24 @@ where
         use crate::db::is_moderator;
         use crate::model::Account;
         Box::pin(async move {
-            if let Some(state) = req.app_data::<web::Data<crate::State>>() {
-                let db = &state.db_pool;
-                let user_id = Account::from_session(&req.get_session()).unwrap().id();
-                if let Ok(client) = db.get().await {
-                    if let Ok(true) = is_moderator(&client, user_id).await {
-                        return srv.call(req).await;
-                    }
-                }
+            let state = req
+                .app_data::<web::Data<crate::State>>()
+                .ok_or_else(|| error::ErrorInternalServerError(anyhow!("State error")))?;
+            let db = &state.db_pool;
+            let user_id = Account::from_session(&req.get_session())
+                .ok_or_else(|| error::ErrorInternalServerError(anyhow!("Session error")))?
+                .id();
+            let client = db
+                .get()
+                .await
+                .map_err(|err| error::ErrorInternalServerError(err))?;
+
+            if is_moderator(&client, user_id).await.is_err() {
+                let resp = actix_web::HttpResponse::Forbidden().finish().into_body();
+                Ok(req.into_response(resp))
+            } else {
+                srv.call(req).await
             }
-            let resp = actix_web::HttpResponse::Forbidden().finish().into_body();
-            Ok(req.into_response(resp))
         })
     }
 }
