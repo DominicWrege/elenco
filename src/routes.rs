@@ -108,7 +108,7 @@ pub fn web(cfg: &mut web::ServiceConfig) {
                     .service(
                         web::scope("/feed")
                             .wrap(my_middleware::feed_access::FeedAccess)
-                            .route("{feed_id}", web::get().to(handler::feed_detail::site)),
+                            .route("/{feed_id}", web::get().to(handler::feed_detail::site)),
                     )
                     .configure(self::user)
                     .configure(self::admin),

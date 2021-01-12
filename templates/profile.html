@@ -6,7 +6,7 @@
 <h2>My Podcasts</h2>
 <div class="feed-list-grid">
     {% if submitted_feeds.len() == 0  -%}
-        <p>Looks like have zero submitted Podcasts. Click here to submit a <a href="new-feed">new Podcast.</a></p>
+        <p id="empty-feeds-text">Looks like have zero submitted Podcasts. Click here to submit a <a href="new-feed">new Podcast.</a></p>
     {% else -%}
         {% for feed in submitted_feeds %}
             <div class="card">
@@ -37,7 +37,6 @@
                                 <div hidden class="feed-id">{{feed.id}}</div>
                             </div>
                         {% endif -%}
-                       
                     </div>
                 </div>
             </div>

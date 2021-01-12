@@ -68,11 +68,12 @@ where
                 .id();
             let client = db.get().await.map_err(log_error)?;
 
-            if is_moderator(&client, user_id).await.is_err() {
+            if is_moderator(&client, user_id).await? {
+                srv.call(req).await
+            } else {
+                log::warn!("User has no permission to access the moderator site.");
                 let resp = actix_web::HttpResponse::Forbidden().finish().into_body();
                 Ok(req.into_response(resp))
-            } else {
-                srv.call(req).await
             }
         })
     }

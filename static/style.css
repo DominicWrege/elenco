@@ -349,3 +349,7 @@ img.player-controls {
     gap: 1em;
     align-items: center;
 }
+
+p#empty-feeds-text{
+    position: absolute;
+}

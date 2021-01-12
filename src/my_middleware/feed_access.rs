@@ -68,27 +68,30 @@ where
             let client = state.db_pool.get().await.map_err(log_error)?;
             let account = Account::from_session(&req.get_session())
                 .ok_or_else(|| log_error(anyhow!("session error")))?;
-            if account.permission() != Permission::Admin {
-                if let Ok(feed_id) = &req.match_info().path()[1..].parse::<i32>() {
-                    let submitter_check_stmnt = client
-                        .prepare(inc_sql!("get/feed/submitter_check"))
-                        .await
-                        .map_err(log_error)?;
-                    if client
-                        .query_one(&submitter_check_stmnt, &[&feed_id, &account.id()])
-                        .await
-                        .is_err()
-                    {
-                        let resp = page_not_found().into_body();
-                        return Ok(req.into_response(resp));
+            match account.permission() {
+                Permission::Admin => srv.call(req).await,
+                Permission::User => {
+                    if let Ok(feed_id) = &req.match_info().path()[1..].parse::<i32>() {
+                        let submitter_check_stmnt = client
+                            .prepare(inc_sql!("get/feed/submitter_check"))
+                            .await
+                            .map_err(log_error)?;
+                        if client
+                            .query_one(&submitter_check_stmnt, &[&feed_id, &account.id()])
+                            .await
+                            .is_err()
+                        {
+                            log::warn!("Access to the feed was denied.");
+                            let resp = page_not_found().into_body();
+                            return Ok(req.into_response(resp));
+                        }
+                    } else {
+                        let response = HttpResponse::BadRequest().finish().into_body();
+                        return Ok(req.into_response(response));
                     }
+                    srv.call(req).await
                 }
-            } else {
-                let response = HttpResponse::BadRequest().finish().into_body();
-                return Ok(req.into_response(response));
             }
-
-            srv.call(req).await
         })
     }
 }

@@ -47,6 +47,7 @@ pub async fn site(
     id: actix_web::web::Path<i32>,
 ) -> Result<HttpResponse, GeneralError> {
     let feed_id = id.into_inner();
+    dbg!(feed_id);
     let client = state.db_pool.get().await?;
     let feed_stmnt = client.prepare(inc_sql!("get/feed/preview_by_id")).await?;
     let feed_row = client.query_one(&feed_stmnt, &[&feed_id]).await?;
