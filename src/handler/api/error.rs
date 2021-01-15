@@ -13,8 +13,8 @@ pub enum ApiError {
     CategoryNotFound(String),
     #[error("feed {0} was not found")]
     FeedNotFound(i32),
-    #[error("author {0} was not found")]
-    AuthorNotFound(i32),
+    #[error("author {0} was not found or has currently no online episodes")]
+    AuthorNotFound(String),
     #[error("missing field `term`")]
     MissingTerm,
     #[error("bad request")]

@@ -108,18 +108,3 @@ pub async fn by_category(
 
     Ok(Json(feeds))
 }
-
-pub async fn by_author(
-    state: web::Data<State>,
-    auhtor_id: web::Path<i32>,
-) -> ApiJsonResult<Vec<Feed>> {
-    let client = state.db_pool.get().await?;
-    let auhtor_id = auhtor_id.into_inner();
-    let stmnt = client.prepare(inc_sql!("get/feed/by_author")).await?;
-    let rows = client.query(&stmnt, &[&auhtor_id]).await?;
-    if rows.is_empty() {
-        return Err(ApiError::AuthorNotFound(auhtor_id));
-    }
-    let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
-    Ok(Json(feeds))
-}
