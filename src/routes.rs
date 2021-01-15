@@ -74,11 +74,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("/{category}/feeds", web::get().to(api::feed::by_category)),
             )
             .route("/authors", web::get().to(api::author::all))
-            .service(
-                web::scope("author")
-                    .route("/{id}/feeds", web::get().to(api::feed::by_author))
-                    .route("/{id}", web::get().to(api::author::by_id)),
-            ),
+            .route("/author/{id}/feeds", web::get().to(api::feed::by_author)),
     );
 }
 
