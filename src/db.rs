@@ -7,7 +7,6 @@ use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
-pub mod preview_error;
 pub mod save_feed;
 pub mod util;
 

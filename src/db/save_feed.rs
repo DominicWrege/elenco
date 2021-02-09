@@ -1,25 +1,24 @@
 use std::collections::BTreeMap;
 
-use crate::model::channel::RawFeed;
-use crate::model::item::EpisodeRow;
+use crate::model::item::Episode;
+use crate::{handler::preview_error::PreviewError, model::channel::Feed};
 use crate::{img_cache::RowImg, inc_sql};
 use deadpool_postgres::Client;
 use futures_util::future;
 use tokio_postgres::Transaction;
 
-use super::preview_error::PreviewError;
 #[derive(Debug)]
 struct Context<'a> {
     user: &'a i32,
     autor: &'a Option<i32>,
     language: &'a Option<i32>,
     img: &'a Option<i32>,
-    feed: &'a RawFeed<'a>,
+    feed: &'a Feed<'a>,
 }
 
 pub async fn save(
     client: &mut Client,
-    feed_content: &RawFeed<'_>,
+    feed_content: &Feed<'_>,
     user_id: i32,
     img: Option<RowImg<'_>>,
 ) -> Result<(), PreviewError> {
@@ -138,7 +137,7 @@ async fn insert_or_get_author_id(trx: &Transaction<'_>, author_name: Option<&str
 async fn insert_episodes(
     trx: &Transaction<'_>,
     feed_id: i32,
-    episodes: &[EpisodeRow<'_>],
+    episodes: &[Episode<'_>],
 ) -> Result<(), tokio_postgres::Error> {
     future::try_join_all(
         episodes
@@ -153,7 +152,7 @@ async fn insert_episodes(
 async fn insert_one_episode(
     trx: &Transaction<'_>,
     feed_id: i32,
-    ep: &EpisodeRow<'_>,
+    ep: &Episode<'_>,
 ) -> Result<(), tokio_postgres::Error> {
     let stmnt = trx.prepare(inc_sql!("insert/episode")).await?;
     trx.execute(

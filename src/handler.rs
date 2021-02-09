@@ -8,11 +8,11 @@ use crate::util::redirect;
 pub mod api;
 pub mod auth;
 pub mod feed_detail;
+pub mod feed_preview;
 pub mod general_error;
 pub mod moderator;
-pub mod feed_preview;
+pub mod preview_error;
 pub mod profile;
-
 pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
     let filename = req.match_info().query("filename");
     let folder = Path::new("./img-cache");

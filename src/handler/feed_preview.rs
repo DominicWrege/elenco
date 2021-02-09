@@ -1,6 +1,6 @@
 use crate::{
-    db::{feed_exits, preview_error::PreviewError, save_feed::save},
-    model::{channel::RawFeed, Account},
+    db::{feed_exits, save_feed::save},
+    model::{channel::Feed, Account},
     session_storage::{cache_feed_url, feed_url},
     template::{Context, FeedPreviewSite},
     util::redirect,
@@ -11,6 +11,8 @@ use actix_session::Session;
 use actix_web::{web, HttpResponse};
 use askama::Template;
 use reqwest::Url;
+
+use super::preview_error::PreviewError;
 
 #[derive(serde::Deserialize)]
 pub struct FeedForm {
@@ -28,7 +30,7 @@ pub async fn save_feed(
     let resp_bytes = reqwest::get(feed_url.clone()).await?.text().await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    let raw_feed = RawFeed::parse(&channel, feed_url)?;
+    let raw_feed = Feed::parse(&channel, feed_url);
     let img_cache = state.img_cache.clone();
     let cached_img = if let Some(img_url) = &raw_feed.img {
         img_cache.download(img_url).await.ok()
@@ -53,12 +55,16 @@ pub async fn create_preview(
     state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewError> {
     let url = form.feed.clone();
-    let resp_bytes = reqwest::get(url.clone()).await?.error_for_status()?.bytes().await?;
+    let resp_bytes = reqwest::get(url.clone())
+        .await?
+        .error_for_status()?
+        .bytes()
+        .await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
-    let raw_feed = RawFeed::parse(&channel, url.clone())?;
+    let raw_feed = Feed::parse(&channel, url.clone());
 
     let context = Context {
         feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,

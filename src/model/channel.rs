@@ -1,32 +1,32 @@
 use reqwest::Url;
 
 // use postgres_types::{FromSql, ToSql};
-use super::item::EpisodeRow;
+use super::item::Episode;
 use std::collections::BTreeMap;
 
 #[derive(Debug)]
-pub struct RawFeed<'a> {
+pub struct Feed<'a> {
     pub url: Url,
     pub img: Option<Url>,
     pub title: &'a str,
     pub description: &'a str,
     pub author: Option<&'a str>,
-    pub episodes: Vec<EpisodeRow<'a>>,
+    pub episodes: Vec<Episode<'a>>,
     pub subtitle: Option<&'a str>,
     pub language_code: Option<&'a str>,
     pub link_web: Option<Url>,
     pub categories: BTreeMap<&'a str, Vec<&'a str>>,
 }
 
-impl<'a> RawFeed<'a> {
+impl<'a> Feed<'a> {
     pub fn link_web(&self) -> Option<&str> {
         self.link_web.as_ref().map(|link| link.as_str())
     }
     pub fn url(&self) -> &str {
         self.url.as_str()
     }
-    pub fn parse(feed: &'a rss::Channel, url: Url) -> Result<Self, anyhow::Error> {
-        Ok(Self {
+    pub fn parse(feed: &'a rss::Channel, url: Url) -> Self {
+        Self {
             link_web: parse_website_link(&feed, &url),
             url,
             img: feed
@@ -39,11 +39,11 @@ impl<'a> RawFeed<'a> {
             title: feed.title(),
             description: feed.description(),
             author: feed.itunes_ext().and_then(|it| it.author()),
-            episodes: EpisodeRow::from_items(&feed.items()),
+            episodes: Episode::from_items(&feed.items()),
             subtitle: parse_subtitle(&feed),
             language_code: feed.language().map(|code| &code[..2]),
             categories: parse_categories(&feed),
-        })
+        }
     }
 }
 

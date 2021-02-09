@@ -1,6 +1,6 @@
 use actix_web::{http, HttpResponse};
 
-use crate::model::channel::RawFeed;
+use crate::model::channel::Feed;
 use isolang::Language;
 pub fn redirect<P>(path: P) -> HttpResponse
 where
@@ -16,7 +16,7 @@ pub fn page_not_found() -> HttpResponse {
     redirect("/404")
 }
 
-impl LanguageCodeLookup for RawFeed<'_> {
+impl LanguageCodeLookup for Feed<'_> {
     fn language_code(&self) -> Option<&str> {
         self.language_code
     }

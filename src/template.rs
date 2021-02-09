@@ -2,7 +2,7 @@ use crate::util::LanguageCodeLookup;
 use crate::{handler::feed_detail::EpisodeSmall, time_date::DurationFormator};
 use crate::{
     handler::{moderator::ModeratorFeed, profile::ProfileFeed},
-    model::{self, channel::RawFeed, Permission, Status},
+    model::{self, channel::Feed, Permission, Status},
 };
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateIntoResponse};
@@ -77,7 +77,7 @@ impl<'a> Register<'a> {
 }
 #[derive(Debug)]
 pub struct Context<'a> {
-    pub feed: RawFeed<'a>,
+    pub feed: Feed<'a>,
     pub feed_exists: bool,
 }
 

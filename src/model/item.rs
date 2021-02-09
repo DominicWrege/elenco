@@ -5,7 +5,7 @@ use reqwest::Url;
 use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug)]
-pub struct EpisodeRow<'a> {
+pub struct Episode<'a> {
     pub title: &'a str,
     pub description: Option<&'a str>,
     pub published: Option<DateTime<Utc>>,
@@ -15,24 +15,22 @@ pub struct EpisodeRow<'a> {
     pub url: Option<Url>,
     pub media_url: Url,
     pub explicit: bool,
-    pub guid: Option<&'a str>,
 }
-impl<'a> EpisodeRow<'a> {
+impl<'a> Episode<'a> {
     pub fn url(&self) -> Option<&str> {
         self.url.as_ref().map(|url| url.as_str())
     }
     pub fn media_url(&self) -> &str {
         self.media_url.as_str()
     }
-    pub fn from_items(items: &[rss::Item]) -> Vec<EpisodeRow> {
-        let mut items: Vec<EpisodeRow> =
-            items.iter().flat_map(|item| item.try_into().ok()).collect();
+    pub fn from_items(items: &[rss::Item]) -> Vec<Episode> {
+        let mut items: Vec<Episode> = items.iter().flat_map(|item| item.try_into().ok()).collect();
         items.sort_by(|a, b| b.published.cmp(&a.published));
         items
     }
 }
 
-impl DurationFormator for EpisodeRow<'_> {
+impl DurationFormator for Episode<'_> {
     fn duration(&self) -> Option<i64> {
         self.duration
     }
@@ -40,7 +38,7 @@ impl DurationFormator for EpisodeRow<'_> {
 
 // TODO add Field Media Typ
 // TODO check iuntes show notes
-impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
+impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
     type Error = anyhow::Error;
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
@@ -68,7 +66,6 @@ impl<'a> TryFrom<&'a rss::Item> for EpisodeRow<'a> {
                 .and_then(|e| Url::parse(e.url()).ok())
                 .ok_or_else(|| anyhow::format_err!("field enclosure is required"))?,
             explicit: parse_explicit(item.itunes_ext()),
-            guid: item.guid().map(|g| g.value()),
         })
     }
 }
