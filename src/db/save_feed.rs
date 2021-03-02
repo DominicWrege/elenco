@@ -84,7 +84,7 @@ async fn insert_or_get_img_id(
     let row = trx
         .query_one(
             &stmnt,
-            &[&img.link.clone().as_str(), &img.hash, &img.filename],
+            &[&img.link.clone().as_str(), &img.hash, &img.file_name],
         )
         .await?;
 

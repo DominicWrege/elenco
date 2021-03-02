@@ -14,9 +14,9 @@ pub mod moderator;
 pub mod preview_error;
 pub mod profile;
 pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
-    let filename = req.match_info().query("filename");
+    let file_name = req.match_info().query("file_name");
     let folder = Path::new("./img-cache");
-    if let Ok(file) = NamedFile::open(folder.join(&filename)) {
+    if let Ok(file) = NamedFile::open(folder.join(&file_name)) {
         Either::A(file)
     } else {
         Either::B(redirect("/404"))

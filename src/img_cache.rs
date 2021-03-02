@@ -11,7 +11,7 @@ pub struct ImageCache {
 #[derive(Debug)]
 pub struct RowImg<'a> {
     pub hash: String,
-    pub filename: String,
+    pub file_name: String,
     pub link: &'a Url,
 }
 
@@ -42,7 +42,7 @@ impl ImageCache {
         .map_err(|e| e)?;
         Ok(RowImg {
             link: url,
-            filename: format!("{}.{}", &hash, extension),
+            file_name: format!("{}.{}", &hash, extension),
             hash,
         })
     }

@@ -96,7 +96,7 @@ pub fn web(cfg: &mut web::ServiceConfig) {
                     .lazy(true),
             )
             .route(
-                "/img/{filename:.+(jpeg|jpg|png)$}",
+                "/img/{file_name:.+(jpeg|jpg|png)$}",
                 web::get().to(handler::serve_img),
             )
             .configure(self::login_register)
