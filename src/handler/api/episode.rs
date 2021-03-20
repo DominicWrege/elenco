@@ -10,12 +10,12 @@ pub async fn by_feed_id(
 ) -> ApiJsonResult<Vec<Episode>> {
     let client = state.db_pool.get().await?;
     let feed_id = id.into_inner();
-    let epsiodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
-    let epsiode_rows = client.query(&epsiodes_stmnt, &[&feed_id]).await?;
-    if epsiode_rows.is_empty() {
+    let episodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
+    let episode_rows = client.query(&episodes_stmnt, &[&feed_id]).await?;
+    if episode_rows.is_empty() {
         return Err(ApiError::FeedNotFound(feed_id));
     }
-    let epsiodes = rows_into_vec(epsiode_rows);
+    let episodes = rows_into_vec(episode_rows);
 
-    Ok(Json(epsiodes))
+    Ok(Json(episodes))
 }

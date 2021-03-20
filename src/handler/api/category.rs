@@ -35,9 +35,9 @@ pub async fn by_id_or_name(
         client.query_one(&stmnt, &[&category_name]).await
     };
     let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
-    let catgories = Category::from(
+    let catagories = Category::from(
         &row,
         serde_json::from_value(row.get("subcategories")).unwrap(),
     );
-    Ok(Json(catgories))
+    Ok(Json(catagories))
 }

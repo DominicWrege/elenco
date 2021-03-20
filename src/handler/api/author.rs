@@ -15,10 +15,10 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Author>> {
 
 pub async fn feeds(
     state: web::Data<State>,
-    auhtor_path: web::Path<String>,
+    author_path: web::Path<String>,
 ) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
-    let author = auhtor_path.into_inner();
+    let author = author_path.into_inner();
     let rows = match author.parse::<i32>() {
         Ok(author_id) => {
             dbg!(author_id);
