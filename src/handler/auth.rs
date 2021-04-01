@@ -156,7 +156,7 @@ pub async fn new_account(
     )
     .await
     .map_err(|_e| RegisterError::EmailOrUsernameExists)?;
-
+    trx.commit().await?;
     Ok(())
 }
 

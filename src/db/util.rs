@@ -41,6 +41,7 @@ async fn connect_with_conf() -> Result<DBContext, anyhow::Error> {
         .password(&db_config.password)
         .dbname(&db_config.databasename)
         .host(&db_config.host);
+
     let (client, connection) = config.connect(tokio_postgres::NoTls).await?;
     Ok(DBContext {
         client,

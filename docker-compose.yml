@@ -5,8 +5,10 @@ services:
     image: postgres:13-alpine
     restart: always
     environment:
-      POSTGRES_USER: harra
-      POSTGRES_PASSWORD: hund
+      POSTGRES_USER: usertest
+      POSTGRES_PASSWORD: hundpwd
       POSTGRES_DB: podcast
     ports:
       - 5432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
