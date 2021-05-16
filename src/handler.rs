@@ -10,15 +10,15 @@ pub mod auth;
 pub mod feed_detail;
 pub mod feed_preview;
 pub mod general_error;
-pub mod moderator;
+pub mod manage;
 pub mod preview_error;
 pub mod profile;
 pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
     let file_name = req.match_info().query("file_name");
     let folder = Path::new("./img-cache");
     if let Ok(file) = NamedFile::open(folder.join(&file_name)) {
-        Either::A(file)
+        Either::Left(file)
     } else {
-        Either::B(redirect("/404"))
+        Either::Right(redirect("/404"))
     }
 }

@@ -10,7 +10,7 @@ use tokio_postgres::Transaction;
 #[derive(Debug)]
 struct Context<'a> {
     user: &'a i32,
-    autor: &'a Option<i32>,
+    author: &'a Option<i32>,
     language: &'a Option<i32>,
     img: &'a Option<i32>,
     feed: &'a Feed<'a>,
@@ -21,9 +21,9 @@ pub async fn save(
     feed_content: &Feed<'_>,
     user_id: i32,
     img: Option<RowImg<'_>>,
-) -> Result<(), PreviewError> {
+) -> Result<i32, PreviewError> {
     let trx = client.transaction().await?;
-    let autor_id = insert_or_get_author_id(&trx, feed_content.author).await;
+    let author_id = insert_or_get_author_id(&trx, feed_content.author).await;
     let language = if let Some(lang) = feed_content.language_code {
         insert_or_get_language_id(&trx, lang).await.ok()
     } else {
@@ -38,7 +38,7 @@ pub async fn save(
 
     let context = Context {
         user: &user_id,
-        autor: &autor_id,
+        author: &author_id,
         language: &language,
         img: &img_id,
         feed: feed_content,
@@ -50,7 +50,7 @@ pub async fn save(
     )
     .await?;
     trx.commit().await?;
-    Ok(())
+    Ok(feed_id)
 }
 
 async fn insert_feed(trx: &Transaction<'_>, context: &Context<'_>) -> Result<i32, PreviewError> {
@@ -61,7 +61,7 @@ async fn insert_feed(trx: &Transaction<'_>, context: &Context<'_>) -> Result<i32
             &stmnt,
             &[
                 &context.user,
-                context.autor,
+                context.author,
                 &context.feed.title,
                 &context.feed.description,
                 context.img,

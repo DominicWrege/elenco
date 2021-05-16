@@ -50,12 +50,12 @@ where
     #[allow(clippy::type_complexity)]
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.borrow_mut().poll_ready(cx)
     }
 
-    fn call(&mut self, req: ServiceRequest) -> Self::Future {
-        let mut srv = self.service.clone();
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let srv = self.service.clone();
         use crate::db::is_moderator;
         use crate::model::Account;
         Box::pin(async move {

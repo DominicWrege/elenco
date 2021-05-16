@@ -17,6 +17,7 @@ mod macros;
 mod model;
 mod my_middleware;
 mod session_storage;
+mod socket;
 mod template;
 mod time_date;
 #[derive(Clone)]

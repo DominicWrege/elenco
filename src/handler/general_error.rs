@@ -6,6 +6,7 @@ use actix_web::{
     dev::{self, ServiceResponse},
     error::ErrorInternalServerError,
     middleware::ErrorHandlerResponse,
+    BaseHttpResponse,
 };
 use actix_web::{HttpResponse, ResponseError};
 use thiserror::Error;
@@ -16,10 +17,10 @@ pub struct GeneralError(Box<dyn std::error::Error + Send + Sync + 'static>);
 generic_handler_err!(GeneralError, GeneralError);
 
 impl ResponseError for GeneralError {
-    fn error_response(&self) -> HttpResponse {
+    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{:#?}", self.to_string());
-        HttpResponse::build(self.status_code())
-            .content_type("text/html")
+        BaseHttpResponse::build(self.status_code())
+            .content_type(mime::TEXT_HTML_UTF_8)
             .body(template::ErrorSite::html())
     }
 }

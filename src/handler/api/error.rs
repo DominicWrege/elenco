@@ -1,5 +1,4 @@
-use actix_web::http::StatusCode;
-use actix_web::web::HttpResponse;
+use actix_web::{body::Body, http::StatusCode, BaseHttpResponse};
 
 use thiserror::Error;
 
@@ -28,12 +27,15 @@ pub struct JsonError {
     status: u16,
 }
 
-pub async fn not_found() -> HttpResponse {
-    let error = JsonError {
+pub async fn not_found() -> BaseHttpResponse<actix_web::dev::Body> {
+    let json = JsonError {
         error: String::from("resource does not exist"),
         status: StatusCode::NOT_FOUND.as_u16(),
     };
-    HttpResponse::NotFound().json(error)
+
+    BaseHttpResponse::build(StatusCode::NOT_FOUND)
+        .content_type(mime::APPLICATION_JSON)
+        .body(serde_json::to_string(&json).unwrap())
 }
 
 impl actix_web::ResponseError for ApiError {
@@ -44,13 +46,18 @@ impl actix_web::ResponseError for ApiError {
         }
     }
 
-    fn error_response(&self) -> actix_web::HttpResponse {
+    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{}", self.to_string());
         let status = self.status_code();
 
-        HttpResponse::build(status).json(JsonError {
+        let body = serde_json::to_string(&JsonError {
             error: hide_internal!(ApiError, self),
             status: status.as_u16(),
         })
+        .unwrap();
+
+        actix_web::BaseHttpResponse::build(status)
+            .content_type(mime::APPLICATION_JSON)
+            .body(Body::from(body))
     }
 }

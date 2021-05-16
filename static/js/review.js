@@ -2,7 +2,7 @@ import { updateFeed, showCustomAlert } from "./util.js";
 
 const feedsReviewed = new Set();
 
-async function approvehandler(event) {
+async function approveHandler(event) {
     await genericHandler("Online");
 }
 
@@ -15,8 +15,8 @@ async function genericHandler(action) {
         if (feedsReviewed.size === 0) {
             showCustomAlert("Please select a row before.", "error");
         } else {
-            let udpates = Array.from(feedsReviewed).map(id => updateFeed(id, action));
-            await Promise.all(udpates);
+            let updates = Array.from(feedsReviewed).map(id => updateFeed(id, action));
+            await Promise.all(updates);
             location.reload();
         }
     } catch (err) {
@@ -35,8 +35,7 @@ function checkboxChanged(event) {
 }
 
 window.addEventListener("load", () => {
-
-    document.querySelector("button#allowButton").addEventListener("click", approvehandler);
+    document.querySelector("button#allowButton").addEventListener("click", approveHandler);
     document.querySelector("button#rejectButton").addEventListener("click", rejectHandler);
 
     for (const checkbox of document.querySelectorAll("tr td input.feed-row")) {

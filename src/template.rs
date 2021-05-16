@@ -1,11 +1,12 @@
 use crate::util::LanguageCodeLookup;
 use crate::{handler::feed_detail::EpisodeSmall, time_date::DurationFormator};
 use crate::{
-    handler::{moderator::ModeratorFeed, profile::ProfileFeed},
+    handler::{manage::ModeratorFeed, profile::ProfileFeed},
     model::{self, channel::Feed, Permission, Status},
 };
 use actix_web::{http::StatusCode, HttpResponse};
-use askama_actix::{Template, TemplateIntoResponse};
+use askama_actix::{Template, TemplateToResponse};
+use chrono::{DateTime, Utc};
 #[derive(Template, Default)]
 #[template(path = "auth/register.html")]
 pub struct Register<'a> {
@@ -51,10 +52,10 @@ pub struct RegisterModerator {
     pub permission: Option<Permission>,
 }
 
-pub trait LoginRegister: TemplateIntoResponse + Template {
+pub trait LoginRegister: TemplateToResponse + Template {
     fn response(&self, status_code: StatusCode) -> Result<HttpResponse, askama::Error> {
         Ok(HttpResponse::build(status_code)
-            .content_type("text/html")
+            .content_type(mime::TEXT_HTML_UTF_8)
             .body(self.render()?))
     }
 }
@@ -95,6 +96,19 @@ pub struct ModeratorSite {
     pub permission: Option<Permission>,
     pub queued_feeds: Vec<ModeratorFeed>,
     pub review_feeds: Vec<ModeratorFeed>,
+}
+
+#[derive(Template, Debug)]
+#[template(path = "feed/feed_table_row.html")]
+pub struct ModeratorFeedTableRow {
+    pub id: i32,
+    pub url: String,
+    pub title: String,
+    pub author_name: String,
+    pub link_web: Option<String>,
+    pub submitted: DateTime<Utc>,
+    pub last_modified: DateTime<Utc>,
+    pub username: String,
 }
 
 #[derive(Template, Debug, Default)]

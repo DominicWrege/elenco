@@ -40,15 +40,19 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/admin")
             .wrap(my_middleware::moderator::Moderator)
-            .route("/manage", web::get().to(handler::moderator::manage))
+            .route("/manage", web::get().to(handler::manage::manage))
             .route(
                 "/update-feed-status",
-                web::patch().to(handler::moderator::review_feed),
+                web::patch().to(handler::manage::review_feed),
+            )
+            .route(
+                "fedd-live-update",
+                web::get().to(handler::manage::register_socket),
             )
             .service(
                 web::resource("register")
-                    .route(web::post().to(handler::moderator::register))
-                    .route(web::get().to(handler::moderator::register_site)),
+                    .route(web::post().to(handler::manage::register_moderator))
+                    .route(web::get().to(handler::manage::register_moderator_site)),
             ),
     );
 }

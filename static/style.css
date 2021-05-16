@@ -1,21 +1,21 @@
-body{
-    display: flex;
+body {
+	display: flex;
 }
 
 main {
-    padding: 2rem;
-    width: 100%;
-    height: 100%;
-    margin-left: 180px;
-    display: grid;
-    justify-content: center;
+	padding: 2rem;
+	width: 100%;
+	height: 100%;
+	margin-left: 180px;
+	display: grid;
+	justify-content: center;
 }
 
 form.pure-form-stacked input {
 	width: 34vw;
 }
 .pure-menu-heading b {
-    letter-spacing: .075em !important;
+	letter-spacing: 0.075em !important;
 }
 /* .submit-btn{
     margin-left: 1em !important;
@@ -30,7 +30,7 @@ label {
 }
 
 .error-msg {
-    max-width: 600px;
+	max-width: 650px;
 	margin-top: 1.5em;
 	padding: 1em;
 	word-wrap: normal;
@@ -39,35 +39,35 @@ label {
 	border-radius: 0.25em;
 }
 body {
-    margin-bottom: 3em;
-    background: #f3f4f573;
+	margin-bottom: 3em;
+	background: #f3f4f573;
 }
 .menu {
-    background: #efefef;
-    padding: 0.5em;
-    width: 180px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    font-size: medium;
+	background: #efefef;
+	padding: 0.5em;
+	width: 180px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	font-size: medium;
 }
 
-span.pure-menu-heading h2{
-    margin-inline-end: 0;
-    margin: 0;
-    margin-block-start: 0;
-    margin-block-end: 0;
-    letter-spacing: 0.1em;
-    font-size: 1.5em;
+span.pure-menu-heading h2 {
+	margin-inline-end: 0;
+	margin: 0;
+	margin-block-start: 0;
+	margin-block-end: 0;
+	letter-spacing: 0.1em;
+	font-size: 1.5em;
 }
 
 .menu ul li {
-    margin-top: 1rem;
+	margin-top: 1rem;
 }
 
-ul.pure-menu-list li.pure-menu-selected{
-    font-weight: bold;
+ul.pure-menu-list li.pure-menu-selected {
+	font-weight: bold;
 }
 
 .mr-1em {
@@ -82,14 +82,14 @@ ul.pure-menu-list li.pure-menu-selected{
 	margin-block-end: 0;
 }
 
-.left{
-    left: 2em;
-    position: relative;
+.left {
+	left: 2em;
+	position: relative;
 }
 
 .pure-img {
-    max-height: 12rem;
-    background-color: #efefef;
+	max-height: 12rem;
+	background-color: #efefef;
 }
 .width100 {
 	min-width: 45em;
@@ -101,10 +101,10 @@ button.width100 {
 	width: 16em;
 }
 .podcast-container {
-    display: grid;
-    grid-template-columns: 12em minmax(24em, 35em)16rem;
-    grid-column-gap: 2rem;
-    margin-top: 2rem;
+	display: grid;
+	grid-template-columns: 12em minmax(24em, 35em) 16rem;
+	grid-column-gap: 2rem;
+	margin-top: 2rem;
 }
 
 form#save-container {
@@ -123,31 +123,31 @@ div#episodes > table {
 	max-width: 80vw;
 }
 .w50 {
-    min-width: 50vw;
+	min-width: 50vw;
 }
-.h600{
-    max-height: 50rem !important;
+.h600 {
+	max-height: 50rem !important;
 }
 tbody tr:nth-child(even) {
 	background: #f2f2f2;
 }
-#podcast-summary p{
-    line-height: 1.6em;
-}   
+#podcast-summary p {
+	line-height: 1.6em;
+}
 
 #episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a {
 	white-space: nowrap;
 }
 .feed-list-grid {
-    display: grid;
-    justify-content: center;
+	display: grid;
+	justify-content: center;
 	grid-template-columns: repeat(auto-fit, minmax(300px, 525px));
 	grid-row-gap: 2em;
-    grid-column-gap: 1.5em;
-    min-width: 80vw;
+	grid-column-gap: 1.5em;
+	min-width: 80vw;
 }
 .card {
-    background-color: #fff;
+	background-color: #fff;
 	border-radius: 3px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -162,38 +162,38 @@ tbody tr:nth-child(even) {
 	height: 12em;
 }
 .card h3 {
-    margin-block-end: 0;
+	margin-block-end: 0;
 }
 
 .card div.card-text {
 	padding: 0.6em 1em 0;
 }
 .feed-list-grid p.status {
-    color: #646464;
+	color: #646464;
 }
 
-.feed-list-grid p.status:before{
-    display: inline-block;
-    margin: 1.5px 0.65em 0 0;
-    height: 0.8em;
-    content: " ";
-    text-shadow: none;
-    border-radius: 50%;
-    width: 0.8em;
+.feed-list-grid p.status:before {
+	display: inline-block;
+	margin: 1.5px 0.65em 0 0;
+	height: 0.8em;
+	content: " ";
+	text-shadow: none;
+	border-radius: 50%;
+	width: 0.8em;
 }
 
-.feed-list-grid p.status[status='Blocked']:before{
-    background-color: #ef5350;
+.feed-list-grid p.status[status="Blocked"]:before {
+	background-color: #ef5350;
 }
 
-.feed-list-grid p.status[status='Online']:before{
-    background-color: #8bc34a;
+.feed-list-grid p.status[status="Online"]:before {
+	background-color: #8bc34a;
 }
-.feed-list-grid p.status[status='Queued']:before{
-    background-color: #ffeb3b;
+.feed-list-grid p.status[status="Queued"]:before {
+	background-color: #ffeb3b;
 }
-.feed-list-grid p.status[status='Offline']:before{
-    background-color:  #263238;
+.feed-list-grid p.status[status="Offline"]:before {
+	background-color: #263238;
 }
 
 .card h3 {
@@ -219,57 +219,57 @@ form button {
 	padding-right: 1.5em !important;
 }
 
-.pure-table-container{
-    overflow-y: scroll;
-    max-height: 30em;
+.pure-table-container {
+	overflow-y: scroll;
+	max-height: 30em;
 }
 .pure-table-container table.pure-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 0;
+	width: 100%;
+	border-collapse: collapse;
+	border: 0;
 }
 .pure-table-container .pure-table th {
-    position: sticky;
-    top: 0;
-    left: 0;
-    background-color: #e0e0e0;
+	position: sticky;
+	top: 0;
+	left: 0;
+	background-color: #e0e0e0;
 }
 
 .error-page {
-    margin-top: 9rem;
+	margin-top: 9rem;
 }
 
 .button-success {
-    background: #3D9970;
-    /* this is a green */
+	background: #3d9970;
+	/* this is a green */
 }
 
 .button-error {
-    background: #c55e56d1;
+	background: #c55e56d1;
 }
 
 .button-secondary {
-    background: rgb(66, 184, 221);
+	background: rgb(66, 184, 221);
 }
 .button-small {
-    font-size: 85%;
+	font-size: 85%;
 }
 
 table.pure-table button {
-    margin: 0.5em;
-    color: #fff;
+	margin: 0.5em;
+	color: #fff;
 }
 
 p.sub-category {
-    margin-left: 3em;
+	margin-left: 3em;
 }
 
 .menu ul.pure-menu-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column-reverse;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column-reverse;
 }
 
 /* div.podcast-details{
@@ -278,78 +278,83 @@ p.sub-category {
     bottom: 65px;
 } */
 
-h2{
-    font-size: 1.25em;
+h2 {
+	font-size: 1.25em;
 }
 h3 {
-    font-size: 1.1em;
+	font-size: 1.1em;
 }
 
-.podcast-header-form .container-disabled-button{
-    display: flex;
-    align-content: baseline;
-    align-items: baseline;
+.podcast-header-form .container-disabled-button {
+	display: flex;
+	align-content: baseline;
+	align-items: baseline;
 }
 
-.podcast-header-form .container-disabled-button div{
-    color: #e7615d;
-    margin-left: 0.5em;
+.podcast-header-form .container-disabled-button div {
+	color: #e7615d;
+	margin-left: 0.5em;
 }
 
 input.feed-row.pure-checkbox {
-    height: 1.15em;
-    width: 1.15em;
+	height: 1.15em;
+	width: 1.15em;
 }
 
-.feeds-review-header{
-    display: flex;
-    line-height: 0;
-    justify-content: space-between;
-    margin-bottom: 0.85em;
-    margin-top: 1em;
+.feeds-review-header {
+	display: flex;
+	line-height: 0;
+	justify-content: space-between;
+	margin-bottom: 0.85em;
+	margin-top: 1em;
 }
 
-div.actions-feed{
-    display: flex;
-    gap: 1em;
-    
+div.actions-feed {
+	display: flex;
+	gap: 1em;
 }
-div.actions-feed button{
-    color: white !important;
+div.actions-feed button {
+	color: white !important;
 }
 .pure-table {
-    width: 100%;
+	width: 100%;
 }
 tr td.checkbox-container {
-    display: flex;
-    justify-content: center;
+	display: flex;
+	justify-content: center;
 }
 .pure-table td {
-    padding: .5em !important;
+	padding: 0.5em 0.5em 0.5em 1em !important;
 }
-div.svg-text{
-    display: flex;
-    gap: 0.5em;
-    line-height: 1;
+div.svg-text {
+	display: flex;
+	gap: 0.5em;
+	line-height: 1;
 }
-td div.title-player{
-    display: flex;
-    gap: 1em;
-    line-height: 1.5 !important;
+td div.title-player {
+	display: flex;
+	gap: 1em;
+	line-height: 1.5 !important;
 }
 
 img.player-controls {
-    cursor: pointer;
+	cursor: pointer;
 }
 
-.card-text div.feed-status-container{
-    margin-top: 1em;
-    cursor: pointer;
-    display: flex;
-    gap: 1em;
-    align-items: center;
+.card-text div.feed-status-container {
+	margin-top: 1em;
+	cursor: pointer;
+	display: flex;
+	gap: 1em;
+	align-items: center;
 }
 
-p#empty-feeds-text{
-    position: absolute;
+p#empty-feeds-text {
+	position: absolute;
+}
+
+@media (max-width: 650px) {
+	.error-msg {
+		max-width: 500px;
+	}
 }

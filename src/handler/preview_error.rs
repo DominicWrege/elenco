@@ -1,6 +1,6 @@
 use crate::{hide_internal, model::Permission, template::FeedPreviewSite};
-use actix_web::http::StatusCode;
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::ResponseError;
+use actix_web::{http::StatusCode, BaseHttpResponse};
 use askama::Template;
 use std::error::Error as _;
 use std::fmt::Debug;
@@ -12,8 +12,10 @@ use tokio_postgres::error::{DbError, SqlState};
 pub enum PreviewError {
     #[error("Invalid RSS Feed {0}")]
     InvalidRssFeed(#[from] rss::Error),
-    #[error("Could not fetch URL {0}")]
-    Fetch(#[from] reqwest::Error),
+    #[error("Could not fetch from URL {0}")]
+    Fetch(url::Url),
+    #[error("Request error: {0}")]
+    Request(#[from] reqwest::Error),
     #[error("{0:#?}")]
     Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("Podcast {0} already exists.")]
@@ -28,11 +30,11 @@ impl ResponseError for PreviewError {
         }
     }
 
-    fn error_response(&self) -> HttpResponse {
+    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{}", self.to_string());
         let message = hide_internal!(PreviewError, self);
-        HttpResponse::build(self.status_code())
-            .content_type("text/html")
+        BaseHttpResponse::build(self.status_code())
+            .content_type(mime::TEXT_HTML_UTF_8)
             .body(
                 FeedPreviewSite {
                     permission: Some(Permission::User),

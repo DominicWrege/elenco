@@ -9,20 +9,23 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0.117", features=["derive"] }
 serde_json = "1.0"
-actix-web = "4.0.0-beta.1"
-rss = "1.9.0"
+actix-web = "4.0.0-beta.6"
+rss = "1.10.0"
 reqwest = { version= "0.11", features = ["rustls-tls"], default-features = false}
-askama = { git="https://github.com/DominicWrege/askama.git", rev="3b2ac08f50a3028499f39e06e4c96537f627f606", features = ["with-actix-web"] }
+askama = { git="https://github.com/MTRNord/askama", rev="18616b2dd67cff39051a68524d86c3e7f11a2a49", features = ["with-actix-web"] }
 thiserror = "1.0.22"
 bcrypt = "0.9.0"
 anyhow = "1.0.34"
 postgres-types =  { version = "0.2", features=["derive", "serde_json-1"] }
-deadpool-postgres = "0.7.0"
+deadpool-postgres = "0.7"
 tokio-postgres = { version = "0.7", features=["with-chrono-0_4", "with-serde_json-1"] }
 tokio-pg-mapper = "0.2"
 tokio-pg-mapper-derive = "0.2"
-actix-session = { git="https://github.com/DominicWrege/actix-extras.git", rev="6a343dc58c3765b0e6d8e59f48156fc1f130d13d"}
-actix-files = "0.6.0-beta.1"
+actix-session = { git ="https://github.com/nhruo123/actix-extras", rev="b4e8db446843a99b06c7ec40f18ef7b59ee7e955" }
+actix-files = { git ="https://github.com/actix/actix-web", rev="a7cd4e85cf75e2cdf6fc54d91ef3c60967e64288" }
+actix-web-actors = {git = "https://github.com/actix/actix-web"}
+actix-broker = "0.4.0"
+actix = "0.11.1"
 rand = "0.8"
 futures-util = "0.3.9"
 email_address = "0.2.0"
@@ -31,16 +34,16 @@ refinery = { version= "0.5.0", features = ["tokio-postgres"] }
 env_logger = "0.8.1"
 chrono = "0.4.19"
 log = "0.4.11"
-askama_actix = { git="https://github.com/DominicWrege/askama.git", rev="3b2ac08f50a3028499f39e06e4c96537f627f606" }
+askama_actix = { git="https://github.com/MTRNord/askama", rev="18616b2dd67cff39051a68524d86c3e7f11a2a49" }
 validator = {version = "0.12", features=["derive"] }
 isolang = "1.0.0"
-tree_magic_mini = "1.0.0"
+tree_magic_mini = "3.0.0"
 mime = "0.3.16"
 blake3 = "0.3.7"
 envy = "0.4.2"
 
 [dependencies.tokio]
-version = "1.0"
+version = "1"
 features = ["rt", "sync", "time", "macros", "fs"]
 
 

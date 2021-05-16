@@ -6,6 +6,7 @@ use crate::{
     db::rows_into_vec,
     inc_sql,
     model::{Permission, Status},
+    socket::LiveFeedSocket,
     template::{self, RegisterModerator},
     util::redirect,
     State,
@@ -68,7 +69,7 @@ pub async fn review_feed(
     Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn register(
+pub async fn register_moderator(
     form: web::Form<RegisterForm>,
     state: Data<State>,
 ) -> Result<HttpResponse, RegisterError> {
@@ -77,8 +78,16 @@ pub async fn register(
     Ok(redirect("/auth/admin/manage"))
 }
 
-pub async fn register_site() -> RegisterModerator {
+pub async fn register_moderator_site() -> RegisterModerator {
     RegisterModerator {
         permission: Some(Permission::Admin),
     }
+}
+
+pub async fn register_socket(
+    req: web::HttpRequest,
+    stream: web::Payload,
+) -> Result<HttpResponse, actix_web::Error> {
+    let resp = actix_web_actors::ws::start(LiveFeedSocket::new(), &req, stream)?;
+    Ok(resp)
 }

@@ -2,11 +2,13 @@ use crate::{
     db::{feed_exits, save_feed::save},
     model::{channel::Feed, Account},
     session_storage::{cache_feed_url, feed_url},
-    template::{Context, FeedPreviewSite},
+    socket::MessageRowHtml,
+    template::{Context, FeedPreviewSite, ModeratorFeedTableRow},
     util::redirect,
     State,
 };
 
+use actix_broker::{Broker, SystemBroker};
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
 use askama::Template;
@@ -27,7 +29,11 @@ pub async fn save_feed(
     let user_id = Account::from_session(&ses).unwrap().id();
     let feed_url =
         feed_url(&ses).ok_or_else(|| anyhow::anyhow!("session error: cache_feed_url not found"))?;
-    let resp_bytes = reqwest::get(feed_url.clone()).await?.text().await?;
+    let resp_bytes = reqwest::get(feed_url.clone())
+        .await
+        .map_err(|_err| PreviewError::Fetch(feed_url.clone()))?
+        .text()
+        .await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     let raw_feed = Feed::parse(&channel, feed_url);
@@ -38,13 +44,31 @@ pub async fn save_feed(
         None
     };
 
-    save(
+    let feed_id = save(
         &mut state.db_pool.get().await?,
         &raw_feed,
         user_id,
         cached_img,
     )
     .await?;
+
+    let feed_tr = ModeratorFeedTableRow {
+        id: feed_id,
+        url: raw_feed.url().to_string(),
+        title: raw_feed.title.to_string(),
+        author_name: raw_feed
+            .author
+            .unwrap_or_else(|| "default name")
+            .to_string(),
+        link_web: raw_feed.link_web.map(|u| u.to_string()),
+        submitted: chrono::offset::Utc::now(),
+        last_modified: chrono::offset::Utc::now(),
+        username: Account::from_session(&ses).unwrap().username().to_string(),
+    }
+    .render()
+    .unwrap();
+
+    Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
 
     Ok(redirect("/auth/profile"))
 }
@@ -56,7 +80,8 @@ pub async fn create_preview(
 ) -> Result<HttpResponse, PreviewError> {
     let url = form.feed.clone();
     let resp_bytes = reqwest::get(url.clone())
-        .await?
+        .await
+        .map_err(|_err| PreviewError::Fetch(url.clone()))?
         .error_for_status()?
         .bytes()
         .await?;
@@ -65,7 +90,7 @@ pub async fn create_preview(
     cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let raw_feed = Feed::parse(&channel, url.clone());
-
+ 
     let context = Context {
         feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
         feed: raw_feed,

@@ -8,18 +8,18 @@ use crate::{
     validation_handler_err, wrap_err,
 };
 use crate::{util::redirect, State};
-use actix_web::{web, HttpResponse, ResponseError};
+use actix_web::{web, BaseHttpResponse, HttpResponse, ResponseError};
 use tokio_postgres::Client;
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
 use crate::template::LoginRegister;
 use actix_session::Session;
 use actix_web::http::StatusCode;
+use askama::Template;
 use serde::Deserialize;
 use template::Login;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
-
 use validator::{Validate, ValidationErrors};
 
 #[derive(Debug, Error)]
@@ -76,13 +76,17 @@ impl ResponseError for RegisterError {
         }
     }
 
-    fn error_response(&self) -> HttpResponse {
+    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         let msg = hide_internal!(RegisterError, self);
 
-        template::Register::default()
+        let template = template::Register::default()
             .error_msg(&msg)
-            .response(self.status_code())
-            .unwrap()
+            .render()
+            .unwrap();
+
+        BaseHttpResponse::build(self.status_code())
+            .content_type(mime::TEXT_HTML_UTF_8)
+            .body(template)
     }
 }
 
@@ -96,13 +100,26 @@ impl ResponseError for LoginError {
         }
     }
 
-    fn error_response(&self) -> HttpResponse {
-        let msg = hide_internal!(LoginError, self);
+    // fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+    //     log::error!("{}", self.to_string());
+    //     let status = self.status_code();
 
-        Login::default()
-            .error_msg(&msg)
-            .response(self.status_code())
-            .unwrap()
+    //     let body = serde_json::to_string(&JsonError {
+    //         error: hide_internal!(ApiError, self),
+    //         status: status.as_u16(),
+    //     })
+    //     .unwrap();
+
+    //     actix_web::BaseHttpResponse::build(status)
+    //         .content_type(mime::APPLICATION_JSON)
+    //         .body(Body::from(body))
+    // }
+
+    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+        let msg = hide_internal!(LoginError, self);
+        BaseHttpResponse::build(self.status_code())
+            .content_type(mime::TEXT_HTML_UTF_8)
+            .body(Login::default().error_msg(&msg).render().unwrap())
     }
 }
 

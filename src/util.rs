@@ -8,7 +8,7 @@ where
     P: std::fmt::Display,
 {
     HttpResponse::Found()
-        .header(http::header::LOCATION, format!("/web{}", path))
+        .append_header((http::header::LOCATION, format!("/web{}", path)))
         .finish()
 }
 
@@ -24,10 +24,8 @@ impl LanguageCodeLookup for Feed<'_> {
 
 pub trait LanguageCodeLookup {
     fn language_lookup(&self) -> Option<Language> {
-        self.language_code().and_then(|code| {
-            Language::from_639_1(code)
-                .or_else(|| Language::from_639_3(code))
-        })
+        self.language_code()
+            .and_then(|code| Language::from_639_1(code).or_else(|| Language::from_639_3(code)))
     }
     fn language_code(&self) -> Option<&str>;
 }

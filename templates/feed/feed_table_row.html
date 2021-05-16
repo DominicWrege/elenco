@@ -1,0 +1,25 @@
+<tr>
+    <td class="checkbox-container">
+        <input type="checkbox" class="feed-row pure-checkbox" />
+    </td>
+    <td class="feed-id">{{ id }}</td>
+    <td><a href="/web/auth/feed/{{ id }}">{{ title }}</a></td>
+    <td>
+        <a href="{{ url }}">Feed</a>
+    </td>
+    <td>{{ author_name }}</td>
+    <td>
+        {{ username }}
+    </td>
+    <td>
+        {% match link_web %}
+            {% when Some with (website) %}
+                <a href="{{ website }}">{{ website }}</a>
+            {% when None %}
+                None
+        {% endmatch %}
+    </td>
+    <td>
+        {{ submitted.time().format("%H:%M") }}, {{ submitted.date().format("%d.%m.%g") }}
+    </td>
+</tr>
