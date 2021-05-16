@@ -54,7 +54,7 @@ pub async fn save_feed(
         title: raw_feed.title.to_string(),
         author_name: raw_feed
             .author
-            .unwrap_or_else(|| "default name")
+            .unwrap_or("default name")
             .to_string(),
         link_web: raw_feed.link_web.map(|u| u.to_string()),
         submitted: chrono::offset::Utc::now(),

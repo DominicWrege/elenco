@@ -78,7 +78,7 @@ pub async fn by_id(id: web::Path<String>, state: web::Data<State>) -> ApiJsonRes
     let epsiodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let epsiode_rows = client.query(&epsiodes_stmnt, &[&feed_id]).await?;
     let epsiodes = rows_into_vec(epsiode_rows);
-    let categories = categories_for_feed(&client, feed_id.into()).await?;
+    let categories = categories_for_feed(&client, feed_id).await?;
     let feed = FeedEpisode::from(&feed_row, categories, epsiodes).await?;
     Ok(Json(feed))
 }

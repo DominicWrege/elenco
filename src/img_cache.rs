@@ -1,4 +1,3 @@
-use blake3;
 use reqwest::Url;
 use std::path::PathBuf;
 

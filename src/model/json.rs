@@ -32,7 +32,7 @@ impl Feed {
 
 impl LanguageCodeLookup for Feed {
     fn language_code(&self) -> Option<&str> {
-        self.language.as_ref().map(|l| l.as_str())
+        self.language.as_deref()
     }
 }
 
@@ -78,7 +78,7 @@ pub fn serialize_datetime<S>(date: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Err
 where
     S: Serializer,
 {
-    return s.serialize_str(&date.to_rfc3339().to_string());
+    s.serialize_str(&date.to_rfc3339())
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -100,8 +100,8 @@ impl Category {
         let id: i32 = row.get("id");
         let description: String = row.get("description");
         Category {
-            description,
             id,
+            description,
             children,
         }
     }
@@ -132,8 +132,8 @@ impl FeedEpisode {
             subtitle: row.get("subtitle"),
             language: row.get("language"),
             last_modified: row.get("last_modified"),
-            categories: categories,
-            epsiodes: epsiodes,
+            categories,
+            epsiodes,
         })
     }
 }

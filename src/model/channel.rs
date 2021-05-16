@@ -42,11 +42,11 @@ impl<'a> Feed<'a> {
                         .and_then(|itunes| itunes.image().and_then(|u| Url::parse(u).ok()))
                 }),
             title: feed.title(),
-            description: description,
+            description,
             author: feed
                 .itunes_ext()
                 .and_then(|it| it.author())
-                .or_else(|| Some("Default Author")),
+                .or(Some("Default Author")),
             episodes: Episode::from_items(&feed.items()),
             subtitle: parse_subtitle(&feed),
             language_code: feed.language().map(|code| &code[..2]),
@@ -55,7 +55,7 @@ impl<'a> Feed<'a> {
     }
 }
 
-fn parse_categories<'a>(feed: &'a rss::Channel) -> BTreeMap<&str, Vec<&str>> {
+fn parse_categories(feed: &'_ rss::Channel) -> BTreeMap<&str, Vec<&str>> {
     let mut categories_map = BTreeMap::new();
 
     for category in feed.categories() {
@@ -81,7 +81,12 @@ fn parse_categories<'a>(feed: &'a rss::Channel) -> BTreeMap<&str, Vec<&str>> {
 }
 
 fn parse_website_link(feed: &rss::Channel, feed_url: &Url) -> Option<Url> {
-    if feed_url.as_str() == feed.link() {
+    let web_link = Url::parse(feed.link()).ok()?;
+    if (feed_url.scheme() == "http" || feed_url.scheme() == "https")
+        && feed_url.host() == web_link.host()
+        && feed_url.path() == web_link.path()
+        && feed_url.query() == web_link.query()
+    {
         None
     } else {
         Url::parse(feed.link()).ok()
@@ -93,11 +98,9 @@ fn parse_subtitle(feed: &rss::Channel) -> Option<&str> {
 
     if Some(feed.description()) == parsed_subtitle {
         return None;
-    } else {
-        if let Some(text) = parsed_subtitle {
-            if text.trim().is_empty() {
-                return None;
-            }
+    } else if let Some(text) = parsed_subtitle {
+        if text.trim().is_empty() {
+            return None;
         }
     }
 
