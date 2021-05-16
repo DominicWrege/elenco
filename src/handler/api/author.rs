@@ -21,11 +21,11 @@ pub async fn feeds(
     let author = author_path.into_inner();
     let rows = match author.parse::<i32>() {
         Ok(author_id) => {
-            dbg!(author_id);
             let stmnt = client.prepare(inc_sql!("get/feed/by_author_id")).await?;
             client.query(&stmnt, &[&author_id]).await?
         }
         Err(_) => {
+            // dbg!(&author.replace(r#"\""#, ""));
             let stmnt = client.prepare(inc_sql!("get/feed/by_author_name")).await?;
             client.query(&stmnt, &[&author]).await?
         }

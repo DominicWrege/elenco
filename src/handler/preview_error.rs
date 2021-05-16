@@ -1,4 +1,4 @@
-use crate::{hide_internal, model::Permission, template::FeedPreviewSite};
+use crate::{hide_internal, template::FeedPreviewSite};
 use actix_web::ResponseError;
 use actix_web::{http::StatusCode, BaseHttpResponse};
 use askama::Template;
@@ -37,7 +37,7 @@ impl ResponseError for PreviewError {
             .content_type(mime::TEXT_HTML_UTF_8)
             .body(
                 FeedPreviewSite {
-                    permission: Some(Permission::User),
+                    session_context: None,
                     error_msg: Some(message),
                     context: None,
                 }

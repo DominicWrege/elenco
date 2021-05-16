@@ -4,9 +4,12 @@ pub mod json;
 
 use std::fmt;
 
+use actix_session::Session;
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
+
+use crate::session_storage::SESSION_KEY_ACCOUNT;
 
 #[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[postgres(name = "permission")]
@@ -64,5 +67,11 @@ impl Account {
     }
     pub fn password_hash(&self) -> &str {
         self.password_hash.as_str()
+    }
+    pub fn save(&self, session: &Session) -> Result<(), actix_web::Error> {
+        session.insert(SESSION_KEY_ACCOUNT, self)
+    }
+    pub fn from_session(session: &Session) -> Option<Account> {
+        session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
     }
 }

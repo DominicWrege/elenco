@@ -65,8 +65,8 @@
 </div>
 <br>
 <div>
-    <h2>Last 10 Reviewed Feeds</h2>
     {% if review_feeds.len() > 0 -%}
+    <h2>Last {{ review_feeds.len() }} Reviewed Feeds</h2>
         <table class="pure-table">
             <thead>
                 <tr>

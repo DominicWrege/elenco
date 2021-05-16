@@ -7,4 +7,4 @@ FROM feed f LEFT JOIN  author ON author.id = f.author_id
                 LEFT JOIN img ON f.img_id = img.id
 WHERE status != 'queued' AND status != 'offline'
 ORDER BY f.last_modified DESC
-LIMIT 10;
+LIMIT 15;

@@ -1,7 +1,7 @@
 use crate::{
     db::{feed_exits, save_feed::save},
     model::{channel::Feed, Account},
-    session_storage::{cache_feed_url, feed_url},
+    session_storage::{cache_feed_url, feed_url, SessionContext},
     socket::MessageRowHtml,
     template::{Context, FeedPreviewSite, ModeratorFeedTableRow},
     util::redirect,
@@ -52,10 +52,7 @@ pub async fn save_feed(
         id: feed_id,
         url: raw_feed.url().to_string(),
         title: raw_feed.title.to_string(),
-        author_name: raw_feed
-            .author
-            .unwrap_or("default name")
-            .to_string(),
+        author_name: raw_feed.author.unwrap_or("default name").to_string(),
         link_web: raw_feed.link_web.map(|u| u.to_string()),
         submitted: chrono::offset::Utc::now(),
         last_modified: chrono::offset::Utc::now(),
@@ -88,9 +85,9 @@ pub async fn create_preview(
     };
 
     let template = FeedPreviewSite {
-        permission: Account::from_session(&session).map(|acount| acount.permission()),
         error_msg: None,
         context: Some(context),
+        session_context: SessionContext::from(&session),
     }
     .render()
     .unwrap();
@@ -110,7 +107,7 @@ async fn fetch(url: &Url) -> Result<web::Bytes, PreviewError> {
 
 pub async fn form_template<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {
     Ok(FeedPreviewSite {
-        permission: Account::from_session(&session).map(|acount| acount.permission()),
+        session_context: SessionContext::from(&session),
         error_msg: None,
         context: None,
     })

@@ -2,23 +2,29 @@ use actix_session::Session;
 
 use crate::model::{Account, Permission};
 
-const SESSION_KEY_ACCOUNT: &str = "account";
-const FEED_URL: &str = "feed_url";
+pub const SESSION_KEY_ACCOUNT: &str = "account";
+pub const FEED_URL: &str = "feed_url";
 
-impl Account {
-    pub fn save(&self, session: &Session) -> Result<(), actix_web::Error> {
-        session.insert(SESSION_KEY_ACCOUNT, self)
-    }
-    pub fn from_session(session: &Session) -> Option<Account> {
-        session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
+#[derive(Debug)]
+pub struct SessionContext {
+    pub username: String,
+    pub permission: Permission,
+}
+
+impl SessionContext {
+    pub fn from(session: &Session) -> Option<Self> {
+        let account = Account::from_session(&session)?;
+
+        Some(Self {
+            username: account.username().to_string(),
+            permission: account.permission(),
+        })
     }
 }
+
 pub fn forget(session: &Session) {
     session.purge();
     session.remove(SESSION_KEY_ACCOUNT);
-}
-pub fn permission(session: &Session) -> Option<Permission> {
-    Account::from_session(&session).map(|a| a.permission)
 }
 pub fn cache_feed_url(session: &Session, url: url::Url) -> Result<(), actix_web::Error> {
     session.insert(FEED_URL, url)

@@ -1,5 +1,8 @@
 use crate::util::LanguageCodeLookup;
-use crate::{handler::feed_detail::EpisodeSmall, time_date::DurationFormator};
+use crate::{
+    handler::feed_detail::EpisodeSmall, session_storage::SessionContext,
+    time_date::DurationFormator,
+};
 use crate::{
     handler::{manage::ModeratorFeed, profile::ProfileFeed},
     model::{self, channel::Feed, Permission, Status},
@@ -12,35 +15,34 @@ use chrono::{DateTime, Utc};
 #[template(path = "auth/register.html")]
 pub struct Register<'a> {
     error_msg: Option<&'a str>,
-    permission: Option<Permission>,
+    session_context: Option<SessionContext>,
 }
 
 #[derive(Template, Default)]
 #[template(path = "auth/login.html")]
 pub struct Login<'a> {
     error_msg: Option<&'a str>,
-    permission: Option<Permission>,
+    session_context: Option<SessionContext>,
 }
 
 #[derive(Template)]
 #[template(path = "profile.html")]
 pub struct ProfileSite {
-    pub username: String,
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
     pub submitted_feeds: Vec<ProfileFeed>,
 }
 #[derive(Template)]
 #[template(path = "error/general.html")]
 pub struct ErrorSite {
     pub status_code: StatusCode,
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
 }
 
 impl ErrorSite {
     pub fn html() -> String {
         Self {
             status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            permission: None,
+            session_context: None,
         }
         .render()
         .unwrap()
@@ -50,7 +52,7 @@ impl ErrorSite {
 #[derive(Template)]
 #[template(path = "auth/register_moderator.html")]
 pub struct RegisterModerator {
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
 }
 
 pub trait LoginRegister: TemplateToResponse + Template {
@@ -87,14 +89,15 @@ pub struct Context<'a> {
 #[template(path = "feed/feed_form.html")]
 pub struct FeedPreviewSite<'a> {
     pub context: Option<Context<'a>>,
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
     pub error_msg: Option<String>,
 }
 
 #[derive(Template, Debug)]
 #[template(path = "moderator.html")]
 pub struct ModeratorSite {
-    pub permission: Option<Permission>,
+    pub username: String,
+    pub session_context: Option<SessionContext>,
     pub queued_feeds: Vec<ModeratorFeed>,
     pub review_feeds: Vec<ModeratorFeed>,
 }
@@ -115,13 +118,13 @@ pub struct ModeratorFeedTableRow {
 #[derive(Template, Debug, Default)]
 #[template(path = "error/not_found.html")]
 pub struct NotFound {
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
 }
 
 impl NotFound {
     pub fn render_response(session: &actix_session::Session) -> HttpResponse {
         let html = Self {
-            permission: crate::session_storage::permission(&session),
+            session_context: SessionContext::from(&session),
         }
         .render()
         .unwrap();
@@ -131,7 +134,7 @@ impl NotFound {
 #[derive(Template, Debug)]
 #[template(path = "feed/feed_detail.html")]
 pub struct FeedDetailSite {
-    pub permission: Option<Permission>,
+    pub session_context: Option<SessionContext>,
     pub feed: model::json::Feed,
     pub episodes: Vec<EpisodeSmall>,
 }

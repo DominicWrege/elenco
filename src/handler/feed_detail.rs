@@ -6,6 +6,7 @@ use actix_web::{web, HttpResponse};
 use askama::Template;
 use chrono::{DateTime, Utc};
 use reqwest::Url;
+use session_storage::SessionContext;
 use template::FeedDetailSite;
 
 use super::general_error::GeneralError;
@@ -63,7 +64,7 @@ pub async fn site(
         .await
         .map_err(|e| anyhow::format_err!(e))?;
     let html = FeedDetailSite {
-        permission: session_storage::permission(&session),
+        session_context: SessionContext::from(&session),
         feed,
         episodes,
     };

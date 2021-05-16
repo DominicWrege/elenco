@@ -6,6 +6,7 @@ use crate::{
     db::rows_into_vec,
     inc_sql,
     model::{Permission, Status},
+    session_storage::SessionContext,
     socket::LiveFeedSocket,
     template::{self, RegisterModerator},
     util::redirect,
@@ -21,16 +22,20 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tokio_pg_mapper_derive::PostgresMapper;
 
-pub async fn manage(state: Data<State>) -> Result<template::ModeratorSite, GeneralError> {
+pub async fn manage(
+    state: Data<State>,
+    session: actix_session::Session,
+) -> Result<template::ModeratorSite, GeneralError> {
     let client = state.db_pool.get().await?;
     let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
     let reviewed_feed_rows = client
         .query(inc_sql!("get/feed/last_reviewed"), &[])
         .await?;
     Ok(template::ModeratorSite {
-        permission: Some(Permission::Admin),
+        session_context: SessionContext::from(&session),
         queued_feeds: rows_into_vec(queued_feed_rows),
         review_feeds: rows_into_vec(reviewed_feed_rows),
+        username: "test".into(),
     })
 }
 
@@ -78,9 +83,9 @@ pub async fn register_moderator(
     Ok(redirect("/auth/admin/manage"))
 }
 
-pub async fn register_moderator_site() -> RegisterModerator {
+pub async fn register_moderator_site(session: actix_session::Session) -> RegisterModerator {
     RegisterModerator {
-        permission: Some(Permission::Admin),
+        session_context: SessionContext::from(&session),
     }
 }
 

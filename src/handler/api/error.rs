@@ -42,7 +42,10 @@ impl actix_web::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            _ => StatusCode::BAD_REQUEST,
+            ApiError::CategoryNotFound(_)
+            | ApiError::FeedNotFound(_)
+            | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::BadRequest | ApiError::MissingTerm => StatusCode::BAD_REQUEST,
         }
     }
 

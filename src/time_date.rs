@@ -45,13 +45,14 @@ pub fn parse_duration_from_str(s: &str) -> Option<Duration> {
             };
             let mut hours = digit_thing(h.unwrap_or(&"0"))?;
             let mut minutes = digit_thing(m)?;
+            let mut seconds = digit_thing(s)?;
+            if seconds >= 60 {
+                minutes = minutes + (seconds / 60);
+                seconds %= 60;
+            };
             if 60 <= minutes {
                 hours = minutes / 60;
                 minutes %= 60;
-            };
-            let seconds = digit_thing(s)?;
-            if seconds >= 60 {
-                return None;
             };
             Some(Duration::hours(hours) + Duration::minutes(minutes) + Duration::seconds(seconds))
         }

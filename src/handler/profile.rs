@@ -1,6 +1,7 @@
 use crate::{
     inc_sql,
     model::{Account, Status},
+    session_storage::SessionContext,
 };
 use crate::{template::ProfileSite, State};
 use actix_session::Session;
@@ -34,8 +35,7 @@ pub async fn site(session: Session, state: web::Data<State>) -> Result<ProfileSi
     let rows = client.query(&stmnt, &[&account.id()]).await?;
     let feeds = rows_into_vec(rows);
     Ok(ProfileSite {
-        username: account.username().to_string(),
-        permission: Some(account.permission()),
+        session_context: SessionContext::from(&session),
         submitted_feeds: feeds,
     })
 }

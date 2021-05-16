@@ -2,8 +2,8 @@
 
 {% block content %}
 <script type="module" src="/static/js/profile.js"></script>
-<h2>Welcome back {{ username }}.</h2>
-<h2>My Podcasts</h2>
+<h2>Welcome back 👋 {{ session_context.as_ref().unwrap().username }}</h2>
+<h2>My Podcasts 🎙</h2>
 <div class="feed-list-grid">
     {% if submitted_feeds.len() == 0  -%}
         <p id="empty-feeds-text">Looks like have zero submitted Podcasts. Click here to submit a <a href="new-feed">new Podcast.</a></p>
