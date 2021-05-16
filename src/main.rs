@@ -40,7 +40,10 @@ async fn run() -> Result<(), anyhow::Error> {
         App::new()
             .data(state.clone())
             .wrap(middleware::Compress::default())
-            .wrap(Logger::new("ip: %a status: %s time: %Dms req: %r").exclude_regex("^/static/"))
+            .wrap(
+                Logger::new("ip: %a status: %s time: %Dms req: %r")
+                    .exclude_regex("^(/static/|/web/img/)"),
+            )
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .route("/", web::get().to(|| util::redirect("/login")))
             .configure(routes::api)

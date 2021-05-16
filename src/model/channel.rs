@@ -26,11 +26,22 @@ impl<'a> Feed<'a> {
         self.url.as_str()
     }
     pub fn parse(feed: &'a rss::Channel, url: Url) -> Self {
-        let description = if feed.description().is_empty() {
-            "default text"
-        } else {
-            feed.description()
+        let itunes_summary = feed.itunes_ext().and_then(|it| it.summary());
+        let x = (itunes_summary, feed.description());
+        let description = match x {
+            (Some(itunes_summary), description)
+                if !description.is_empty() && !itunes_summary.is_empty() =>
+            {
+                if itunes_summary.len() > description.len() {
+                    itunes_summary
+                } else {
+                    description
+                }
+            }
+            (None, description) if !description.is_empty() => description,
+            _ => "default description",
         };
+
         Self {
             link_web: parse_website_link(&feed, &url),
             url,

@@ -16,7 +16,6 @@
                     <img id="artwork" src="{{ artwork_url }}" id="p-img" class="pure-img" />
                 </a>
         {% endmatch %}
-    
         <div id="podcast-summary">
             <div class="flex podcast-header-form">
                 <h2 id="podcast-title">{{ feed.title }}</h2>
@@ -42,6 +41,11 @@
                 {% endmatch %}
             {% when None %}
         {% endmatch %}
+
+        <div class="svg-text">
+            <img src="/static/img/rss_feed_black.svg">
+            <p><a href="{{ feed.url }}" target="_blank">RSS-Feed</a></p>
+        </div>
         <div class="svg-text">
             <img src="/static/img/language.svg">
             <p>{{ feed.language_lookup().unwrap_or_default() }}</p>
