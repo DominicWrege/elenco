@@ -9,9 +9,13 @@ window.addEventListener("load", () => {
 
     async function startPlayer(event) {
         const target = event.target;
+        try {
+            const media_url = target.parentElement.querySelector("div.media-url").textContent;
+            await player.play(media_url, target.parentElement);
+        } catch (e) {
+            console.log(e.message);
+        }
 
-        const media_url = target.parentElement.querySelector("div.media-url").textContent;
-        await player.play(media_url, target.parentElement);
     }
     function pausePlayer() {
         player.pause();
