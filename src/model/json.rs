@@ -17,6 +17,8 @@ pub struct Feed {
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
+    #[serde(skip_serializing)]
+    pub img_cache: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
@@ -150,6 +152,7 @@ impl Feed {
             description: feed_row.get("description"),
             subtitle: feed_row.get("subtitle"),
             language: feed_row.get("language"),
+            img_cache: feed_row.get("img_cache"),
             last_modified: feed_row.get("last_modified"),
             categories: categories_for_feed(&client, feed_id).await?,
         })

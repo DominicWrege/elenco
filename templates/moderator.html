@@ -38,7 +38,7 @@
                     <td class="feed-id">{{ feed.id }}</td>
                     <td><a href="/web/auth/feed/{{ feed.id }}">{{ feed.title }}</a></td>
                     <td>
-                        <a href="{{ feed.url }}">Feed</a>
+                        <a target="_blank" href="{{ feed.url }}">Feed</a>
                     </td>
                     <td>{{ feed.author_name }}</td>
                     <td>
@@ -47,7 +47,7 @@
                     <td>
                         {% match feed.link_web %}
                             {% when Some with (website) %}
-                                <a href="{{ website }}">{{ website }}</a>
+                                <a href="{{ website }}" target="_blank">{{ website }}</a>
                             {% when None %}
                                 None
                         {% endmatch %}

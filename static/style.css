@@ -1,13 +1,13 @@
-body {
+p-imgbody {
 	display: flex;
 }
 
 main {
-	padding: 2rem;
-	width: 100%;
+	width: calc(100% - 180px - 2rem);
 	height: 100%;
 	margin-left: 180px;
 	display: grid;
+	padding: 1em;
 	justify-content: center;
 }
 
@@ -42,7 +42,7 @@ body {
 	margin-bottom: 3em;
 	background: #f3f4f573;
 }
-.menu {
+nav.menu {
 	background: #efefef;
 	padding: 0.5em;
 	width: 180px;
@@ -132,7 +132,7 @@ tbody tr:nth-child(even) {
 	background: #f2f2f2;
 }
 #podcast-summary p {
-	line-height: 1.6em;
+	line-height: 1.4em;
 }
 
 #episodes > table > tbody > tr:nth-child(1) > td:nth-child(2) > a {
@@ -141,10 +141,10 @@ tbody tr:nth-child(even) {
 .feed-list-grid {
 	display: grid;
 	justify-content: center;
-	grid-template-columns: repeat(auto-fit, minmax(300px, 525px));
+	grid-template-columns: repeat(auto-fit, minmax(250px, 500px));
 	grid-row-gap: 2em;
 	grid-column-gap: 1.5em;
-	min-width: 80vw;
+	min-width: 70vw;
 }
 .card {
 	background-color: #fff;
@@ -168,18 +168,26 @@ tbody tr:nth-child(even) {
 .card div.card-text {
 	padding: 0.6em 1em 0;
 }
+div.card div.card-text > p {
+	margin-block-end: 0;
+	font-size: 0.86em;
+}
 .feed-list-grid p.status {
 	color: #646464;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	align-items: center;
 }
 
 .feed-list-grid p.status:before {
 	display: inline-block;
-	margin: 1.5px 0.65em 0 0;
-	height: 0.8em;
+	margin: 0 0.65em 0 0;
+	height: 0.95em;
 	content: " ";
 	text-shadow: none;
 	border-radius: 50%;
-	width: 0.8em;
+	width: 0.95em;
 }
 
 .feed-list-grid p.status[status="Blocked"]:before {
@@ -318,9 +326,11 @@ div.actions-feed button {
 }
 .pure-table {
 	width: 100%;
+	font-size: 0.86em;
 }
 tr td.checkbox-container {
 	display: flex;
+	border: none;
 	justify-content: center;
 }
 .pure-table td {

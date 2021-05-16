@@ -7,6 +7,7 @@ use crate::{
 use actix_web::{http::StatusCode, HttpResponse};
 use askama_actix::{Template, TemplateToResponse};
 use chrono::{DateTime, Utc};
+
 #[derive(Template, Default)]
 #[template(path = "auth/register.html")]
 pub struct Register<'a> {
@@ -127,7 +128,6 @@ impl NotFound {
         HttpResponse::build(StatusCode::NOT_FOUND).body(html)
     }
 }
-
 #[derive(Template, Debug)]
 #[template(path = "feed/feed_detail.html")]
 pub struct FeedDetailSite {

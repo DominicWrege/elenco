@@ -5,6 +5,7 @@
                 {% when Some with (img) %}
                     <img id="artwork" src="{{ img }}" id="p-img" class="pure-img" />
                 {% when None %}
+                    <img class="pure-img" src="/static/img/podcast_placeholder.jpg"></img>
             {% endmatch %}
             <div id="podcast-summary">
                 <div class="flex podcast-header-form">

@@ -29,11 +29,7 @@ pub async fn save_feed(
     let user_id = Account::from_session(&ses).unwrap().id();
     let feed_url =
         feed_url(&ses).ok_or_else(|| anyhow::anyhow!("session error: cache_feed_url not found"))?;
-    let resp_bytes = reqwest::get(feed_url.clone())
-        .await
-        .map_err(|_err| PreviewError::Fetch(feed_url.clone()))?
-        .text()
-        .await?;
+    let resp_bytes = fetch(&feed_url).await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
     let raw_feed = Feed::parse(&channel, feed_url);
@@ -78,19 +74,14 @@ pub async fn create_preview(
     session: Session,
     state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewError> {
-    let url = form.feed.clone();
-    let resp_bytes = reqwest::get(url.clone())
-        .await
-        .map_err(|_err| PreviewError::Fetch(url.clone()))?
-        .error_for_status()?
-        .bytes()
-        .await?;
+    let resp_bytes = fetch(&form.feed).await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
+    let url = form.feed.clone();
     cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
-    let raw_feed = Feed::parse(&channel, url.clone());
- 
+    let raw_feed = Feed::parse(&channel, url);
+
     let context = Context {
         feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
         feed: raw_feed,
@@ -105,6 +96,16 @@ pub async fn create_preview(
     .unwrap();
 
     Ok(HttpResponse::Ok().content_type("text/html").body(template))
+}
+
+async fn fetch(url: &Url) -> Result<web::Bytes, PreviewError> {
+    let bytes = reqwest::get(url.clone())
+        .await
+        .map_err(|_err| PreviewError::Fetch(url.clone()))?
+        .error_for_status()?
+        .bytes()
+        .await?;
+    Ok(bytes)
 }
 
 pub async fn form_template<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {

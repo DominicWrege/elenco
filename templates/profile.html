@@ -12,9 +12,9 @@
             <div class="card">
                 {% match feed.img %}
                     {% when Some with (img) %}
-                    <img class="pure-img" src="/web/img/{{ img }}"></img>
+                        <img class="pure-img" src="/web/img/{{ img }}"></img>
                     {% when None %}
-                    <img class="pure-img" src="/static/img/placeholder.svg"></img>
+                        <img class="pure-img" src="/static/img/podcast_placeholder.jpg"></img>
                 {% endmatch %}
                 <div class="card-text">
                     <a href="/web/auth/feed/{{feed.id}}"><h3>{{ feed.title }}</h3></a>

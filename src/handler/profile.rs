@@ -53,10 +53,7 @@ pub async fn update_feed(
     let account_id = Account::from_session(&session)
         .ok_or_else(|| anyhow!("session error"))?
         .id();
-    dbg!(account_id);
     let Payload { action, feed_id } = json.into_inner();
-    dbg!(&action);
-    dbg!(&feed_id);
     let mut client = state.db_pool.get().await?;
     let trx = client.transaction().await?;
     let stmnt = trx.prepare(inc_sql!("update/profile_update_feed")).await?;

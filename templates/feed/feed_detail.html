@@ -3,20 +3,28 @@
 {% block content %}
 <script src="/static/js/player.js"></script>
 <div class="w50">
+    {% let artwork_url -%}
     <div class="podcast-container" >
-            {% match feed.img %}
-                {% when Some with (img) %}
-                    <img id="artwork" src="{{ img }}" id="p-img" class="pure-img" />
-                {% when None %}
-            {% endmatch %}
+        {% match feed.img_cache %}
+            {% when Some with (img) %}
+                <a href="/web/img/{{ img }}" target="_blank" class="pure-img">
+                    <img id="artwork" src="/web/img/{{ img }}" id="p-img" class="pure-img" />
+                </a>
+            {% when None %}
+                {% let artwork_url = "/static/img/podcast_placeholder.jpg" -%}
+                <a href="{{ artwork_url }}" target="_blank" class="pure-img">
+                    <img id="artwork" src="{{ artwork_url }}" id="p-img" class="pure-img" />
+                </a>
+        {% endmatch %}
+    
         <div id="podcast-summary">
             <div class="flex podcast-header-form">
                 <h2 id="podcast-title">{{ feed.title }}</h2>
             </div>
             <small>{{ feed.author}}</small>
             {% match feed.subtitle %}
-            {% when Some with (subtitle) %}
-                <p>{{ subtitle }}</p>
+                {% when Some with (subtitle) %}
+                    <p>{{ subtitle }}</p>
                 {% when None %}
             {% endmatch %}
             <p>{{ feed.description|safe }}</p>
