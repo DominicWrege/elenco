@@ -3,9 +3,12 @@ use std::task::{Context, Poll};
 
 use crate::util;
 use actix_session::UserSession;
-use actix_web::dev::{Service, Transform};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::Error;
+use actix_web::{
+    dev::{Service, Transform},
+    HttpResponse,
+};
 use futures_util::future::{ok, Either, Ready};
 pub struct CheckLogin;
 
@@ -45,7 +48,11 @@ where
         use crate::model::Account;
         match Account::from_session(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
-            None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
+            // None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
+            None => {
+                let resp = actix_web::HttpResponse::Unauthorized().finish().into_body();
+                Either::Right(ok(req.into_response(resp)))
+            }
         }
     }
 }

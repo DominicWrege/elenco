@@ -12,7 +12,6 @@ serde_json = "1.0"
 actix-web = "4.0.0-beta.6"
 rss = "1.10.0"
 reqwest = { version= "0.11", features = ["rustls-tls"], default-features = false}
-askama = { git="https://github.com/MTRNord/askama", rev="18616b2dd67cff39051a68524d86c3e7f11a2a49", features = ["with-actix-web"] }
 thiserror = "1.0.22"
 bcrypt = "0.9.0"
 anyhow = "1.0.34"
@@ -34,7 +33,6 @@ refinery = { version= "0.5.0", features = ["tokio-postgres"] }
 env_logger = "0.8.1"
 chrono = "0.4.19"
 log = "0.4.11"
-askama_actix = { git="https://github.com/MTRNord/askama", rev="18616b2dd67cff39051a68524d86c3e7f11a2a49" }
 validator = {version = "0.12", features=["derive"] }
 isolang = "1.0.0"
 tree_magic_mini = "3.0.0"

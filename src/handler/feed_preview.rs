@@ -3,7 +3,6 @@ use crate::{
     model::{channel::Feed, Account},
     session_storage::{cache_feed_url, feed_url, SessionContext},
     socket::MessageRowHtml,
-    template::{Context, FeedPreviewSite, ModeratorFeedTableRow},
     util::redirect,
     State,
 };
@@ -11,7 +10,7 @@ use crate::{
 use actix_broker::{Broker, SystemBroker};
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
-use askama::Template;
+
 use reqwest::Url;
 
 use super::preview_error::PreviewError;
@@ -48,20 +47,20 @@ pub async fn save_feed(
     )
     .await?;
 
-    let feed_tr = ModeratorFeedTableRow {
-        id: feed_id,
-        url: raw_feed.url().to_string(),
-        title: raw_feed.title.to_string(),
-        author_name: raw_feed.author.unwrap_or("default name").to_string(),
-        link_web: raw_feed.link_web.map(|u| u.to_string()),
-        submitted: chrono::offset::Utc::now(),
-        last_modified: chrono::offset::Utc::now(),
-        username: Account::from_session(&ses).unwrap().username().to_string(),
-    }
-    .render()
-    .unwrap();
+    // let feed_tr = ModeratorFeedTableRow {
+    //     id: feed_id,
+    //     url: raw_feed.url().to_string(),
+    //     title: raw_feed.title.to_string(),
+    //     author_name: raw_feed.author.unwrap_or("default name").to_string(),
+    //     link_web: raw_feed.link_web.map(|u| u.to_string()),
+    //     submitted: chrono::offset::Utc::now(),
+    //     last_modified: chrono::offset::Utc::now(),
+    //     username: Account::from_session(&ses).unwrap().username().to_string(),
+    // }
+    // .render()
+    // .unwrap();
 
-    Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
+    // Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
 
     Ok(redirect("/auth/profile"))
 }
@@ -79,20 +78,20 @@ pub async fn create_preview(
     let client = state.db_pool.get().await?;
     let raw_feed = Feed::parse(&channel, url);
 
-    let context = Context {
-        feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
-        feed: raw_feed,
-    };
+    // let context = Context {
+    //     feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
+    //     feed: raw_feed,
+    // };
 
-    let template = FeedPreviewSite {
-        error_msg: None,
-        context: Some(context),
-        session_context: SessionContext::from(&session),
-    }
-    .render()
-    .unwrap();
+    // let template = FeedPreviewSite {
+    //     error_msg: None,
+    //     context: Some(context),
+    //     session_context: SessionContext::from(&session),
+    // }
+    // .render()
+    // .unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html").body(template))
+    Ok(HttpResponse::Ok().content_type("text/html").body("dasdsad"))
 }
 
 async fn fetch(url: &Url) -> Result<web::Bytes, PreviewError> {
@@ -105,10 +104,11 @@ async fn fetch(url: &Url) -> Result<web::Bytes, PreviewError> {
     Ok(bytes)
 }
 
-pub async fn form_template<'a>(session: Session) -> Result<FeedPreviewSite<'a>, actix_web::Error> {
-    Ok(FeedPreviewSite {
-        session_context: SessionContext::from(&session),
-        error_msg: None,
-        context: None,
-    })
+pub async fn form_template<'a>(session: Session) -> Result<HttpResponse, actix_web::Error> {
+    // Ok(FeedPreviewSite {
+    //     session_context: SessionContext::from(&session),
+    //     error_msg: None,
+    //     context: None,
+    // })
+    todo!()
 }

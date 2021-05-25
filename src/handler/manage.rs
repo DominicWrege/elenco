@@ -8,11 +8,11 @@ use crate::{
     model::{Permission, Status},
     session_storage::SessionContext,
     socket::LiveFeedSocket,
-    template::{self, RegisterModerator},
     util::redirect,
     State,
 };
 use actix_web::{
+    body::Body,
     web::{self, Data},
     HttpResponse,
 };
@@ -25,18 +25,20 @@ use tokio_pg_mapper_derive::PostgresMapper;
 pub async fn manage(
     state: Data<State>,
     session: actix_session::Session,
-) -> Result<template::ModeratorSite, GeneralError> {
+) -> Result<HttpResponse, GeneralError> {
     let client = state.db_pool.get().await?;
     let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
     let reviewed_feed_rows = client
         .query(inc_sql!("get/feed/last_reviewed"), &[])
         .await?;
-    Ok(template::ModeratorSite {
-        session_context: SessionContext::from(&session),
-        queued_feeds: rows_into_vec(queued_feed_rows),
-        review_feeds: rows_into_vec(reviewed_feed_rows),
-        username: "test".into(),
-    })
+    // Ok(template::ModeratorSite {
+    //     session_context: SessionContext::from(&session),
+    //     queued_feeds: rows_into_vec(queued_feed_rows),
+    //     review_feeds: rows_into_vec(reviewed_feed_rows),
+    //     username: "test".into(),
+    // })
+
+    Ok(HttpResponse::Ok().body(Body::from("aaa")))
 }
 
 #[derive(Debug, PostgresMapper)]
@@ -81,12 +83,6 @@ pub async fn register_moderator(
     let mut client = state.db_pool.get().await?;
     new_account(&mut client, &form, Permission::Admin).await?;
     Ok(redirect("/auth/admin/manage"))
-}
-
-pub async fn register_moderator_site(session: actix_session::Session) -> RegisterModerator {
-    RegisterModerator {
-        session_context: SessionContext::from(&session),
-    }
 }
 
 pub async fn register_socket(

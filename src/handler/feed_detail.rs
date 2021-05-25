@@ -1,13 +1,11 @@
 use std::convert::{TryFrom, TryInto};
 
-use crate::{inc_sql, model::json::Feed, session_storage, template, State};
+use crate::{inc_sql, model::json::Feed, session_storage, State};
 
 use actix_web::{web, HttpResponse};
-use askama::Template;
 use chrono::{DateTime, Utc};
 use reqwest::Url;
 use session_storage::SessionContext;
-use template::FeedDetailSite;
 
 use super::general_error::GeneralError;
 use crate::time_date::DurationFormator;
@@ -54,21 +52,21 @@ pub async fn site(
     let epsiodes_stmnt = client
         .prepare(inc_sql!("get/episodes_small_for_feed_id"))
         .await?;
-    let episodes = client
-        .query(&epsiodes_stmnt, &[&feed_id])
-        .await?
-        .into_iter()
-        .filter_map(|row| row.try_into().ok())
-        .collect::<Vec<_>>();
+    // let episodes = client
+    //     .query(&epsiodes_stmnt, &[&feed_id])
+    //     .await?
+    //     .into_iter()
+    //     .filter_map(|row| row.try_into().ok())
+    //     .collect::<Vec<_>>();
     let feed = Feed::from(&client, feed_row)
         .await
         .map_err(|e| anyhow::format_err!(e))?;
-    let html = FeedDetailSite {
-        session_context: SessionContext::from(&session),
-        feed,
-        episodes,
-    };
+    // let html = FeedDetailSite {
+    //     session_context: SessionContext::from(&session),
+    //     feed,
+    //     episodes,
+    // };
     Ok(HttpResponse::Ok()
         .content_type(mime::TEXT_HTML_UTF_8)
-        .body(html.render().unwrap()))
+        .body("feed datail"))
 }

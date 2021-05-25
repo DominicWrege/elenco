@@ -1,9 +1,9 @@
+use crate::State;
 use crate::{
     inc_sql,
     model::{Account, Status},
     session_storage::SessionContext,
 };
-use crate::{template::ProfileSite, State};
 use actix_session::Session;
 use actix_web::{
     web::{self, Data},
@@ -28,16 +28,17 @@ pub struct ProfileFeed {
     pub status: Status,
 }
 
-pub async fn site(session: Session, state: web::Data<State>) -> Result<ProfileSite, GeneralError> {
+pub async fn site(session: Session, state: web::Data<State>) -> Result<HttpResponse, GeneralError> {
     let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;
     let rows = client.query(&stmnt, &[&account.id()]).await?;
-    let feeds = rows_into_vec(rows);
-    Ok(ProfileSite {
-        session_context: SessionContext::from(&session),
-        submitted_feeds: feeds,
-    })
+    // let feeds = rows_into_vec(rows);
+    // Ok(ProfileSite {
+    //     session_context: SessionContext::from(&session),
+    //     submitted_feeds: feeds,
+    // })
+    todo!()
 }
 #[derive(Debug, serde::Deserialize)]
 pub struct Payload {

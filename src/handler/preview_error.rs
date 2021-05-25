@@ -1,7 +1,6 @@
-use crate::{hide_internal, template::FeedPreviewSite};
+use crate::hide_internal;
 use actix_web::ResponseError;
 use actix_web::{http::StatusCode, BaseHttpResponse};
-use askama::Template;
 use std::error::Error as _;
 use std::fmt::Debug;
 use thiserror::Error;
@@ -36,13 +35,14 @@ impl ResponseError for PreviewError {
         BaseHttpResponse::build(self.status_code())
             .content_type(mime::TEXT_HTML_UTF_8)
             .body(
-                FeedPreviewSite {
-                    session_context: None,
-                    error_msg: Some(message),
-                    context: None,
-                }
-                .render()
-                .unwrap(),
+                // FeedPreviewSite {
+                //     session_context: None,
+                //     error_msg: Some(message),
+                //     context: None,
+                // }
+                // .render()
+                // .unwrap(),
+                "preview",
             )
     }
 }

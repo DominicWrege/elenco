@@ -2,11 +2,12 @@ use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::{
     cookie::SameSite,
-    middleware,
-    middleware::Logger,
+    http, middleware,
+    middleware::{ErrorHandlers, Logger},
     web::{self},
     App, HttpServer,
 };
+use handler::general_error::render_500;
 use img_cache::ImageCache;
 mod db;
 mod handler;
@@ -20,7 +21,6 @@ mod model;
 mod my_middleware;
 mod session_storage;
 mod socket;
-mod template;
 mod time_date;
 #[derive(Clone)]
 pub struct State {
@@ -62,11 +62,16 @@ async fn run() -> Result<(), anyhow::Error> {
                 Logger::new("ip: %a status: %s time: %Dms req: %r")
                     .exclude_regex("^(/static/|/web/img/)"),
             )
-            .service(actix_files::Files::new("/static", "./static").show_files_listing())
-            .route("/", web::get().to(|| util::redirect("/login")))
+            .wrap(ErrorHandlers::new().handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
+            .route(
+                "/img/{file_name:.+(jpeg|jpg|png)$}",
+                web::get().to(handler::serve_img),
+            )
             .configure(routes::api)
-            .configure(routes::web)
-            .default_service(web::route().to(handler::general_error::not_found))
+            .configure(routes::auth)
+            .configure(routes::user)
+            .configure(routes::moderator)
+        //   .default_service(web::route().to(handler::general_error::not_found))
     })
     .bind("0.0.0.0:8080")?
     .run()

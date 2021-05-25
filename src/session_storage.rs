@@ -1,6 +1,9 @@
 use actix_session::Session;
 
-use crate::model::{Account, Permission};
+use crate::{
+    db,
+    model::{Account, Permission},
+};
 
 pub const SESSION_KEY_ACCOUNT: &str = "account";
 pub const FEED_URL: &str = "feed_url";
@@ -23,6 +26,8 @@ impl SessionContext {
 }
 
 pub fn forget(session: &Session) {
+    let a = Account::from_session(session);
+    dbg!(a);
     session.purge();
     session.remove(SESSION_KEY_ACCOUNT);
 }

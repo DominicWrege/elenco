@@ -27,7 +27,7 @@ pub struct JsonError {
     status: u16,
 }
 
-pub async fn not_found() -> BaseHttpResponse<actix_web::dev::Body> {
+pub fn not_found() -> BaseHttpResponse<actix_web::dev::Body> {
     let json = JsonError {
         error: String::from("resource does not exist"),
         status: StatusCode::NOT_FOUND.as_u16(),

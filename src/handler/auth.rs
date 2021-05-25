@@ -3,16 +3,13 @@ use std::fmt::Display;
 use crate::{
     generic_handler_err, hide_internal, inc_sql,
     model::{Account, Permission},
-    session_storage,
-    template::{self},
-    validation_handler_err, wrap_err,
+    session_storage, validation_handler_err, wrap_err,
 };
 use crate::{util::redirect, State};
 use actix_web::{body::Body, web, BaseHttpResponse, HttpResponse, ResponseError};
 use tokio_postgres::Client;
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
-use crate::template::LoginRegister;
 use actix_session::Session;
 use actix_web::http::StatusCode;
 use serde::Deserialize;
@@ -111,20 +108,14 @@ pub struct RegisterForm {
     password_check: String,
 }
 
-pub async fn register_site() -> HttpResponse {
-    template::Register::default()
-        .response(StatusCode::OK)
-        .unwrap()
-}
-
 pub async fn register(
     state: web::Data<State>,
-    form: web::Form<RegisterForm>,
+    form: web::Json<RegisterForm>,
 ) -> Result<HttpResponse, AuthError> {
     form.validate()?;
     let mut client = state.db_pool.get().await?;
     new_account(&mut client, &form, Permission::User).await?;
-    Ok(redirect("/login"))
+    Ok(HttpResponse::Ok().finish())
 }
 
 pub async fn new_account(
@@ -149,9 +140,6 @@ pub async fn new_account(
     Ok(())
 }
 
-pub async fn login_site() -> HttpResponse {
-    template::Login::default().response(StatusCode::OK).unwrap()
-}
 pub async fn logout(session: Session) -> HttpResponse {
     session_storage::forget(&session);
     //redirect("/login")
