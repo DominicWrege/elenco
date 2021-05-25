@@ -6,10 +6,10 @@ use crate::{
 
 use actix_session::CookieSession;
 use actix_web::{cookie::SameSite, http, middleware::ErrorHandlers, web};
-use handler::api;
+use handler::{api, auth};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/logout").to(logout))
+    cfg.service(web::resource("/logout").route(web::post().to(auth::logout)))
         .service(
             web::scope("/profile")
                 .route("", web::get().to(profile::site))
@@ -60,6 +60,7 @@ pub fn admin(cfg: &mut web::ServiceConfig) {
 pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
+            .service(web::scope("/user").route("/info", web::get().to(auth::user_info)))
             .default_service(web::route().to(api::error::not_found))
             .service(
                 web::scope("/feeds")
@@ -89,16 +90,6 @@ pub fn web(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/web")
             .wrap(ErrorHandlers::new().handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
-            .wrap(
-                CookieSession::private(&[1; 32])
-                    .name("auth")
-                    .secure(false)
-                    .max_age(chrono::Duration::days(2).num_seconds())
-                    .lazy(true)
-                    .path("/web/auth")
-                    .same_site(SameSite::Strict)
-                    .lazy(true),
-            )
             .route(
                 "/img/{file_name:.+(jpeg|jpg|png)$}",
                 web::get().to(handler::serve_img),

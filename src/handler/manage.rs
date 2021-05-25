@@ -1,5 +1,5 @@
 use super::{
-    auth::{new_account, RegisterError, RegisterForm},
+    auth::{new_account, AuthError, RegisterForm},
     general_error::GeneralError,
 };
 use crate::{
@@ -77,7 +77,7 @@ pub async fn review_feed(
 pub async fn register_moderator(
     form: web::Form<RegisterForm>,
     state: Data<State>,
-) -> Result<HttpResponse, RegisterError> {
+) -> Result<HttpResponse, AuthError> {
     let mut client = state.db_pool.get().await?;
     new_account(&mut client, &form, Permission::Admin).await?;
     Ok(redirect("/auth/admin/manage"))

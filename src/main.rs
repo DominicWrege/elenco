@@ -1,10 +1,12 @@
+use actix_cors::Cors;
+use actix_session::CookieSession;
 use actix_web::{
+    cookie::SameSite,
     middleware,
     middleware::Logger,
     web::{self},
     App, HttpServer,
 };
-
 use img_cache::ImageCache;
 mod db;
 mod handler;
@@ -39,6 +41,22 @@ async fn run() -> Result<(), anyhow::Error> {
     HttpServer::new(move || {
         App::new()
             .data(state.clone())
+            .wrap(
+                CookieSession::private(&[1; 32])
+                    .name("auth")
+                    .secure(true)
+                    .http_only(false)
+                    .max_age(chrono::Duration::days(2).num_seconds())
+                    .same_site(SameSite::Strict)
+                    .lazy(true),
+            )
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .supports_credentials()
+                    .allow_any_header() // fix me
+                    .allowed_methods(vec!["GET", "POST"]),
+            )
             .wrap(middleware::Compress::default())
             .wrap(
                 Logger::new("ip: %a status: %s time: %Dms req: %r")

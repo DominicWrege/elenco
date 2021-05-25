@@ -8,47 +8,38 @@ use crate::{
     validation_handler_err, wrap_err,
 };
 use crate::{util::redirect, State};
-use actix_web::{web, BaseHttpResponse, HttpResponse, ResponseError};
+use actix_web::{body::Body, web, BaseHttpResponse, HttpResponse, ResponseError};
 use tokio_postgres::Client;
 //use postgres_types::{FromSql, ToSql};
 //use actix_identity::Identity;
 use crate::template::LoginRegister;
 use actix_session::Session;
 use actix_web::http::StatusCode;
-use askama::Template;
 use serde::Deserialize;
-use template::Login;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use validator::{Validate, ValidationErrors};
 
 #[derive(Debug, Error)]
-pub enum RegisterError {
+pub enum AuthError {
     #[error("username or email is already taken")]
     EmailOrUsernameExists,
     #[error("{0}")]
     Validation(ValiderError),
-    #[error("Internal error: {0}")]
-    Internal(Box<dyn std::error::Error + Sync + Send>),
-}
-
-#[derive(Debug, Error)]
-pub enum LoginError {
     #[error("Wrong password")]
     WrongPassword,
     #[error("User does not exist")]
     UserNotFound,
     #[error("Internal error: {0:#?}")]
     Internal(Box<dyn std::error::Error + Sync + Send>),
-    #[error("{0}")]
-    Validation(ValiderError),
     #[error("Could not create session")]
     Session,
+    #[error("Unauthorized or the session has expired")]
+    Unauthorized,
 }
-generic_handler_err!(RegisterError, RegisterError::Internal);
-generic_handler_err!(LoginError, LoginError::Internal);
-validation_handler_err!(RegisterError, RegisterError::Validation);
-validation_handler_err!(LoginError, LoginError::Validation);
+
+generic_handler_err!(AuthError, AuthError::Internal);
+validation_handler_err!(AuthError, AuthError::Validation);
 
 wrap_err!(ValidationErrors, ValiderError);
 #[derive(Debug)]
@@ -67,59 +58,40 @@ impl Display for ValiderError {
     }
 }
 
-impl ResponseError for RegisterError {
+impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
         match *self {
-            RegisterError::EmailOrUsernameExists => StatusCode::CONFLICT,
-            RegisterError::Validation(_) => StatusCode::BAD_REQUEST,
+            AuthError::EmailOrUsernameExists => StatusCode::CONFLICT,
+            AuthError::Validation(_) => StatusCode::BAD_REQUEST,
+            AuthError::Unauthorized => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
     fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
-        let msg = hide_internal!(RegisterError, self);
+        let msg = hide_internal!(AuthError, self);
 
-        let template = template::Register::default()
-            .error_msg(&msg)
-            .render()
-            .unwrap();
+        let json = AuthJsonError {
+            message: &msg,
+            status: self.status_code().as_u16(),
+        }
+        .to_json_string();
 
         BaseHttpResponse::build(self.status_code())
-            .content_type(mime::TEXT_HTML_UTF_8)
-            .body(template)
+            .content_type(mime::APPLICATION_JSON)
+            .body(Body::from(json))
     }
 }
 
-impl ResponseError for LoginError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            LoginError::WrongPassword | LoginError::UserNotFound | LoginError::Validation(_) => {
-                StatusCode::UNAUTHORIZED
-            }
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
+#[derive(Debug, serde::Serialize)]
+struct AuthJsonError<'a> {
+    message: &'a str,
+    status: u16,
+}
 
-    // fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
-    //     log::error!("{}", self.to_string());
-    //     let status = self.status_code();
-
-    //     let body = serde_json::to_string(&JsonError {
-    //         error: hide_internal!(ApiError, self),
-    //         status: status.as_u16(),
-    //     })
-    //     .unwrap();
-
-    //     actix_web::BaseHttpResponse::build(status)
-    //         .content_type(mime::APPLICATION_JSON)
-    //         .body(Body::from(body))
-    // }
-
-    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
-        let msg = hide_internal!(LoginError, self);
-        BaseHttpResponse::build(self.status_code())
-            .content_type(mime::TEXT_HTML_UTF_8)
-            .body(Login::default().error_msg(&msg).render().unwrap())
+impl AuthJsonError<'_> {
+    fn to_json_string(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -148,7 +120,7 @@ pub async fn register_site() -> HttpResponse {
 pub async fn register(
     state: web::Data<State>,
     form: web::Form<RegisterForm>,
-) -> Result<HttpResponse, RegisterError> {
+) -> Result<HttpResponse, AuthError> {
     form.validate()?;
     let mut client = state.db_pool.get().await?;
     new_account(&mut client, &form, Permission::User).await?;
@@ -159,10 +131,10 @@ pub async fn new_account(
     client: &mut Client,
     form: &RegisterForm,
     permission: Permission,
-) -> Result<(), RegisterError> {
+) -> Result<(), AuthError> {
     let trx = client.transaction().await?;
     let pwd_hash =
-        bcrypt::hash(&form.password, 8).map_err(|err| RegisterError::Internal(err.into()))?;
+        bcrypt::hash(&form.password, 8).map_err(|err| AuthError::Internal(err.into()))?;
 
     let stmt = trx
         .prepare("INSERT INTO Account(username, password_hash, email, account_type) Values($1, $2, $3, $4)")
@@ -172,7 +144,7 @@ pub async fn new_account(
         &[&form.username, &pwd_hash, &form.email, &permission],
     )
     .await
-    .map_err(|_e| RegisterError::EmailOrUsernameExists)?;
+    .map_err(|_e| AuthError::EmailOrUsernameExists)?;
     trx.commit().await?;
     Ok(())
 }
@@ -182,7 +154,8 @@ pub async fn login_site() -> HttpResponse {
 }
 pub async fn logout(session: Session) -> HttpResponse {
     session_storage::forget(&session);
-    redirect("/login")
+    //redirect("/login")
+    HttpResponse::Ok().finish()
 }
 #[derive(Debug, Validate, Deserialize)]
 pub struct LoginForm {
@@ -195,23 +168,32 @@ pub struct LoginForm {
 pub async fn login(
     state: web::Data<State>,
     session: Session,
-    form: web::Form<LoginForm>,
-) -> Result<HttpResponse, LoginError> {
+    form: web::Json<LoginForm>,
+) -> Result<HttpResponse, AuthError> {
     form.validate()?;
     let client = state.db_pool.get().await?;
     let stmt = client.prepare(inc_sql!("get/account")).await?;
     let row = client
         .query_one(&stmt, &[&form.email])
         .await
-        .map_err(|_| LoginError::UserNotFound)?;
+        .map_err(|_| AuthError::UserNotFound)?;
     let account: Account = Account::from_row(row)?;
     if bcrypt::verify(&form.password, &account.password_hash()).unwrap() {
         //id.remember(account.account_name.clone());
-        account.save(&session).map_err(|_| LoginError::Session)?;
-        Ok(redirect("/auth/profile"))
+        account.save(&session).map_err(|_| AuthError::Session)?;
+        Ok(HttpResponse::Ok().json(account))
     } else {
-        Err(LoginError::WrongPassword)
+        Err(AuthError::WrongPassword)
     }
+}
+
+pub async fn user_info(
+    _state: web::Data<State>,
+    session: Session,
+) -> Result<HttpResponse, AuthError> {
+    let account = Account::from_session(&session).ok_or_else(|| AuthError::Unauthorized)?;
+
+    Ok(HttpResponse::Ok().json(account))
 }
 
 // #[cfg(test)]

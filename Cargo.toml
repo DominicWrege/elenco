@@ -41,6 +41,7 @@ tree_magic_mini = "3.0.0"
 mime = "0.3.16"
 blake3 = "0.3.7"
 envy = "0.4.2"
+actix-cors = { git = "https://github.com/nhruo123/actix-extras", rev="b4e8db446843a99b06c7ec40f18ef7b59ee7e955"}
 
 [dependencies.tokio]
 version = "1"
