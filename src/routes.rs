@@ -10,7 +10,7 @@ pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
-            .route("", web::get().to(auth::user_info))
+            .route("/info", web::get().to(auth::user_info))
             .route("/profile", web::get().to(profile::site)),
     );
 }
@@ -55,7 +55,6 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             .default_service(web::route().to(api::error::not_found))
             .service(
                 web::scope("/feeds")
-                    .wrap(my_middleware::auth::CheckLogin)
                     .route("", web::get().to(api::feed::all))
                     .route("/search", web::get().to(api::feed::search)),
             )
@@ -65,9 +64,10 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
                         web::scope("/")
+                            .wrap(my_middleware::auth::CheckLogin)
                             .route("preview", web::post().to(feed_preview::create_preview))
                             .route("new", web::post().to(feed_preview::save_feed))
-                            .route("update", web::patch().to(profile::update_feed)),
+                            .route("update/{id}", web::patch().to(profile::update_feed)),
                     ),
             )
             .route("/categories", web::get().to(api::category::all))

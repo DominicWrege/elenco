@@ -46,7 +46,7 @@ impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
             title: item
                 .title()
                 .ok_or_else(|| anyhow::format_err!("field title is required"))?,
-            description: item.description(),
+            description: Some("delete meeee"),
             published: item.pub_date().and_then(|d| parse_datetime_rfc822(d).ok()),
             keywords: item
                 .itunes_ext()
@@ -57,9 +57,7 @@ impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
                 .and_then(|itunes| itunes.duration())
                 .and_then(|d| parse_duration_from_str(d))
                 .map(|x| x.num_seconds() as i64),
-            show_notes: item
-                .content()
-                .or_else(|| item.itunes_ext().and_then(|itunes| itunes.summary())),
+            show_notes: parse_show_notes(item),
             url: item.link().and_then(|u| Url::parse(u).ok()),
             media_url: item
                 .enclosure()
@@ -69,6 +67,30 @@ impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
         })
     }
 }
+
+fn parse_show_notes(item: &rss::Item) -> Option<&str> {
+    let s = (
+        item.description(),
+        item.content(),
+        item.itunes_ext().and_then(|it| it.summary()),
+    );
+
+    match s {
+        (Some(description), None, None) => Some(description),
+        (None, None, Some(summary)) => Some(summary),
+        (None, Some(content), None) => Some(content),
+        (None, Some(content), Some(summary)) => {
+            let ret = if content.len() > summary.len() {
+                content
+            } else {
+                summary
+            };
+            Some(ret)
+        }
+        _ => None,
+    }
+}
+
 fn parse_explicit(it_ext: Option<&rss::extension::itunes::ITunesItemExtension>) -> bool {
     matches!(
         it_ext.and_then(|ext| ext.explicit()),
