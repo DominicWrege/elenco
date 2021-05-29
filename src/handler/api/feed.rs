@@ -1,10 +1,10 @@
+use crate::{State, path::Path};
 use crate::{
     db::{categories_for_feed, rows_into_vec},
     inc_sql,
     model::json::{Feed, FeedEpisode},
     util::percent_decode,
 };
-use crate::{handler::UrlPath, State};
 use actix_web::{web, web::Json};
 
 use futures_util::future;
@@ -69,7 +69,7 @@ pub async fn search(
 }
 
 //TODO maybe also by id ??
-pub async fn by_name(path: UrlPath<String>, state: web::Data<State>) -> ApiJsonResult<FeedEpisode> {
+pub async fn by_name(path: Path<String>, state: web::Data<State>) -> ApiJsonResult<FeedEpisode> {
     // let feed_id = id
     //     .into_inner()
     //     .parse::<i32>()
@@ -98,7 +98,7 @@ pub async fn by_name(path: UrlPath<String>, state: web::Data<State>) -> ApiJsonR
 
 pub async fn by_category(
     state: web::Data<State>,
-    category: UrlPath<String>,
+    category: Path<String>,
 ) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
 

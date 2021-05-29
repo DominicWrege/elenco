@@ -1,4 +1,4 @@
-use crate::{handler::UrlPath, inc_sql};
+use crate::{inc_sql, path};
 use crate::{model::json::Category, State};
 use actix_web::{web, web::Json};
 
@@ -23,7 +23,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
 
 pub async fn by_id_or_name(
     state: web::Data<State>,
-    path: UrlPath<String>,
+    path: path::Path<String>,
 ) -> ApiJsonResult<Category> {
     let client = state.db_pool.get().await?;
     let result = if let Ok(category_id) = path.parse::<i32>() {

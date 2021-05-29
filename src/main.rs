@@ -21,6 +21,7 @@ mod img_cache;
 mod macros;
 mod model;
 mod my_middleware;
+mod path;
 mod session_storage;
 mod socket;
 mod time_date;

@@ -1,4 +1,4 @@
-use crate::{db::rows_into_vec, handler::UrlPath, inc_sql, model::json::Author};
+use crate::{db::rows_into_vec, inc_sql, model::json::Author, path::Path};
 use crate::{model::json::Feed, State};
 use actix_web::{web, web::Json};
 use futures_util::future;
@@ -13,10 +13,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Author>> {
     Ok(Json(authors))
 }
 
-pub async fn feeds(
-    state: web::Data<State>,
-    author_path: UrlPath<String>,
-) -> ApiJsonResult<Vec<Feed>> {
+pub async fn feeds(state: web::Data<State>, author_path: Path<String>) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
     let author = author_path.decode();
     let rows = match author.parse::<i32>() {
