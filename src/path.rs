@@ -15,7 +15,7 @@ impl<T: AsRef<str> + serde::de::DeserializeOwned> From<T> for Path<T> {
     }
 }
 
-impl<T: AsRef<str> + serde::de::DeserializeOwned> Deref for Path<T> {
+impl<T: AsRef<str>> Deref for Path<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {

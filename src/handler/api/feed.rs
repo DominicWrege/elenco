@@ -1,10 +1,10 @@
-use crate::{State, path::Path};
 use crate::{
     db::{categories_for_feed, rows_into_vec},
     inc_sql,
     model::json::{Feed, FeedEpisode},
     util::percent_decode,
 };
+use crate::{path::Path, State};
 use actix_web::{web, web::Json};
 
 use futures_util::future;
@@ -33,8 +33,8 @@ pub async fn search(
     let client = state.db_pool.get().await?;
     let query = query.map_err(|_e| ApiError::MissingTerm)?;
     dbg!(&query.term);
-    // let search_term = percent_decode(&query.term);
-    // dbg!(&search_term);
+    let search_term = percent_decode(&query.term);
+    dbg!(&search_term);
     let feeds_row = match &query.lang {
         Some(lang) => {
             match &query.category {
@@ -43,24 +43,24 @@ pub async fn search(
                         .prepare(inc_sql!("get/feed/search_with_language_category"))
                         .await?;
                     client
-                        .query(&feed_stmnt, &[&query.term, lang, category])
+                        .query(&feed_stmnt, &[&search_term, lang, category])
                         .await?
                 }
                 None => {
                     let feed_stmnt = client
                         .prepare(inc_sql!("get/feed/search_with_language"))
                         .await?;
-                    client.query(&feed_stmnt, &[&query.term, lang]).await?
+                    client.query(&feed_stmnt, &[&search_term, lang]).await?
                 }
             };
             let feed_stmnt = client
                 .prepare(inc_sql!("get/feed/search_with_language"))
                 .await?;
-            client.query(&feed_stmnt, &[&query.term, lang]).await?
+            client.query(&feed_stmnt, &[&search_term, lang]).await?
         }
         None => {
             let feed_stmnt = client.prepare(inc_sql!("get/feed/search")).await?;
-            client.query(&feed_stmnt, &[&query.term]).await?
+            client.query(&feed_stmnt, &[&search_term]).await?
         }
     };
     let feeds =
