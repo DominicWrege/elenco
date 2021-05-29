@@ -50,7 +50,7 @@ async fn connect_with_conf() -> Result<DBContext, anyhow::Error> {
     })
 }
 
-pub async fn connect_and_migrate() -> Result<Pool, anyhow::Error> {
+pub async fn connect_and_migrate() -> Result<Pool<tokio_postgres::NoTls>, anyhow::Error> {
     let DBContext {
         mut client,
         connection,

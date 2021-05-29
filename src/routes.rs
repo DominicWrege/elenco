@@ -60,11 +60,11 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/feed")
-                    .route("/{id}", web::get().to(api::feed::by_id))
+                    .route("/{id}", web::get().to(api::feed::by_name))
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
                         web::scope("/")
-                            .wrap(my_middleware::auth::CheckLogin)
+                            // .wrap(my_middleware::auth::CheckLogin)
                             .route("preview", web::post().to(feed_preview::create_preview))
                             .route("new", web::post().to(feed_preview::save_feed))
                             .route("update/{id}", web::patch().to(profile::update_feed)),

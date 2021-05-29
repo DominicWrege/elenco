@@ -17,8 +17,7 @@ use super::preview_error::PreviewError;
 
 #[derive(serde::Deserialize)]
 pub struct FeedForm {
-    #[serde(rename = "feed-url")]
-    pub feed: Url,
+    pub feed_url: Url,
 }
 
 pub async fn save_feed(
@@ -66,32 +65,23 @@ pub async fn save_feed(
 }
 
 pub async fn create_preview(
-    form: web::Form<FeedForm>,
+    form: web::Json<FeedForm>,
     session: Session,
     state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewError> {
-    let resp_bytes = fetch(&form.feed).await?;
+    let resp_bytes = fetch(&form.feed_url).await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    let url = form.feed.clone();
+    let url = form.feed_url.clone();
     cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let raw_feed = Feed::parse(&channel, url);
 
-    // let context = Context {
-    //     feed_exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
-    //     feed: raw_feed,
-    // };
+    if feed_exits(&client, raw_feed.title, raw_feed.url()).await? {
+        return Err(PreviewError::Exists(raw_feed.title.to_string()));
+    }
 
-    // let template = FeedPreviewSite {
-    //     error_msg: None,
-    //     context: Some(context),
-    //     session_context: SessionContext::from(&session),
-    // }
-    // .render()
-    // .unwrap();
-
-    Ok(HttpResponse::Ok().content_type("text/html").body("dasdsad"))
+    Ok(HttpResponse::Ok().json(raw_feed))
 }
 
 async fn fetch(url: &Url) -> Result<web::Bytes, PreviewError> {

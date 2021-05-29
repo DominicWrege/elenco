@@ -1,10 +1,13 @@
 use crate::hide_internal;
-use actix_web::ResponseError;
+use actix_web::{body::Body, ResponseError};
 use actix_web::{http::StatusCode, BaseHttpResponse};
+use api::error;
 use std::error::Error as _;
 use std::fmt::Debug;
 use thiserror::Error;
 use tokio_postgres::error::{DbError, SqlState};
+
+use super::api;
 // show session and and parsing error
 
 #[derive(Error, Debug)]
@@ -17,7 +20,9 @@ pub enum PreviewError {
     Request(#[from] reqwest::Error),
     #[error("{0:#?}")]
     Internal(Box<dyn std::error::Error + Send + Sync + 'static>),
-    #[error("Podcast {0} already exists.")]
+    #[error("RSS-Feed {0} already exists.")]
+    Exists(String),
+    #[error("Can't save the the RSS-feed because this unique field {0} already exists.")]
     Duplicate(Field),
 }
 
@@ -31,19 +36,8 @@ impl ResponseError for PreviewError {
 
     fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{}", self.to_string());
-        let message = hide_internal!(PreviewError, self);
-        BaseHttpResponse::build(self.status_code())
-            .content_type(mime::TEXT_HTML_UTF_8)
-            .body(
-                // FeedPreviewSite {
-                //     session_context: None,
-                //     error_msg: Some(message),
-                //     context: None,
-                // }
-                // .render()
-                // .unwrap(),
-                "preview",
-            )
+        // error::JsonError::into_response(hide_internal!(PreviewError, self), self.status_code())
+        crate::json_error!(PreviewError, self)
     }
 }
 

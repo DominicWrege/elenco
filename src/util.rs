@@ -1,7 +1,8 @@
-use actix_web::{http, HttpResponse};
-
 use crate::model::channel::Feed;
+use actix_web::{http, HttpResponse};
 use isolang::Language;
+use percent_encoding::percent_decode_str;
+
 pub fn redirect<P>(path: P) -> HttpResponse
 where
     P: AsRef<str>,
@@ -28,4 +29,8 @@ pub trait LanguageCodeLookup {
             .and_then(|code| Language::from_639_1(code).or_else(|| Language::from_639_3(code)))
     }
     fn language_code(&self) -> Option<&str>;
+}
+
+pub fn percent_decode(text: &str) -> String {
+    percent_decode_str(text).decode_utf8_lossy().to_string()
 }

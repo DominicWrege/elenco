@@ -47,6 +47,7 @@ macro_rules! generic_handler_err {
         }
     };
 }
+
 #[macro_export]
 macro_rules! validation_handler_err {
     ($ty:ty, $err: expr) => {
@@ -65,5 +66,13 @@ macro_rules! hide_internal {
             $t::Internal(_) => "Internal Error".to_string(),
             _ => $self.to_string(),
         };
+    };
+}
+
+#[macro_export]
+macro_rules! json_error {
+    ($t: tt, $self: ident) => {
+        crate::handler::api::error::JsonError::new(hide_internal!($t, $self), $self.status_code())
+            .into_response()
     };
 }

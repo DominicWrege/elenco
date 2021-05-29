@@ -11,8 +11,9 @@ FROM
            LEFT JOIN feed_category fc on f.id = fc.feed_id
 WHERE 
     f.status = 'online' 
-    AND f.search || author.search @@ to_tsquery($1 || ':*') 
+    AND f.search || author.search @@ to_tsquery(plainto_tsquery($1)::text || ':*') 
     AND feed_language.name = $2
     AND fc.category_id = $3
 ORDER BY 
-    ts_rank(f.search || author.search, to_tsquery($1 || ':*')) DESC;
+    ts_rank(f.search || author.search, to_tsquery(plainto_tsquery($1)::text || ':*')) DESC
+LIMIT 50

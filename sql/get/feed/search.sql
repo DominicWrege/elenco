@@ -10,6 +10,7 @@ FROM
            LEFT JOIN img ON f.img_id = img.id
 WHERE 
     f.status = 'online' 
-    AND f.search || author.search @@ to_tsquery($1 || ':*')
+    AND f.search || author.search @@ to_tsquery(plainto_tsquery($1)::text || ':*')
 ORDER BY 
-    ts_rank(f.search || author.search, to_tsquery($1 || ':*')) DESC;
+    ts_rank(f.search || author.search, to_tsquery(plainto_tsquery($1)::text || ':*')) DESC
+LIMIT 50

@@ -1,10 +1,10 @@
-use chrono::{DateTime, Utc};
-use deadpool_postgres::Client;
-use reqwest::Url;
-use serde::{Deserialize, Serialize, Serializer};
-use tokio_pg_mapper_derive::PostgresMapper;
-
+use crate::time_date::serialize_datetime;
+use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
+use chrono::{DateTime, Utc};
+use reqwest::Url;
+use serde::{Deserialize, Serialize};
+use tokio_pg_mapper_derive::PostgresMapper;
 
 #[derive(Debug, Serialize)]
 pub struct Feed {
@@ -17,7 +17,6 @@ pub struct Feed {
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
-    #[serde(skip_serializing)]
     pub img_cache: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
@@ -47,6 +46,7 @@ pub struct FeedEpisode {
     pub description: String,
     pub subtitle: Option<String>,
     pub language: Option<String>,
+    pub img_cache: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
@@ -72,13 +72,6 @@ pub struct Episode {
 pub struct Author {
     pub id: i32,
     pub name: String,
-}
-
-pub fn serialize_datetime<S>(date: &DateTime<Utc>, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    s.serialize_str(&date.to_rfc3339())
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -132,6 +125,7 @@ impl FeedEpisode {
             subtitle: row.get("subtitle"),
             language: row.get("language"),
             last_modified: row.get("last_modified"),
+            img_cache: row.get("img_cache"),
             categories,
             epsiodes,
         })

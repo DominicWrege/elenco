@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::{
@@ -22,9 +24,12 @@ mod my_middleware;
 mod session_storage;
 mod socket;
 mod time_date;
+
+pub type Client = deadpool_postgres::Client<tokio_postgres::NoTls>;
+
 #[derive(Clone)]
 pub struct State {
-    db_pool: Pool,
+    db_pool: Pool<tokio_postgres::NoTls>,
     img_cache: ImageCache,
 }
 

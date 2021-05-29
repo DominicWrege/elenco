@@ -9,4 +9,4 @@ FROM
            LEFT JOIN feed_language ON feed_language.id = f.language
            LEFT JOIN img ON f.img_id = img.id
 WHERE
-    f.status = 'online' AND upper(author.name)  LIKE '%' ||  upper($1) || '%'  
+    f.status = 'online' AND upper(author.name)  LIKE  upper($1) || '%'  

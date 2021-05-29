@@ -1,4 +1,4 @@
-use crate::inc_sql;
+use crate::{handler::UrlPath, inc_sql};
 use crate::{model::json::Category, State};
 use actix_web::{web, web::Json};
 
@@ -23,7 +23,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
 
 pub async fn by_id_or_name(
     state: web::Data<State>,
-    path: web::Path<String>,
+    path: UrlPath<String>,
 ) -> ApiJsonResult<Category> {
     let client = state.db_pool.get().await?;
     let result = if let Ok(category_id) = path.parse::<i32>() {
@@ -34,7 +34,7 @@ pub async fn by_id_or_name(
         let stmnt = client.prepare(inc_sql!("get/category/by_name")).await?;
         client.query_one(&stmnt, &[&category_name]).await
     };
-    let row = result.map_err(|_e| ApiError::CategoryNotFound(path.into_inner()))?;
+    let row = result.map_err(|_e| ApiError::CategoryNotFound(path.decode()))?;
     let catagories = Category::from(
         &row,
         serde_json::from_value(row.get("subcategories")).unwrap(),

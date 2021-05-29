@@ -4,7 +4,7 @@ use reqwest::Url;
 use super::item::Episode;
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct Feed<'a> {
     pub url: Url,
     pub img: Option<Url>,

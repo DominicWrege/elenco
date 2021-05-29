@@ -1,4 +1,10 @@
-use actix_web::{body::Body, http::StatusCode, BaseHttpResponse};
+use std::fmt::Display;
+
+use actix_web::{
+    body::{Body, BodyStream},
+    http::StatusCode,
+    BaseHttpResponse, ResponseError,
+};
 
 use thiserror::Error;
 
@@ -11,7 +17,9 @@ pub enum ApiError {
     #[error("category {0} was not found")]
     CategoryNotFound(String),
     #[error("feed {0} was not found")]
-    FeedNotFound(i32),
+    FeedByIdNotFound(i32),
+    #[error("feed {0} was not found")]
+    FeedByNameNotFound(String),
     #[error("author {0} was not found or has currently no online episodes")]
     AuthorNotFound(String),
     #[error("missing field `term`")]
@@ -21,16 +29,44 @@ pub enum ApiError {
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, Clone)]
 pub struct JsonError {
-    error: String,
-    status: u16,
+    message: String,
+    #[serde(with = "http_serde::status_code")]
+    status_code: StatusCode,
+}
+
+impl JsonError {
+    pub fn new(message: String, status_code: StatusCode) -> Self {
+        Self {
+            message,
+            status_code,
+        }
+    }
+    pub fn into_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+        BaseHttpResponse::build(self.status_code)
+            .content_type(mime::APPLICATION_JSON)
+            .body(self.clone())
+    }
+}
+
+impl Into<actix_web::dev::Body> for JsonError {
+    fn into(self) -> actix_web::dev::Body {
+        Body::from(self.to_string())
+    }
+}
+
+impl Display for JsonError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let json_str = serde_json::to_string(&self).unwrap();
+        write!(f, "{}", json_str)
+    }
 }
 
 pub fn not_found() -> BaseHttpResponse<actix_web::dev::Body> {
     let json = JsonError {
-        error: String::from("resource does not exist"),
-        status: StatusCode::NOT_FOUND.as_u16(),
+        message: String::from("resource does not exist"),
+        status_code: StatusCode::NOT_FOUND,
     };
 
     BaseHttpResponse::build(StatusCode::NOT_FOUND)
@@ -43,7 +79,8 @@ impl actix_web::ResponseError for ApiError {
         match self {
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
             ApiError::CategoryNotFound(_)
-            | ApiError::FeedNotFound(_)
+            | ApiError::FeedByIdNotFound(_)
+            | ApiError::FeedByNameNotFound(_)
             | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
             ApiError::BadRequest | ApiError::MissingTerm => StatusCode::BAD_REQUEST,
         }
@@ -51,16 +88,6 @@ impl actix_web::ResponseError for ApiError {
 
     fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{}", self.to_string());
-        let status = self.status_code();
-
-        let body = serde_json::to_string(&JsonError {
-            error: hide_internal!(ApiError, self),
-            status: status.as_u16(),
-        })
-        .unwrap();
-
-        actix_web::BaseHttpResponse::build(status)
-            .content_type(mime::APPLICATION_JSON)
-            .body(Body::from(body))
+        crate::json_error!(ApiError, self)
     }
 }

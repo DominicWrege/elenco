@@ -13,7 +13,7 @@ pub async fn by_feed_id(
     let episodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let episode_rows = client.query(&episodes_stmnt, &[&feed_id]).await?;
     if episode_rows.is_empty() {
-        return Err(ApiError::FeedNotFound(feed_id));
+        return Err(ApiError::FeedByIdNotFound(feed_id));
     }
     let episodes = rows_into_vec(episode_rows);
 

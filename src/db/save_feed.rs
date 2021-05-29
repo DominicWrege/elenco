@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use crate::model::item::Episode;
+use crate::Client;
 use crate::{handler::preview_error::PreviewError, model::channel::Feed};
 use crate::{img_cache::RowImg, inc_sql};
-use deadpool_postgres::Client;
 use futures_util::future;
 use tokio_postgres::Transaction;
 

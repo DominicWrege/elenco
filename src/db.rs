@@ -1,9 +1,9 @@
+use crate::Client;
 use crate::{
     handler::{api::error::ApiError, general_error::GeneralError},
     inc_sql,
     model::json::Category,
 };
-use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
