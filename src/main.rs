@@ -50,10 +50,11 @@ async fn run() -> Result<(), anyhow::Error> {
             .wrap(
                 CookieSession::private(&[1; 32])
                     .name("auth")
-                    .secure(true)
+                    .path("/")
+                    .secure(false)
                     .http_only(false)
                     .max_age(chrono::Duration::days(2).num_seconds())
-                    .same_site(SameSite::Strict)
+                    .same_site(SameSite::Lax)
                     .lazy(true),
             )
             .wrap(

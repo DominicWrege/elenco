@@ -10,7 +10,7 @@ FROM
            LEFT JOIN img ON f.img_id = img.id
            LEFT JOIN feed_category fc on f.id = fc.feed_id
 WHERE
-    websearch_to_tsquery($1)::text <> ''
+        websearch_to_tsquery($1)::text <> ''
         AND f.status = 'online' 
         AND f.search || author.search @@ to_tsquery(websearch_to_tsquery($1)::text || ':*') 
         AND feed_language.name = $2

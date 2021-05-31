@@ -53,6 +53,10 @@ pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .default_service(web::route().to(api::error::not_found))
+            .route(
+                "/completion/{query}",
+                web::route().to(api::feed::completion),
+            )
             .service(
                 web::scope("/feeds")
                     .route("", web::get().to(api::feed::all))

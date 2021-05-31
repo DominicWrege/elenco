@@ -1,0 +1,1 @@
+SELECT numnode(websearch_to_tsquery($1)) as code

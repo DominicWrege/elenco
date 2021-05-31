@@ -23,6 +23,14 @@ pub struct Feed {
     pub categories: Vec<Category>,
 }
 
+#[derive(Debug, Serialize, PostgresMapper)]
+#[pg_mapper(table = "completion")]
+#[serde(rename_all = "camelCase")]
+pub struct Completion {
+    title: String,
+    author_name: String,
+}
+
 impl Feed {
     pub fn website(&self) -> Option<&Url> {
         self.link_web.as_ref()

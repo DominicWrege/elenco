@@ -13,7 +13,7 @@ pub struct Feed<'a> {
     pub author: Option<&'a str>,
     pub episodes: Vec<Episode<'a>>,
     pub subtitle: Option<&'a str>,
-    pub language_code: Option<&'a str>,
+    pub language: Option<&'a str>,
     pub link_web: Option<Url>,
     pub categories: BTreeMap<&'a str, Vec<&'a str>>,
 }
@@ -60,7 +60,7 @@ impl<'a> Feed<'a> {
                 .or(Some("Default Author")),
             episodes: Episode::from_items(&feed.items()),
             subtitle: parse_subtitle(&feed),
-            language_code: feed.language().map(|code| &code[..2]),
+            language: feed.language().map(|code| &code[..2]),
             categories: parse_categories(&feed),
         }
     }

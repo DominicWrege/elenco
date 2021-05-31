@@ -19,7 +19,7 @@ pub fn page_not_found() -> HttpResponse {
 
 impl LanguageCodeLookup for Feed<'_> {
     fn language_code(&self) -> Option<&str> {
-        self.language_code
+        self.language
     }
 }
 

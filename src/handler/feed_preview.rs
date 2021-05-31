@@ -77,9 +77,10 @@ pub async fn create_preview(
     let client = state.db_pool.get().await?;
     let raw_feed = Feed::parse(&channel, url);
 
-    if feed_exits(&client, raw_feed.title, raw_feed.url()).await? {
-        return Err(PreviewError::Exists(raw_feed.title.to_string()));
-    }
+    // TODO check if feed exists
+    // if feed_exits(&client, raw_feed.title, raw_feed.url()).await? {
+    //     return Err(PreviewError::Exists(raw_feed.title.to_string()));
+    // }
 
     Ok(HttpResponse::Ok().json(raw_feed))
 }

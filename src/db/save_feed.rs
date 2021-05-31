@@ -24,7 +24,7 @@ pub async fn save(
 ) -> Result<i32, PreviewError> {
     let trx = client.transaction().await?;
     let author_id = insert_or_get_author_id(&trx, feed_content.author).await;
-    let language = if let Some(lang) = feed_content.language_code {
+    let language = if let Some(lang) = feed_content.language {
         insert_or_get_language_id(&trx, lang).await.ok()
     } else {
         None

@@ -1,7 +1,7 @@
 use crate::{
     db::{categories_for_feed, rows_into_vec},
     inc_sql,
-    model::json::{Feed, FeedEpisode},
+    model::json::{Completion, Feed, FeedEpisode},
     util::percent_decode,
 };
 use crate::{path::Path, State};
@@ -94,6 +94,31 @@ pub async fn by_name(path: Path<String>, state: web::Data<State>) -> ApiJsonResu
     let categories = categories_for_feed(&client, feed_id).await?;
     let feed = FeedEpisode::from(&feed_row, categories, episodes).await?;
     Ok(Json(feed))
+}
+
+pub async fn completion(
+    path: Path<String>,
+    state: web::Data<State>,
+) -> ApiJsonResult<Vec<Completion>> {
+    let name = &path.decode();
+    if name.trim().is_empty() {
+        return Ok(Json(vec![]));
+    }
+
+    let client = state.db_pool.get().await?;
+    let query_is_ok_stmnt = client.prepare(inc_sql!("query_is_ok")).await?;
+    let code: i32 = client
+        .query_one(&query_is_ok_stmnt, &[&name])
+        .await?
+        .get("code");
+
+    if code == 0 {
+        return Ok(Json(vec![]));
+    }
+    let stmnt = client.prepare(inc_sql!("get/completion")).await?;
+    let rows = client.query(&stmnt, &[&name]).await?;
+    let completions = rows_into_vec(rows);
+    Ok(Json(completions))
 }
 
 pub async fn by_category(
