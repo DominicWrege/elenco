@@ -3,10 +3,8 @@ use super::{
     general_error::GeneralError,
 };
 use crate::{
-    db::rows_into_vec,
     inc_sql,
     model::{Permission, Status},
-    session_storage::SessionContext,
     socket::LiveFeedSocket,
     util::redirect,
     State,

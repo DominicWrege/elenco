@@ -2,7 +2,6 @@ use crate::State;
 use crate::{
     inc_sql,
     model::{Account, Status},
-    session_storage::SessionContext,
 };
 use actix_session::Session;
 use actix_web::{
@@ -12,7 +11,6 @@ use actix_web::{
 use anyhow::anyhow;
 
 use super::general_error::GeneralError;
-use crate::db::rows_into_vec;
 
 use tokio_pg_mapper_derive::PostgresMapper;
 

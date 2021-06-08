@@ -28,7 +28,7 @@ impl TryFrom<&rss::Enclosure> for MyEnclosure {
     fn try_from(value: &rss::Enclosure) -> Result<Self, Self::Error> {
         Ok(Self {
             media_url: Url::parse(value.url())?,
-            length: value.length().parse::<u64>()?,
+            length: value.length().parse::<i64>()?,
             mime_type: value.mime_type().parse()?,
         })
     }
@@ -37,7 +37,7 @@ impl TryFrom<&rss::Enclosure> for MyEnclosure {
 #[derive(Debug, serde::Serialize)]
 pub struct MyEnclosure {
     pub media_url: Url,
-    pub length: u64,
+    pub length: i64,
     #[serde(serialize_with = "serialize_mime")]
     pub mime_type: mime::Mime,
 }

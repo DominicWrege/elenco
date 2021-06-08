@@ -1,10 +1,11 @@
 use crate::{
-    handler::{self, feed_preview, general_error::render_500, profile},
+    db::feed,
+    handler::{self, general_error::render_500, profile},
     my_middleware,
 };
 
 use actix_web::{http, middleware::ErrorHandlers, web};
-use handler::{api, auth};
+use handler::{api, auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -68,9 +69,12 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
                         web::scope("/")
-                            // .wrap(my_middleware::auth::CheckLogin)
-                            .route("preview", web::post().to(feed_preview::create_preview))
-                            .route("new", web::post().to(feed_preview::save_feed))
+                            .wrap(my_middleware::auth::CheckLogin)
+                            .route(
+                                "preview",
+                                web::post().to(save_preview_feed::preview::create),
+                            )
+                            .route("new", web::post().to(save_preview_feed::save::save))
                             .route("update/{id}", web::patch().to(profile::update_feed)),
                     ),
             )

@@ -142,7 +142,7 @@ impl FeedEpisode {
 
 impl Feed {
     pub async fn from(client: &Client, feed_row: tokio_postgres::Row) -> Result<Self, ApiError> {
-        use crate::db::categories_for_feed;
+        use crate::db::category::get_categories_for_feed;
         let feed_id = feed_row.get("id");
         Ok(Self {
             id: feed_id,
@@ -156,7 +156,7 @@ impl Feed {
             language: feed_row.get("language"),
             img_cache: feed_row.get("img_cache"),
             last_modified: feed_row.get("last_modified"),
-            categories: categories_for_feed(&client, feed_id).await?,
+            categories: get_categories_for_feed(&client, feed_id).await?,
         })
     }
 }

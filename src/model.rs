@@ -1,7 +1,6 @@
 pub mod channel;
 pub mod item;
 pub mod json;
-
 use std::fmt;
 
 use actix_session::Session;

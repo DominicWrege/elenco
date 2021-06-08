@@ -7,4 +7,4 @@ SELECT  f.id, f.title,
 FROM
     feed f LEFT JOIN  author ON author.id = f.author_id
         LEFT JOIN feed_language ON feed_language.id = f.language
-            LEFT JOIN img ON f.img_id = img.id WHERE f.title = $1 AND f.status = 'online'
+            LEFT JOIN img ON f.img_id = img.id WHERE f.id = $1 AND f.status = 'online'

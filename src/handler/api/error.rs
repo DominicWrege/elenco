@@ -1,10 +1,6 @@
 use std::fmt::Display;
 
-use actix_web::{
-    body::{Body, BodyStream},
-    http::StatusCode,
-    BaseHttpResponse, ResponseError,
-};
+use actix_web::{body::Body, http::StatusCode, BaseHttpResponse};
 
 use thiserror::Error;
 
@@ -30,6 +26,7 @@ pub enum ApiError {
 generic_handler_err!(ApiError, ApiError::Internal);
 
 #[derive(Debug, serde::Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct JsonError {
     message: String,
     #[serde(with = "http_serde::status_code")]

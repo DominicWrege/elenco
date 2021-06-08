@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
+use crate::State;
 use crate::{
     generic_handler_err, hide_internal, inc_sql,
     model::{Account, Permission},
     session_storage, validation_handler_err, wrap_err,
 };
-use crate::{util::redirect, State};
 use actix_web::{body::Body, web, BaseHttpResponse, HttpResponse, ResponseError};
 use tokio_postgres::Client;
 //use postgres_types::{FromSql, ToSql};

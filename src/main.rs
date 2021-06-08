@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::{
