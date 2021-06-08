@@ -58,7 +58,7 @@ pub struct FeedEpisode {
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
-    pub epsiodes: Vec<Episode>,
+    pub episodes: Vec<Episode>,
 }
 #[derive(Debug, PostgresMapper, Serialize)]
 #[pg_mapper(table = "episode")]
@@ -120,7 +120,7 @@ impl FeedEpisode {
     pub async fn from(
         row: &tokio_postgres::Row,
         categories: Vec<Category>,
-        epsiodes: Vec<Episode>,
+        episodes: Vec<Episode>,
     ) -> Result<Self, ApiError> {
         Ok(Self {
             id: row.get("id"),
@@ -135,7 +135,7 @@ impl FeedEpisode {
             last_modified: row.get("last_modified"),
             img_cache: row.get("img_cache"),
             categories,
-            epsiodes,
+            episodes,
         })
     }
 }
