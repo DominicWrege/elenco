@@ -15,7 +15,10 @@ pub async fn by_feed_id(
     if episode_rows.is_empty() {
         return Err(ApiError::FeedByIdNotFound(feed_id));
     }
-    let episodes = rows_into_vec(episode_rows);
+    let episodes = episode_rows
+        .into_iter()
+        .map(|row| Episode::from(row))
+        .collect::<Vec<_>>();
 
     Ok(Json(episodes))
 }

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::time_date::serialize_datetime;
 use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
@@ -6,7 +8,10 @@ use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
+use super::item::MyEnclosure;
+
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Feed {
     pub id: i32,
     pub url: Url,
@@ -44,6 +49,7 @@ impl LanguageCodeLookup for Feed {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FeedEpisode {
     pub id: i32,
     pub url: Url,
@@ -60,8 +66,8 @@ pub struct FeedEpisode {
     pub categories: Vec<Category>,
     pub episodes: Vec<Episode>,
 }
-#[derive(Debug, PostgresMapper, Serialize)]
-#[pg_mapper(table = "episode")]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Episode {
     pub title: String,
     pub description: String,
@@ -69,13 +75,39 @@ pub struct Episode {
     pub duration: i64,
     pub web_link: Option<String>,
     pub show_notes: Option<String>,
-    pub media_url: String,
+    pub enclosure: MyEnclosure,
     #[serde(serialize_with = "serialize_datetime")]
     pub published: DateTime<Utc>,
     pub keywords: Option<Vec<String>>,
+    pub guid: String,
+}
+
+impl From<tokio_postgres::Row> for Episode {
+    fn from(row: tokio_postgres::Row) -> Self {
+        let media_url: String = row.get("media_url");
+        let mime_type: String = row.get("mime_type");
+
+        Self {
+            title: row.get("title"),
+            description: row.get("description"),
+            explicit: row.get("explicit"),
+            duration: row.get("duration"),
+            web_link: row.get("web_link"),
+            show_notes: row.get("show_notes"),
+            enclosure: MyEnclosure {
+                media_url: Url::parse(&media_url).unwrap(),
+                length: row.get("length"),
+                mime_type: mime::Mime::from_str(&mime_type).unwrap(),
+            },
+            published: row.get("published"),
+            keywords: row.get("keywords"),
+            guid: row.get("guid"),
+        }
+    }
 }
 
 #[derive(Debug, PostgresMapper, Serialize)]
+#[serde(rename_all = "camelCase")]
 #[pg_mapper(table = "author")]
 pub struct Author {
     pub id: i32,
@@ -83,6 +115,7 @@ pub struct Author {
 }
 
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Category {
     id: i32,
     pub description: String,
@@ -90,6 +123,7 @@ pub struct Category {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PostgresMapper)]
+#[serde(rename_all = "camelCase")]
 #[pg_mapper(table = "subCategory")]
 pub struct SubCategory {
     id: i32,

@@ -8,6 +8,7 @@ use serde::Serializer;
 use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Episode<'a> {
     pub title: &'a str,
     pub description: Option<String>,
@@ -35,6 +36,7 @@ impl TryFrom<&rss::Enclosure> for MyEnclosure {
 }
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MyEnclosure {
     pub media_url: Url,
     pub length: i64,

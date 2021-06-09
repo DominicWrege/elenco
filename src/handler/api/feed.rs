@@ -1,7 +1,7 @@
 use crate::{
     db::{self, rows_into_vec},
     inc_sql,
-    model::json::{Completion, Feed, FeedEpisode},
+    model::json::{Completion, Episode, Feed, FeedEpisode},
     util::percent_decode,
 };
 use crate::{path::Path, State};
@@ -89,7 +89,10 @@ pub async fn by_name(path: Path<String>, state: web::Data<State>) -> ApiJsonResu
         .map_err(|_e| ApiError::FeedByNameNotFound(feed_name.clone()))?;
     let episodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let episode_rows = client.query(&episodes_stmnt, &[&feed_id]).await?;
-    let episodes = rows_into_vec(episode_rows);
+    let episodes = episode_rows
+        .into_iter()
+        .map(|row| Episode::from(row))
+        .collect::<Vec<_>>();
 
     let categories = db::category::get_categories_for_feed(&client, feed_id).await?;
     let feed = FeedEpisode::from(&feed_row, categories, episodes).await?;

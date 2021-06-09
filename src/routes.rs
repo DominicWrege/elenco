@@ -69,7 +69,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
                         web::scope("/")
-                            .wrap(my_middleware::auth::CheckLogin)
+                            // .wrap(my_middleware::auth::CheckLogin)
                             .route(
                                 "preview",
                                 web::post().to(save_preview_feed::preview::create),

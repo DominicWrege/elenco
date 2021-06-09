@@ -5,6 +5,7 @@ use super::item::Episode;
 use std::collections::BTreeMap;
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Feed<'a> {
     pub url: Url,
     pub img: Option<Url>,
