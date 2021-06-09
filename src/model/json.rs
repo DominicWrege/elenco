@@ -96,7 +96,7 @@ impl From<tokio_postgres::Row> for Episode {
             show_notes: row.get("show_notes"),
             enclosure: MyEnclosure {
                 media_url: Url::parse(&media_url).unwrap(),
-                length: row.get("length"),
+                length: row.get("media_length"),
                 mime_type: mime::Mime::from_str(&mime_type).unwrap(),
             },
             published: row.get("published"),
