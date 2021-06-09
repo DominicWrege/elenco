@@ -76,6 +76,7 @@ impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
     type Error = anyhow::Error;
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
+        dbg!(item.pub_date());
         Ok(Self {
             title: item
                 .title()

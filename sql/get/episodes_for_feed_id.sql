@@ -8,7 +8,7 @@ SELECT  e.title,
         e.media_url,
         e.keywords,
         e.length,
-        e.mime_type
+        e.mime_type,
         e.guid
 FROM feed JOIN episode e on feed.id = e.feed_id
 WHERE feed.id = $1
