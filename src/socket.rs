@@ -14,7 +14,7 @@ impl Actor for LiveFeedSocket {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         // self.subscribe_system_async::<TestJson>(ctx);
-        self.subscribe_system_async::<MessageRowHtml>(ctx);
+        // self.subscribe_system_async::<MessageRowHtml>(ctx);
         self.heart_beat_start(ctx);
         ctx.set_mailbox_capacity(24);
         // ctx.run_interval(Duration::from_secs(3), |act, context| {

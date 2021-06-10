@@ -61,7 +61,7 @@ pub async fn save_feed(
     .render()
     .unwrap();
 
-    Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
+    // Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
 
     Ok(redirect("/auth/profile"))
 }

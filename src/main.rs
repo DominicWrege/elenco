@@ -50,7 +50,7 @@ async fn run() -> Result<(), anyhow::Error> {
             .configure(routes::web)
             .default_service(web::route().to(handler::general_error::not_found))
     })
-    .bind("0.0.0.0:8080")?
+    .bind("0.0.0.0:8020")?
     .run()
     .await?;
     Ok(())
