@@ -66,17 +66,9 @@ impl ResponseError for AuthError {
     }
 
     fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
-        let msg = hide_internal!(AuthError, self);
+        log::error!("{}", self.to_string());
 
-        let json = AuthJsonError {
-            message: &msg,
-            status: self.status_code().as_u16(),
-        }
-        .to_json_string();
-
-        BaseHttpResponse::build(self.status_code())
-            .content_type(mime::APPLICATION_JSON)
-            .body(Body::from(json))
+        crate::json_error!(AuthError, self)
     }
 }
 
@@ -84,12 +76,6 @@ impl ResponseError for AuthError {
 struct AuthJsonError<'a> {
     message: &'a str,
     status: u16,
-}
-
-impl AuthJsonError<'_> {
-    fn to_json_string(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -158,7 +144,6 @@ pub async fn login(
     session: Session,
     form: web::Json<LoginForm>,
 ) -> Result<HttpResponse, AuthError> {
-    dbg!(&form);
     form.validate()?;
     let client = state.db_pool.get().await?;
     let stmt = client.prepare(inc_sql!("get/account")).await?;
@@ -172,7 +157,6 @@ pub async fn login(
         account.save(&session).map_err(|_| AuthError::Session)?;
         Ok(HttpResponse::Ok().json(account))
     } else {
-        dbg!("wrong");
         Err(AuthError::WrongPassword)
     }
 }

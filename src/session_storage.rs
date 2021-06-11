@@ -26,8 +26,8 @@ impl SessionContext {
 }
 
 pub fn forget(session: &Session) {
-    let a = Account::from_session(session);
-    dbg!(a);
+    // let a = Account::from_session(session);
+    // dbg!(a);
     session.purge();
     session.remove(SESSION_KEY_ACCOUNT);
 }
