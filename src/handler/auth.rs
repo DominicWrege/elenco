@@ -60,7 +60,7 @@ impl ResponseError for AuthError {
         match *self {
             AuthError::EmailOrUsernameExists => StatusCode::CONFLICT,
             AuthError::Validation(_) => StatusCode::BAD_REQUEST,
-            AuthError::Unauthorized => StatusCode::UNAUTHORIZED,
+            AuthError::Unauthorized | AuthError::WrongPassword => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -158,6 +158,7 @@ pub async fn login(
     session: Session,
     form: web::Json<LoginForm>,
 ) -> Result<HttpResponse, AuthError> {
+    dbg!(&form);
     form.validate()?;
     let client = state.db_pool.get().await?;
     let stmt = client.prepare(inc_sql!("get/account")).await?;
@@ -171,6 +172,7 @@ pub async fn login(
         account.save(&session).map_err(|_| AuthError::Session)?;
         Ok(HttpResponse::Ok().json(account))
     } else {
+        dbg!("wrong");
         Err(AuthError::WrongPassword)
     }
 }
