@@ -1,14 +1,5 @@
-use super::{
-    auth::{new_account, AuthError, RegisterForm},
-    general_error::GeneralError,
-};
-use crate::{
-    inc_sql,
-    model::{Permission, Status},
-    socket::LiveFeedSocket,
-    util::redirect,
-    State,
-};
+use super::general_error::GeneralError;
+use crate::{State, auth::{error::AuthError, register::{self, RegisterForm}}, inc_sql, model::{Permission, Status}, socket::LiveFeedSocket, util::redirect};
 use actix_web::{
     body::Body,
     web::{self, Data},
@@ -79,7 +70,7 @@ pub async fn register_moderator(
     state: Data<State>,
 ) -> Result<HttpResponse, AuthError> {
     let mut client = state.db_pool.get().await?;
-    new_account(&mut client, &form, Permission::Admin).await?;
+    register::new_account(&mut client, &form, Permission::Admin).await?;
     Ok(redirect("/auth/admin/manage"))
 }
 

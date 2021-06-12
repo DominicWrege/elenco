@@ -1,42 +1,22 @@
-use std::fmt::Display;
-
-use crate::State;
 use crate::{
-    generic_handler_err, hide_internal, inc_sql,
+    auth::{
+        error::AuthError,
+        login::{validate_login_form, LoginForm},
+        register::{new_account, validate_register_form, RegisterForm},
+    },
+    State,
+};
+use crate::{
+    hide_internal, inc_sql,
     model::{Account, Permission},
     session_storage,
 };
-use actix_web::{body::Body, web, BaseHttpResponse, HttpResponse, ResponseError};
-use tokio_postgres::Client;
-//use postgres_types::{FromSql, ToSql};
-//use actix_identity::Identity;
+
+use actix_web::{web, BaseHttpResponse, HttpResponse, ResponseError};
+
 use actix_session::Session;
 use actix_web::http::StatusCode;
-use serde::Deserialize;
-use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
-
-#[derive(Debug, Error)]
-pub enum AuthError {
-    #[error("username or email is already taken")]
-    EmailOrUsernameExists,
-    #[error("{0}")]
-    Validation(#[from] ValidationError),
-    #[error("Wrong password")]
-    WrongPassword,
-    #[error("User does not exist")]
-    UserNotFound,
-    #[error("Internal error: {0:#?}")]
-    Internal(Box<dyn std::error::Error + Sync + Send>),
-    #[error("Could not create session")]
-    Session,
-    #[error("Unauthorized or the session has expired")]
-    Unauthorized,
-    #[error("{0}")]
-    BadForm(#[from] actix_web::Error),
-}
-
-generic_handler_err!(AuthError, AuthError::Internal);
 
 impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
@@ -53,7 +33,6 @@ impl ResponseError for AuthError {
 
     fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
         log::error!("{}", self.to_string());
-
         crate::json_error!(AuthError, self)
     }
 }
@@ -62,50 +41,6 @@ impl ResponseError for AuthError {
 struct AuthJsonError<'a> {
     message: &'a str,
     status: u16,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RegisterForm {
-    username: String,
-    email: String,
-    password: String,
-    password_check: String,
-}
-
-#[derive(Debug, Error)]
-pub enum ValidationError {
-    #[error("The Passwords are not the same")]
-    PasswordMisMatch,
-    #[error("Invalid email address")]
-    InvalidEmail,
-    #[error("The Password is to short. It should be a least 4 chars long")]
-    PasswordShort(String),
-}
-
-fn validate_register_form(form: &RegisterForm) -> Result<(), ValidationError> {
-    let pwd_len = 4;
-    let RegisterForm {
-        email,
-        password,
-        password_check,
-        ..
-    } = form;
-
-    match (email, password, password_check) {
-        (_, password, password_check) if password != password_check => {
-            Err(ValidationError::PasswordMisMatch)
-        }
-        (email, _, _) if email_address::EmailAddress::is_valid(&email) == false => {
-            Err(ValidationError::InvalidEmail)
-        }
-        (_, password, password_check)
-            if password.len() < pwd_len || password_check.len() < pwd_len =>
-        {
-            Err(ValidationError::PasswordShort(password.clone()))
-        }
-        _ => Ok(()),
-    }
 }
 
 pub async fn register(
@@ -119,49 +54,10 @@ pub async fn register(
     Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn new_account(
-    client: &mut Client,
-    form: &RegisterForm,
-    permission: Permission,
-) -> Result<(), AuthError> {
-    let trx = client.transaction().await?;
-    let pwd_hash =
-        bcrypt::hash(&form.password, 8).map_err(|err| AuthError::Internal(err.into()))?;
-
-    let stmt = trx
-        .prepare("INSERT INTO Account(username, password_hash, email, account_type) Values($1, $2, $3, $4)")
-        .await?;
-    trx.execute(
-        &stmt,
-        &[&form.username, &pwd_hash, &form.email, &permission],
-    )
-    .await
-    .map_err(|_e| AuthError::EmailOrUsernameExists)?;
-    trx.commit().await?;
-    Ok(())
-}
-
 pub async fn logout(session: Session) -> HttpResponse {
     session_storage::forget(&session);
     //redirect("/login")
     HttpResponse::Ok().finish()
-}
-#[derive(Debug, Deserialize)]
-pub struct LoginForm {
-    password: String,
-    email: String,
-}
-
-fn validate_login_form(form: &LoginForm) -> Result<(), ValidationError> {
-    match (&form.password, &form.email) {
-        (_, email) if email_address::EmailAddress::is_valid(&email) == false => {
-            Err(ValidationError::InvalidEmail)
-        }
-        (password, _) if password.is_empty() => {
-            Err(ValidationError::PasswordShort(password.clone()))
-        }
-        _ => Ok(()),
-    }
 }
 
 pub async fn login(

@@ -9,6 +9,8 @@ use actix_web::{
 };
 use handler::general_error::render_500;
 use img_cache::ImageCache;
+
+mod auth;
 mod db;
 mod handler;
 mod routes;
