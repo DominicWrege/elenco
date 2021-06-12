@@ -21,12 +21,12 @@ use tokio_pg_mapper::FromTokioPostgresRow;
 impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
         match *self {
-            AuthError::EmailOrUsernameExists => StatusCode::CONFLICT,
-            AuthError::Validation(_) => StatusCode::BAD_REQUEST,
-            AuthError::UserNotFound => StatusCode::NOT_FOUND,
-            AuthError::Unauthorized | AuthError::WrongPassword | AuthError::BadForm(_) => {
-                StatusCode::UNAUTHORIZED
-            }
+            // AuthError::EmailOrUsernameExists => StatusCode::CONFLICT,
+            // AuthError::Validation(_) => StatusCode::BAD_REQUEST,
+            // AuthError::UserNotFound => StatusCode::NOT_FOUND,
+            // AuthError::Unauthorized | AuthError::WrongPassword | AuthError::BadForm(_) => {
+            //     StatusCode::UNAUTHORIZED
+            // }
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -65,22 +65,23 @@ pub async fn login(
     session: Session,
     form: Result<web::Json<LoginForm>, actix_web::Error>,
 ) -> Result<HttpResponse, AuthError> {
-    let form = form?.into_inner();
-    validate_login_form(&form)?;
-    let client = state.db_pool.get().await?;
-    let stmt = client.prepare(inc_sql!("get/account")).await?;
-    let row = client
-        .query_one(&stmt, &[&form.email])
-        .await
-        .map_err(|_| AuthError::UserNotFound)?;
-    let account: Account = Account::from_row(row)?;
-    if bcrypt::verify(&form.password, &account.password_hash()).unwrap() {
-        //id.remember(account.account_name.clone());
-        account.save(&session).map_err(|_| AuthError::Session)?;
-        Ok(HttpResponse::Ok().json(account))
-    } else {
-        Err(AuthError::WrongPassword)
-    }
+    // let form = form?.into_inner();
+    // validate_login_form(&form)?;
+    // let client = state.db_pool.get().await?;
+    // let stmt = client.prepare(inc_sql!("get/account")).await?;
+    // let row = client
+    //     .query_one(&stmt, &[&form.email])
+    //     .await
+    //     .map_err(|_| AuthError::UserNotFound)?;
+    // let account: Account = Account::from_row(row)?;
+    // if bcrypt::verify(&form.password, &account.password_hash()).unwrap() {
+    //     //id.remember(account.account_name.clone());
+    //     account.save(&session).map_err(|_| AuthError::Session)?;
+    //     Ok(HttpResponse::Ok().json(account))
+    // } else {
+    //     Err(AuthError::WrongPassword)
+    // }
+    Ok(HttpResponse::InternalServerError().finish())
 }
 
 pub async fn user_info(

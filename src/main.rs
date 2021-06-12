@@ -61,15 +61,16 @@ async fn run() -> Result<(), anyhow::Error> {
                 Cors::default()
                     .allow_any_origin()
                     .supports_credentials()
-                    .allow_any_header() // fix me
-                    .allowed_methods(vec!["GET", "POST"]),
+                    // .allow_any_header()
+                    .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                    .allowed_header(http::header::CONTENT_TYPE)
+                    .allowed_methods(vec!["GET", "POST", "PATCH"]),
             )
             .wrap(middleware::Compress::default())
             .wrap(
                 Logger::new("ip: %a status: %s time: %Dms req: %r")
                     .exclude_regex("^(/static/|/web/img/)"),
             )
-            .wrap(ErrorHandlers::new().handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
             .route(
                 "/img/{file_name:.+(jpeg|jpg|png)$}",
                 web::get().to(handler::serve_img),

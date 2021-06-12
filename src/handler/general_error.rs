@@ -37,21 +37,3 @@ pub fn log_error<E: Into<anyhow::Error>>(err: E) -> actix_web::Error {
     log::error!("{:?}", err);
     ErrorInternalServerError(err)
 }
-
-pub fn render_500<B>(
-    res: dev::ServiceResponse<B>,
-) -> Result<ErrorHandlerResponse<B>, actix_web::Error> {
-    //TODO FIX ME maybe with a fn ???
-
-    let json = JsonError::new(
-        INTER_ERROR_MSG.to_string(),
-        StatusCode::INTERNAL_SERVER_ERROR,
-    );
-    // Ok(ErrorHandlerResponse::Response(new_res))
-    let new_res = ServiceResponse::new(
-        res.request().clone(),
-        HttpResponse::InternalServerError().body(json).into_body(),
-    );
-
-    Ok(ErrorHandlerResponse::Response(new_res))
-}
