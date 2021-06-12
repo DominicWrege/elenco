@@ -45,6 +45,7 @@ impl fmt::Display for Status {
 
 #[derive(Debug, PostgresMapper, Serialize, Deserialize, Clone)]
 #[pg_mapper(table = "account")]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
     username: String,
     email: String,

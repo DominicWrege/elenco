@@ -4,7 +4,7 @@ use crate::State;
 use crate::{
     generic_handler_err, hide_internal, inc_sql,
     model::{Account, Permission},
-    session_storage, validation_handler_err, wrap_err,
+    session_storage,
 };
 use actix_web::{body::Body, web, BaseHttpResponse, HttpResponse, ResponseError};
 use tokio_postgres::Client;
@@ -15,14 +15,13 @@ use actix_web::http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
-use validator::{Validate, ValidationErrors};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
     #[error("username or email is already taken")]
     EmailOrUsernameExists,
     #[error("{0}")]
-    Validation(ValiderError),
+    Validation(#[from] ValidationError),
     #[error("Wrong password")]
     WrongPassword,
     #[error("User does not exist")]
@@ -33,34 +32,21 @@ pub enum AuthError {
     Session,
     #[error("Unauthorized or the session has expired")]
     Unauthorized,
+    #[error("{0}")]
+    BadForm(#[from] actix_web::Error),
 }
 
 generic_handler_err!(AuthError, AuthError::Internal);
-validation_handler_err!(AuthError, AuthError::Validation);
-
-wrap_err!(ValidationErrors, ValiderError);
-#[derive(Debug)]
-pub struct ValiderError(ValidationErrors);
-
-impl Display for ValiderError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let errors = self.0.field_errors();
-        let first_error_msg = errors
-            .into_iter()
-            .flat_map(|(_, b)| b)
-            .take(1)
-            .filter_map(|v| v.message.clone())
-            .collect::<String>();
-        write!(f, "{:}", first_error_msg)
-    }
-}
 
 impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
         match *self {
             AuthError::EmailOrUsernameExists => StatusCode::CONFLICT,
             AuthError::Validation(_) => StatusCode::BAD_REQUEST,
-            AuthError::Unauthorized | AuthError::WrongPassword => StatusCode::UNAUTHORIZED,
+            AuthError::UserNotFound => StatusCode::NOT_FOUND,
+            AuthError::Unauthorized | AuthError::WrongPassword | AuthError::BadForm(_) => {
+                StatusCode::UNAUTHORIZED
+            }
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -78,27 +64,56 @@ struct AuthJsonError<'a> {
     status: u16,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterForm {
-    #[validate(length(min = 1, message = "An username is required"))]
     username: String,
-    #[validate(
-        length(min = 1, message = "An username is required"),
-        must_match = "password_check"
-    )]
-    password: String,
-    #[validate(email(message = "An username is required"))]
     email: String,
-
-    #[validate(must_match(other = "password", message = "Passwords are not the same"))]
+    password: String,
     password_check: String,
+}
+
+#[derive(Debug, Error)]
+pub enum ValidationError {
+    #[error("The Passwords are not the same")]
+    PasswordMisMatch,
+    #[error("Invalid email address")]
+    InvalidEmail,
+    #[error("The Password is to short. It should be a least 4 chars long")]
+    PasswordShort(String),
+}
+
+fn validate_register_form(form: &RegisterForm) -> Result<(), ValidationError> {
+    let pwd_len = 4;
+    let RegisterForm {
+        email,
+        password,
+        password_check,
+        ..
+    } = form;
+
+    match (email, password, password_check) {
+        (_, password, password_check) if password != password_check => {
+            Err(ValidationError::PasswordMisMatch)
+        }
+        (email, _, _) if email_address::EmailAddress::is_valid(&email) == false => {
+            Err(ValidationError::InvalidEmail)
+        }
+        (_, password, password_check)
+            if password.len() < pwd_len || password_check.len() < pwd_len =>
+        {
+            Err(ValidationError::PasswordShort(password.clone()))
+        }
+        _ => Ok(()),
+    }
 }
 
 pub async fn register(
     state: web::Data<State>,
-    form: web::Json<RegisterForm>,
+    form: Result<web::Json<RegisterForm>, actix_web::Error>,
 ) -> Result<HttpResponse, AuthError> {
-    form.validate()?;
+    let form = form?.into_inner();
+    validate_register_form(&form)?;
     let mut client = state.db_pool.get().await?;
     new_account(&mut client, &form, Permission::User).await?;
     Ok(HttpResponse::Ok().finish())
@@ -131,20 +146,31 @@ pub async fn logout(session: Session) -> HttpResponse {
     //redirect("/login")
     HttpResponse::Ok().finish()
 }
-#[derive(Debug, Validate, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct LoginForm {
-    #[validate(length(min = 1, message = "An username is required"))]
     password: String,
-    #[validate(email(message = "An email address is required"))]
     email: String,
+}
+
+fn validate_login_form(form: &LoginForm) -> Result<(), ValidationError> {
+    match (&form.password, &form.email) {
+        (_, email) if email_address::EmailAddress::is_valid(&email) == false => {
+            Err(ValidationError::InvalidEmail)
+        }
+        (password, _) if password.is_empty() => {
+            Err(ValidationError::PasswordShort(password.clone()))
+        }
+        _ => Ok(()),
+    }
 }
 
 pub async fn login(
     state: web::Data<State>,
     session: Session,
-    form: web::Json<LoginForm>,
+    form: Result<web::Json<LoginForm>, actix_web::Error>,
 ) -> Result<HttpResponse, AuthError> {
-    form.validate()?;
+    let form = form?.into_inner();
+    validate_login_form(&form)?;
     let client = state.db_pool.get().await?;
     let stmt = client.prepare(inc_sql!("get/account")).await?;
     let row = client
