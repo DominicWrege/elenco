@@ -1,6 +1,6 @@
 use crate::{
     db::feed,
-    handler::{self, general_error::render_500, profile},
+    handler::{self, profile},
     my_middleware,
 };
 
