@@ -1,4 +1,6 @@
 use crate::State;
+use crate::db::rows_into_vec;
+use crate::model::json::SubmittedFeeds;
 use crate::{
     inc_sql,
     model::{Account, Status},
@@ -8,14 +10,16 @@ use actix_web::{
     web::{self, Data},
     HttpResponse,
 };
+use ammonia::AttributeFilter;
 use anyhow::anyhow;
-
+use serde::{Deserialize, Serialize};
 use super::general_error::GeneralError;
 
 use tokio_pg_mapper_derive::PostgresMapper;
 
-#[derive(Debug, PostgresMapper)]
+#[derive(Debug, PostgresMapper, Serialize, Clone)]
 #[pg_mapper(table = "profilefeed")]
+#[serde(rename_all = "camelCase")]
 pub struct ProfileFeed {
     pub id: i32,
     pub title: String,
@@ -26,19 +30,32 @@ pub struct ProfileFeed {
     pub status: Status,
 }
 
+fn filter_feeds(feeds: &[ProfileFeed], status: Status) -> Vec<ProfileFeed>{
+
+    feeds.into_iter()
+        .filter(|feed| feed.status == status)
+        .cloned()
+        .map(|feed|feed.to_owned().clone())
+        .collect::<Vec<ProfileFeed>>()
+
+}
+
 pub async fn site(session: Session, state: web::Data<State>) -> Result<HttpResponse, GeneralError> {
     let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;
     let rows = client.query(&stmnt, &[&account.id()]).await?;
-    // let feeds = rows_into_vec(rows);
-    // Ok(ProfileSite {
-    //     session_context: SessionContext::from(&session),
-    //     submitted_feeds: feeds,
-    // })
-    todo!()
+    let feeds: Vec<ProfileFeed> = rows_into_vec(rows);
+    let json = SubmittedFeeds{
+        blocked: filter_feeds(&feeds, Status::Blocked),
+        online: filter_feeds(&feeds, Status::Online),
+        offline: filter_feeds(&feeds, Status::Offline),
+        queued: filter_feeds(&feeds, Status::Queued),
+    };
+    Ok(HttpResponse::Ok().json(json))
 }
-#[derive(Debug, serde::Deserialize)]
+
+#[derive(Debug, Deserialize, Serialize)]    
 pub struct Payload {
     action: Status,
     feed_id: i32,

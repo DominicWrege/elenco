@@ -75,6 +75,7 @@ pub async fn by_name(path: Path<String>, state: web::Data<State>) -> ApiJsonResu
     //     .parse::<i32>()
     //     .map_err(|_err| ApiError::BadRequest)?;
     let feed_name = path.decode();
+    dbg!(&feed_name);
     let client = state.db_pool.get().await?;
     let feed_id_stmnt = client.prepare(inc_sql!("get/feed/id_for_name")).await?;
     let feed_id: i32 = client
@@ -87,6 +88,7 @@ pub async fn by_name(path: Path<String>, state: web::Data<State>) -> ApiJsonResu
         .query_one(&feed_stmnt, &[&feed_id])
         .await
         .map_err(|_e| ApiError::FeedByNameNotFound(feed_name.clone()))?;
+        //TODO FIXMEE some episosdes Value is NULL
     let episodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
     let episode_rows = client.query(&episodes_stmnt, &[&feed_id]).await?;
     let episodes = episode_rows

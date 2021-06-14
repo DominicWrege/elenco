@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use crate::handler::profile::ProfileFeed;
 use crate::time_date::serialize_datetime;
 use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
@@ -27,6 +28,16 @@ pub struct Feed {
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
 }
+
+#[derive(Debug, Serialize)]
+pub struct SubmittedFeeds{
+    pub blocked: Vec<ProfileFeed>,
+    pub online: Vec<ProfileFeed>,
+    pub offline: Vec<ProfileFeed>,
+    pub queued: Vec<ProfileFeed>
+}
+
+
 
 #[derive(Debug, Serialize, PostgresMapper)]
 #[pg_mapper(table = "completion")]

@@ -4,7 +4,7 @@ use crate::{
     my_middleware,
 };
 
-use actix_web::{http, middleware::ErrorHandlers, web};
+use actix_web::web;
 use handler::{api, auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
@@ -12,7 +12,7 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
             .route("/info", web::get().to(auth::user_info))
-            .route("/profile", web::get().to(profile::site)),
+            .route("/feeds", web::get().to(profile::site)),
     );
 }
 
