@@ -1,0 +1,1 @@
+INSERT INTO subscription (user_id, feed_id) VALUES ($1, $2)

@@ -1,6 +1,8 @@
 pub mod category;
 pub mod episode;
 pub mod feed;
+pub mod subscription;
+
 pub mod util;
 use crate::{handler::general_error::GeneralError, inc_sql};
 use crate::{handler::save_preview_feed::error::PreviewSaveError, img_cache::RowImg, Client};

@@ -1,10 +1,10 @@
 use crate::{
     db::feed,
-    handler::{self, profile},
+    handler::{self, user_feed},
     my_middleware,
 };
-
-use actix_web::web;
+// TODO seperater /sub path!!
+use actix_web::web::{self, service};
 use handler::{api, auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
@@ -12,7 +12,11 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
             .route("/info", web::get().to(auth::user_info))
-            .route("/feeds", web::get().to(profile::site)),
+            .route("/feeds", web::get().to(user_feed::site))
+            .route(
+                "/has-subscription",
+                web::post().to(handler::subscription::user_has_subscription),
+            ),
     );
 }
 
@@ -68,14 +72,22 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("/{id}", web::get().to(api::feed::by_name))
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
-                        web::scope("/")
+                        web::scope("/") // change / to action
                             .wrap(my_middleware::auth::CheckLogin)
                             .route(
                                 "preview",
                                 web::post().to(save_preview_feed::preview::create),
                             )
                             .route("new", web::post().to(save_preview_feed::save::save))
-                            .route("update/{id}", web::patch().to(profile::update_feed)),
+                            .route("update/{id}", web::patch().to(user_feed::update_feed))
+                            .route(
+                                "subscribe",
+                                web::post().to(handler::subscription::subscribe),
+                            )
+                            .route(
+                                "unsubscribe",
+                                web::post().to(handler::subscription::unsubscribe),
+                            ),
                     ),
             )
             .route("/categories", web::get().to(api::category::all))

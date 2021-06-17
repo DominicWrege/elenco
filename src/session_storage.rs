@@ -8,22 +8,22 @@ use crate::{
 pub const SESSION_KEY_ACCOUNT: &str = "account";
 pub const FEED_URL: &str = "feed_url";
 
-#[derive(Debug)]
-pub struct SessionContext {
-    pub username: String,
-    pub permission: Permission,
-}
+// #[derive(Debug)]
+// pub struct SessionContext {
+//     pub username: String,
+//     pub permission: Permission,
+// }
 
-impl SessionContext {
-    pub fn from(session: &Session) -> Option<Self> {
-        let account = Account::from_session(&session)?;
+// impl SessionContext {
+//     pub fn from(session: &Session) -> Option<Self> {
+//         let account = Account::from_session(&session)?;
 
-        Some(Self {
-            username: account.username().to_string(),
-            permission: account.permission(),
-        })
-    }
-}
+//         Some(Self {
+//             username: account.username().to_string(),
+//             permission: account.permission(),
+//         })
+//     }
+// }
 
 pub fn forget(session: &Session) {
     // let a = Account::from_session(session);

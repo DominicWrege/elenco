@@ -9,8 +9,9 @@ pub mod auth;
 pub mod feed_detail;
 pub mod general_error;
 pub mod manage;
-pub mod profile;
+pub mod user_feed;
 pub mod save_preview_feed;
+pub mod subscription;
 
 pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
     let file_name = req.match_info().query("file_name");
