@@ -71,7 +71,7 @@ impl DurationFormator for Episode<'_> {
     }
 }
 
-// TODO add Field Media Typ
+
 impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
     type Error = anyhow::Error;
 

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::handler::profile::ProfileFeed;
-use crate::time_date::serialize_datetime;
+use crate::time_date::{serialize_datetime, serialize_option_datetime};
 use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 use chrono::{DateTime, Utc};
@@ -87,8 +87,8 @@ pub struct Episode {
     pub web_link: Option<String>,
     pub show_notes: Option<String>,
     pub enclosure: MyEnclosure,
-    #[serde(serialize_with = "serialize_datetime")]
-    pub published: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_option_datetime")]
+    pub published: Option<DateTime<Utc>>,
     pub keywords: Option<Vec<String>>,
     pub guid: String,
 }
@@ -102,7 +102,7 @@ impl From<tokio_postgres::Row> for Episode {
             title: row.get("title"),
             description: row.get("description"),
             explicit: row.get("explicit"),
-            duration: row.get("duration"),
+            duration: row.get::<_, Option<i64>>("duration").unwrap_or_default(),
             web_link: row.get("web_link"),
             show_notes: row.get("show_notes"),
             enclosure: MyEnclosure {

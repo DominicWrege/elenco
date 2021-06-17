@@ -9,13 +9,11 @@ FROM
            LEFT JOIN feed_language ON feed_language.id = f.language
            LEFT JOIN img ON f.img_id = img.id
 WHERE 
-        f.status = 'online' AND 
-        f.title = $1 OR
+        f.status = 'online' AND (f.title = $1 OR
         (
             websearch_to_tsquery($1)::text <> '' AND
             f.search || author.search @@ to_tsquery(websearch_to_tsquery($1)::text || ':*')
-        )
-        
+        ))
 ORDER BY 
-    ts_rank(f.search || author.search, to_tsquery(plainto_tsquery($1)::text || ':*')) DESC
+    ts_rank(f.search || author.search, to_tsquery(websearch_to_tsquery($1)::text || ':*')) DESC
 LIMIT 50

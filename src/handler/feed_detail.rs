@@ -39,33 +39,33 @@ impl DurationFormator for EpisodeSmall {
     }
 }
 
-pub async fn site(
-    state: web::Data<State>,
-    session: actix_session::Session,
-    id: actix_web::web::Path<i32>,
-) -> Result<HttpResponse, GeneralError> {
-    let feed_id = id.into_inner();
-    let client = state.db_pool.get().await?;
-    let feed_stmnt = client.prepare(inc_sql!("get/feed/preview_by_id")).await?;
-    let feed_row = client.query_one(&feed_stmnt, &[&feed_id]).await?;
-    let epsiodes_stmnt = client
-        .prepare(inc_sql!("get/episodes_small_for_feed_id"))
-        .await?;
-    // let episodes = client
-    //     .query(&epsiodes_stmnt, &[&feed_id])
-    //     .await?
-    //     .into_iter()
-    //     .filter_map(|row| row.try_into().ok())
-    //     .collect::<Vec<_>>();
-    let feed = Feed::from(&client, feed_row)
-        .await
-        .map_err(|e| anyhow::format_err!(e))?;
-    // let html = FeedDetailSite {
-    //     session_context: SessionContext::from(&session),
-    //     feed,
-    //     episodes,
-    // };
-    Ok(HttpResponse::Ok()
-        .content_type(mime::TEXT_HTML_UTF_8)
-        .body("feed datail"))
-}
+// pub async fn site(
+//     state: web::Data<State>,
+//     session: actix_session::Session,
+//     id: actix_web::web::Path<i32>,
+// ) -> Result<HttpResponse, GeneralError> {
+//     let feed_id = id.into_inner();
+//     let client = state.db_pool.get().await?;
+//     let feed_stmnt = client.prepare(inc_sql!("get/feed/preview_by_id")).await?;
+//     let feed_row = client.query_one(&feed_stmnt, &[&feed_id]).await?;
+//     let epsiodes_stmnt = client
+//         .prepare(inc_sql!("get/episodes_small_for_feed_id"))
+//         .await?;
+//     // let episodes = client
+//     //     .query(&epsiodes_stmnt, &[&feed_id])
+//     //     .await?
+//     //     .into_iter()
+//     //     .filter_map(|row| row.try_into().ok())
+//     //     .collect::<Vec<_>>();
+//     let feed = Feed::from(&client, feed_row)
+//         .await
+//         .map_err(|e| anyhow::format_err!(e))?;
+//     // let html = FeedDetailSite {
+//     //     session_context: SessionContext::from(&session),
+//     //     feed,
+//     //     episodes,
+//     // };
+//     Ok(HttpResponse::Ok()
+//         .content_type(mime::TEXT_HTML_UTF_8)
+//         .body("feed datail"))
+// }

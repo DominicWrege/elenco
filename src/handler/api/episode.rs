@@ -1,5 +1,5 @@
 use crate::State;
-use crate::{db::rows_into_vec, inc_sql, model::json::Episode};
+use crate::{inc_sql, model::json::Episode};
 use actix_web::{web, web::Json};
 
 use super::{error::ApiError, ApiJsonResult};

@@ -65,14 +65,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LiveFeedSocket {
     }
 }
 
-// impl Handler<TestJson> for LiveFeedSocket {
-//     type Result = (); // todo FIXME
-
-//     fn handle(&mut self, msg: TestJson, ctx: &mut Self::Context) -> Self::Result {
-//         ctx.text(serde_json::to_string(&msg).unwrap());
-//     }
-// }
-
 impl Handler<MessageRowHtml> for LiveFeedSocket {
     type Result = ();
 
