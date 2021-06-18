@@ -1,5 +1,6 @@
+use crate::model::category::Category;
+use crate::State;
 use crate::{inc_sql, path};
-use crate::{model::json::Category, State};
 use actix_web::{web, web::Json};
 
 use super::{error::ApiError, ApiJsonResult};

@@ -1,12 +1,13 @@
 use reqwest::Url;
 
 // use postgres_types::{FromSql, ToSql};
-use super::item::Episode;
 use std::collections::BTreeMap;
+
+use super::episode::Episode;
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Feed<'a> {
+pub struct FeedPreview<'a> {
     pub url: Url,
     pub img: Option<Url>,
     pub title: &'a str,
@@ -19,7 +20,7 @@ pub struct Feed<'a> {
     pub categories: BTreeMap<&'a str, Vec<&'a str>>,
 }
 
-impl<'a> Feed<'a> {
+impl<'a> FeedPreview<'a> {
     pub fn link_web(&self) -> Option<&str> {
         self.link_web.as_ref().map(|link| link.as_str())
     }

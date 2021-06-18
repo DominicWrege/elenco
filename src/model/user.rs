@@ -4,7 +4,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 
 use crate::session_storage::SESSION_KEY_ACCOUNT;
 
-use super::Permission;
+use super::{Permission, Status};
 
 #[derive(Debug, PostgresMapper, Serialize, Deserialize, Clone)]
 #[pg_mapper(table = "account")]
@@ -22,9 +22,6 @@ impl Account {
     pub fn id(&self) -> i32 {
         self.id
     }
-    pub fn username(&self) -> &str {
-        self.username.as_str()
-    }
     pub fn permission(&self) -> Permission {
         self.permission
     }
@@ -37,4 +34,25 @@ impl Account {
     pub fn from_session(session: &Session) -> Option<Account> {
         session.get::<Account>(SESSION_KEY_ACCOUNT).ok().flatten()
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct SubmittedFeeds {
+    pub blocked: Vec<UserFeed>,
+    pub online: Vec<UserFeed>,
+    pub offline: Vec<UserFeed>,
+    pub queued: Vec<UserFeed>,
+}
+
+#[derive(Debug, PostgresMapper, Serialize, Clone)]
+#[pg_mapper(table = "profilefeed")]
+#[serde(rename_all = "camelCase")]
+pub struct UserFeed {
+    pub id: i32,
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub description: String,
+    pub img: Option<String>,
+    pub author_name: String,
+    pub status: Status,
 }

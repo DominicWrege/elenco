@@ -1,6 +1,7 @@
 use super::api::error::ApiError;
 use crate::db::rows_into_vec;
-use crate::model::json::SubmittedFeeds;
+use crate::model::user::SubmittedFeeds;
+use crate::model::user::UserFeed;
 use crate::State;
 use crate::{
     inc_sql,
@@ -14,21 +15,6 @@ use actix_web::{
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use tokio_pg_mapper_derive::PostgresMapper;
-
-#[derive(Debug, PostgresMapper, Serialize, Clone)]
-#[pg_mapper(table = "profilefeed")]
-#[serde(rename_all = "camelCase")]
-pub struct UserFeed {
-    pub id: i32,
-    pub title: String,
-    pub subtitle: Option<String>,
-    pub description: String,
-    pub img: Option<String>,
-    pub author_name: String,
-    pub status: Status,
-}
-
 fn filter_feeds(feeds: &[UserFeed], status: Status) -> Vec<UserFeed> {
     feeds
         .into_iter()
@@ -38,7 +24,10 @@ fn filter_feeds(feeds: &[UserFeed], status: Status) -> Vec<UserFeed> {
         .collect::<Vec<UserFeed>>()
 }
 
-pub async fn site(session: Session, state: web::Data<State>) -> Result<HttpResponse, ApiError> {
+pub async fn submitted_feeds(
+    session: Session,
+    state: web::Data<State>,
+) -> Result<HttpResponse, ApiError> {
     let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;

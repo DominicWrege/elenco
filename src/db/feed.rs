@@ -1,5 +1,6 @@
+use crate::handler::save_preview_feed::error::PreviewSaveError;
 use crate::Client;
-use crate::{handler::save_preview_feed::error::PreviewSaveError, model::channel::Feed};
+use crate::model::preview::feed::FeedPreview;
 use crate::{img_cache::RowImg, inc_sql};
 use futures_util::future;
 use tokio_postgres::Transaction;
@@ -15,12 +16,12 @@ struct Context<'a> {
     author: &'a Option<i32>,
     language: &'a Option<i32>,
     img: &'a Option<i32>,
-    feed: &'a Feed<'a>,
+    feed: &'a FeedPreview<'a>,
 }
 
 pub async fn save(
     client: &mut Client,
-    feed_content: &Feed<'_>,
+    feed_content: &FeedPreview<'_>,
     user_id: i32,
     img: Option<RowImg<'_>>,
 ) -> Result<i32, PreviewSaveError> {

@@ -11,7 +11,7 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
             .route("/info", web::get().to(auth::user_info))
-            .route("/feeds", web::get().to(user_feed::site))
+            .route("/feeds", web::get().to(user_feed::submitted_feeds))
             .route(
                 "/has-subscription",
                 web::post().to(handler::subscription::user_has_subscription),

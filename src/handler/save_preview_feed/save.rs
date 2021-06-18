@@ -2,7 +2,7 @@ use actix_session::Session;
 use actix_web::{web, HttpResponse};
 
 use crate::{
-    model::{channel::Feed, user::Account},
+    model::{preview::feed::FeedPreview, user::Account},
     State,
 };
 
@@ -20,7 +20,7 @@ pub async fn save(
     let resp_bytes = fetch(&feed_url).await?;
     let feed_bytes = std::io::Cursor::new(&resp_bytes);
     let channel = rss::Channel::read_from(feed_bytes)?;
-    let raw_feed = Feed::parse(&channel, feed_url);
+    let raw_feed = FeedPreview::parse(&channel, feed_url);
     let img_cache = state.img_cache.clone();
     let cached_img = if let Some(img_url) = &raw_feed.img {
         img_cache.download(img_url).await.ok()

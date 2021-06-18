@@ -1,4 +1,4 @@
-use crate::{db::rows_into_vec, inc_sql, model::json::Author, path::Path};
+use crate::{db::rows_into_vec, inc_sql, model::Author, path::Path};
 use crate::{model::json::Feed, State};
 use actix_web::{web, web::Json};
 use futures_util::future;

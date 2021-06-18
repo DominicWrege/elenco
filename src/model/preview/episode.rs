@@ -71,7 +71,6 @@ impl DurationFormator for Episode<'_> {
     }
 }
 
-
 impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
     type Error = anyhow::Error;
 

@@ -1,4 +1,4 @@
-use crate::{db::feed_exits, model::channel::Feed, State};
+use crate::{State, db::feed_exits, model::preview::feed::FeedPreview};
 
 // use actix_broker::{Broker, SystemBroker};
 
@@ -16,7 +16,7 @@ pub async fn create(
     // let url = form.feed_url.clone();
     // cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
-    let raw_feed = Feed::parse(&channel, form.feed_url.clone());
+    let raw_feed = FeedPreview::parse(&channel, form.feed_url.clone());
 
     Ok(HttpResponse::Ok().json(PreviewJson {
         exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
@@ -27,7 +27,7 @@ pub async fn create(
 #[derive(Debug, serde::Serialize)]
 pub struct PreviewJson<'a> {
     pub exists: bool,
-    pub feed: Feed<'a>,
+    pub feed: FeedPreview<'a>,
 }
 
 // pub async fn form_template<'a>(session: Session) -> Result<HttpResponse, actix_web::Error> {

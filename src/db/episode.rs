@@ -1,5 +1,4 @@
-use crate::inc_sql;
-use crate::model::item::Episode;
+use crate::{inc_sql, model::preview::episode::Episode};
 use futures_util::future;
 use tokio_postgres::Transaction;
 

@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use futures_util::future;
 use tokio_postgres::Transaction;
 
-use crate::{handler::api::error::ApiError, inc_sql, model::json::Category, Client};
+use crate::{handler::api::error::ApiError, inc_sql, model::category::Category, Client};
 
 use super::rows_into_vec;
 
@@ -62,7 +62,10 @@ pub async fn insert_feed_catagories(
     Ok(())
 }
 
-pub async fn get_categories_for_feed(client: &Client, feed_id: i32) -> Result<Vec<Category>, ApiError> {
+pub async fn get_categories_for_feed(
+    client: &Client,
+    feed_id: i32,
+) -> Result<Vec<Category>, ApiError> {
     let categories_stmnt = client.prepare(inc_sql!("get/category/by_feed_id")).await?;
     let categories_rows = client.query(&categories_stmnt, &[&feed_id]).await?;
     let mut categories = Vec::new();

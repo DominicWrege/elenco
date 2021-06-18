@@ -1,7 +1,8 @@
-use crate::model::channel::Feed;
 use actix_web::{http, HttpResponse};
 use isolang::Language;
 use percent_encoding::percent_decode_str;
+
+use crate::model::preview::feed::FeedPreview;
 
 pub fn redirect<P>(path: P) -> HttpResponse
 where
@@ -17,7 +18,7 @@ pub fn page_not_found() -> HttpResponse {
     redirect("/404")
 }
 
-impl LanguageCodeLookup for Feed<'_> {
+impl LanguageCodeLookup for FeedPreview<'_> {
     fn language_code(&self) -> Option<&str> {
         self.language
     }

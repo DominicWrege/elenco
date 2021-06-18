@@ -1,15 +1,15 @@
+// TODO split into separate files
 use std::str::FromStr;
 
-use crate::handler::user_feed::UserFeed;
 use crate::time_date::{serialize_datetime, serialize_option_datetime};
 use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 use chrono::{DateTime, Utc};
 use reqwest::Url;
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
+use serde::Serialize;
 
-use super::item::MyEnclosure;
+use super::category::Category;
+use super::preview::episode::MyEnclosure;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,30 +27,6 @@ pub struct Feed {
     #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct SubmittedFeeds{
-    pub blocked: Vec<UserFeed>,
-    pub online: Vec<UserFeed>,
-    pub offline: Vec<UserFeed>,
-    pub queued: Vec<UserFeed>
-}
-
-
-
-#[derive(Debug, Serialize, PostgresMapper)]
-#[pg_mapper(table = "completion")]
-#[serde(rename_all = "camelCase")]
-pub struct Completion {
-    title: String,
-    author_name: String,
-}
-
-impl Feed {
-    pub fn website(&self) -> Option<&Url> {
-        self.link_web.as_ref()
-    }
 }
 
 impl LanguageCodeLookup for Feed {
@@ -113,42 +89,6 @@ impl From<tokio_postgres::Row> for Episode {
             published: row.get("published"),
             keywords: row.get("keywords"),
             guid: row.get("guid"),
-        }
-    }
-}
-
-#[derive(Debug, PostgresMapper, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[pg_mapper(table = "author")]
-pub struct Author {
-    pub id: i32,
-    pub name: String,
-}
-
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Category {
-    id: i32,
-    pub description: String,
-    pub children: Vec<SubCategory>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PostgresMapper)]
-#[serde(rename_all = "camelCase")]
-#[pg_mapper(table = "subCategory")]
-pub struct SubCategory {
-    id: i32,
-    pub description: String,
-}
-
-impl Category {
-    pub fn from(row: &tokio_postgres::Row, children: Vec<SubCategory>) -> Self {
-        let id: i32 = row.get("id");
-        let description: String = row.get("description");
-        Category {
-            id,
-            description,
-            children,
         }
     }
 }
