@@ -2,8 +2,7 @@ use actix_session::Session;
 use actix_web::{web, HttpResponse};
 
 use crate::{
-    model::{channel::Feed, Account},
-    session_storage::feed_url,
+    model::{channel::Feed, user::Account},
     State,
 };
 

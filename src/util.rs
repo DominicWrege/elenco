@@ -1,5 +1,5 @@
 use crate::model::channel::Feed;
-use actix_web::{http, web, HttpResponse};
+use actix_web::{http, HttpResponse};
 use isolang::Language;
 use percent_encoding::percent_decode_str;
 

@@ -1,10 +1,9 @@
 use crate::{
-    db::feed,
     handler::{self, user_feed},
     my_middleware,
 };
 // TODO seperater /sub path!!
-use actix_web::web::{self, service};
+use actix_web::web::{self};
 use handler::{api, auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {

@@ -1,17 +1,16 @@
-use super::general_error::GeneralError;
+use super::api::error::ApiError;
 use crate::db::rows_into_vec;
 use crate::model::json::SubmittedFeeds;
 use crate::State;
 use crate::{
     inc_sql,
-    model::{Account, Status},
+    model::{user::Account, Status},
 };
 use actix_session::Session;
 use actix_web::{
     web::{self, Data},
     HttpResponse,
 };
-use ammonia::AttributeFilter;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
@@ -39,7 +38,7 @@ fn filter_feeds(feeds: &[UserFeed], status: Status) -> Vec<UserFeed> {
         .collect::<Vec<UserFeed>>()
 }
 
-pub async fn site(session: Session, state: web::Data<State>) -> Result<HttpResponse, GeneralError> {
+pub async fn site(session: Session, state: web::Data<State>) -> Result<HttpResponse, ApiError> {
     let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;
@@ -65,7 +64,7 @@ pub async fn update_feed(
     json: web::Json<UpdatePayload>,
     state: Data<State>,
     session: Session,
-) -> Result<HttpResponse, GeneralError> {
+) -> Result<HttpResponse, ApiError> {
     let account_id = Account::from_session(&session)
         .ok_or_else(|| anyhow!("session error"))?
         .id();

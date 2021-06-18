@@ -13,7 +13,7 @@ use actix_web::{dev::Transform, web};
 use anyhow::anyhow;
 use futures_util::future::{ok, Future, Ready};
 
-use crate::handler::general_error::log_error;
+use crate::{handler::api::error::log_error, model::user::Account};
 pub struct Moderator;
 
 impl<S, B> Transform<S, ServiceRequest> for Moderator
@@ -57,7 +57,6 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
         use crate::db::is_moderator;
-        use crate::model::Account;
         Box::pin(async move {
             let state = req
                 .app_data::<web::Data<crate::State>>()

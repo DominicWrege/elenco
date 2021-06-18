@@ -8,7 +8,7 @@ use crate::{
 };
 use crate::{
     hide_internal, inc_sql,
-    model::{Account, Permission},
+    model::{user::Account, Permission},
     session_storage,
 };
 

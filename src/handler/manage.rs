@@ -1,5 +1,14 @@
-use super::general_error::GeneralError;
-use crate::{State, auth::{error::AuthError, register::{self, RegisterForm}}, inc_sql, model::{Permission, Status}, socket::LiveFeedSocket, util::redirect};
+use crate::{
+    auth::{
+        error::AuthError,
+        register::{self, RegisterForm},
+    },
+    inc_sql,
+    model::{Permission, Status},
+    socket::LiveFeedSocket,
+    util::redirect,
+    State,
+};
 use actix_web::{
     body::Body,
     web::{self, Data},
@@ -11,21 +20,23 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tokio_pg_mapper_derive::PostgresMapper;
 
+use super::api::error::ApiError;
+
 pub async fn manage(
     state: Data<State>,
     session: actix_session::Session,
-) -> Result<HttpResponse, GeneralError> {
-    let client = state.db_pool.get().await?;
-    let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
-    let reviewed_feed_rows = client
-        .query(inc_sql!("get/feed/last_reviewed"), &[])
-        .await?;
-    // Ok(template::ModeratorSite {
-    //     session_context: SessionContext::from(&session),
-    //     queued_feeds: rows_into_vec(queued_feed_rows),
-    //     review_feeds: rows_into_vec(reviewed_feed_rows),
-    //     username: "test".into(),
-    // })
+) -> Result<HttpResponse, ApiError> {
+    // let client = state.db_pool.get().await?;
+    // let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
+    // let reviewed_feed_rows = client
+    //     .query(inc_sql!("get/feed/last_reviewed"), &[])
+    //     .await?;
+    // // Ok(template::ModeratorSite {
+    // //     session_context: SessionContext::from(&session),
+    // //     queued_feeds: rows_into_vec(queued_feed_rows),
+    // //     review_feeds: rows_into_vec(reviewed_feed_rows),
+    // //     username: "test".into(),
+    // // })
 
     Ok(HttpResponse::Ok().body(Body::from("aaa")))
 }
@@ -55,7 +66,7 @@ pub struct Payload {
 pub async fn review_feed(
     json: web::Json<Payload>,
     state: Data<State>,
-) -> Result<HttpResponse, GeneralError> {
+) -> Result<HttpResponse, ApiError> {
     let Payload { action, feed_id } = json.into_inner();
     let mut client = state.db_pool.get().await?;
     let trx = client.transaction().await?;

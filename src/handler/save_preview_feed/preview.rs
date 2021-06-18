@@ -1,16 +1,13 @@
-use crate::{db::feed_exits, model::channel::Feed, session_storage::cache_feed_url, State};
+use crate::{db::feed_exits, model::channel::Feed, State};
 
 // use actix_broker::{Broker, SystemBroker};
-use actix_session::Session;
-use actix_web::{web, HttpResponse};
 
-use reqwest::Url;
+use actix_web::{web, HttpResponse};
 
 use super::{error::PreviewSaveError, FeedForm};
 
 pub async fn create(
     form: web::Json<FeedForm>,
-    session: Session,
     state: web::Data<State>,
 ) -> Result<HttpResponse, PreviewSaveError> {
     let resp_bytes = super::fetch(&form.feed_url).await?;

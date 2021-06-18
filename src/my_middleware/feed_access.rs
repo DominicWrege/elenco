@@ -5,7 +5,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::{handler::general_error::log_error, inc_sql, model::Permission, util::page_not_found};
+use crate::{handler::api::error::log_error, inc_sql, model::Permission, util::page_not_found};
 use actix_session::UserSession;
 use actix_web::Error;
 use actix_web::Result;
@@ -59,7 +59,7 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
-        use crate::model::Account;
+        use crate::model::user::Account;
         Box::pin(async move {
             let state = req
                 .app_data::<web::Data<crate::State>>()

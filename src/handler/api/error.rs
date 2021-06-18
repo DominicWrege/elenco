@@ -1,6 +1,6 @@
-use std::fmt::Display;
-
+use actix_web::error::ErrorInternalServerError;
 use actix_web::{body::Body, http::StatusCode, BaseHttpResponse};
+use std::fmt::Display;
 
 use thiserror::Error;
 
@@ -20,8 +20,6 @@ pub enum ApiError {
     AuthorNotFound(String),
     #[error("missing field `term`")]
     MissingTerm,
-    #[error("bad request")]
-    BadRequest,
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -79,7 +77,7 @@ impl actix_web::ResponseError for ApiError {
             | ApiError::FeedByIdNotFound(_)
             | ApiError::FeedByNameNotFound(_)
             | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
-            ApiError::BadRequest | ApiError::MissingTerm => StatusCode::BAD_REQUEST,
+            ApiError::MissingTerm => StatusCode::BAD_REQUEST,
         }
     }
 
@@ -87,4 +85,10 @@ impl actix_web::ResponseError for ApiError {
         log::error!("{}", self.to_string());
         crate::json_error!(ApiError, self)
     }
+}
+
+pub fn log_error<E: Into<anyhow::Error>>(err: E) -> actix_web::Error {
+    let err = err.into();
+    log::error!("{:?}", err);
+    ErrorInternalServerError(err)
 }

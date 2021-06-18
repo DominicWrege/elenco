@@ -3,7 +3,7 @@ use actix_session::CookieSession;
 use actix_web::{
     cookie::SameSite,
     http, middleware,
-    middleware::{ErrorHandlers, Logger},
+    middleware::Logger,
     web::{self},
     App, HttpServer,
 };
@@ -62,7 +62,11 @@ async fn run() -> Result<(), anyhow::Error> {
                     .allow_any_origin()
                     .supports_credentials()
                     // .allow_any_header()
-                    .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT, http::header::CONTENT_TYPE])
+                    .allowed_headers(vec![
+                        http::header::AUTHORIZATION,
+                        http::header::ACCEPT,
+                        http::header::CONTENT_TYPE,
+                    ])
                     .allowed_methods(vec!["GET", "POST", "PATCH"]),
             )
             .wrap(middleware::Compress::default())

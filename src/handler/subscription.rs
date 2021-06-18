@@ -3,7 +3,7 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::{db::subscription, model::Account, session_storage, State};
+use crate::{db::subscription, model::user::Account, State};
 
 use super::api::error::ApiError;
 

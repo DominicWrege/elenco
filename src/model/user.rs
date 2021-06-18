@@ -1,47 +1,10 @@
-pub mod channel;
-pub mod item;
-pub mod json;
-use std::fmt;
-
 use actix_session::Session;
-use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
 use crate::session_storage::SESSION_KEY_ACCOUNT;
 
-#[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy, PartialEq)]
-#[postgres(name = "permission")]
-pub enum Permission {
-    #[postgres(name = "admin")]
-    Admin,
-    #[postgres(name = "user")]
-    User,
-}
-
-impl Default for Permission {
-    fn default() -> Self {
-        Self::User
-    }
-}
-#[derive(Debug, Deserialize, Serialize, ToSql, FromSql, PartialEq, Clone)]
-#[postgres(name = "feed_status")]
-pub enum Status {
-    #[postgres(name = "online")]
-    Online,
-    #[postgres(name = "offline")]
-    Offline,
-    #[postgres(name = "blocked")]
-    Blocked,
-    #[postgres(name = "queued")]
-    Queued,
-}
-
-impl fmt::Display for Status {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+use super::Permission;
 
 #[derive(Debug, PostgresMapper, Serialize, Deserialize, Clone)]
 #[pg_mapper(table = "account")]
