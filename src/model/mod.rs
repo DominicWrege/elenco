@@ -8,6 +8,9 @@ use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tokio_pg_mapper_derive::PostgresMapper;
+use tokio_postgres::Row;
+
+use self::user::ShortAccount;
 
 #[derive(Debug, ToSql, FromSql, Serialize, Deserialize, Clone, Copy, PartialEq)]
 #[postgres(name = "permission")]
@@ -53,10 +56,36 @@ pub struct Author {
     pub name: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewComment {
+    pub user_id: i32,
+    pub feed_id: i32,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Comment {
     id: i32,
+    feed_id: i32,
     content: String,
     #[serde(serialize_with = "serialize_datetime")]
     created: chrono::DateTime<Utc>,
+    user: ShortAccount,
+}
+
+impl From<Row> for Comment {
+    fn from(row: Row) -> Self {
+        Self {
+            id: row.get("id"),
+            feed_id: row.get("feed_id"),
+            content: row.get("content"),
+            created: row.get("created"),
+            user: ShortAccount {
+                id: row.get("user_id"),
+                username: row.get("username"),
+            },
+        }
+    }
 }

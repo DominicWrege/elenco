@@ -18,6 +18,12 @@ pub struct Account {
     pub permission: Permission,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct ShortAccount {
+    pub id: i32,
+    pub username: String,
+}
+
 impl Account {
     pub fn id(&self) -> i32 {
         self.id

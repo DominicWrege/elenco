@@ -67,7 +67,7 @@ async fn run() -> Result<(), anyhow::Error> {
                         http::header::ACCEPT,
                         http::header::CONTENT_TYPE,
                     ])
-                    .allowed_methods(vec!["GET", "POST", "PATCH"]),
+                    .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"]),
             )
             .wrap(middleware::Compress::default())
             .wrap(

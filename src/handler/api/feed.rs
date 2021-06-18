@@ -1,4 +1,12 @@
-use crate::{db::{self, rows_into_vec}, inc_sql, model::{Completion, json::{Episode, Feed, FeedEpisode}}, util::percent_decode};
+use crate::{
+    db::{self, rows_into_vec},
+    inc_sql,
+    model::{
+        json::{Episode, Feed, FeedEpisode},
+        Completion,
+    },
+    util::percent_decode,
+};
 use crate::{path::Path, State};
 use actix_web::{web, web::Json};
 

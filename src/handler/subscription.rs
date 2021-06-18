@@ -18,9 +18,9 @@ pub async fn subscribe(
     json: Json<SubscribePayload>,
     session: actix_session::Session,
 ) -> Result<HttpResponse, ApiError> {
-    let client = state.db_pool.get().await?;
+    let mut client = state.db_pool.get().await?;
     let acount = Account::from_session(&session).unwrap();
-    subscription::subscribe(&client, acount.id(), json.feed_id).await?;
+    subscription::subscribe(&mut client, acount.id(), json.feed_id).await?;
 
     Ok(HttpResponse::Created().finish())
 }
@@ -30,9 +30,9 @@ pub async fn unsubscribe(
     json: Json<SubscribePayload>,
     session: actix_session::Session,
 ) -> Result<HttpResponse, ApiError> {
-    let client = state.db_pool.get().await?;
+    let mut client = state.db_pool.get().await?;
     let acount = Account::from_session(&session).unwrap();
-    subscription::unsubscribe(&client, acount.id(), json.feed_id).await?;
+    subscription::unsubscribe(&mut client, acount.id(), json.feed_id).await?;
 
     Ok(HttpResponse::Ok().finish())
 }

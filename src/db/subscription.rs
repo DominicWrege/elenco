@@ -1,22 +1,26 @@
 use crate::{inc_sql, Client};
 
 pub async fn subscribe(
-    client: &Client,
+    client: &mut Client,
     user_id: i32,
     feed_id: i32,
 ) -> Result<(), tokio_postgres::Error> {
     let stmnt = client.prepare(inc_sql!("insert/subscription")).await?;
-    client.execute(&stmnt, &[&user_id, &feed_id]).await?;
+    let trx = client.transaction().await?;
+    trx.execute(&stmnt, &[&user_id, &feed_id]).await?;
+    trx.commit().await?;
     Ok(())
 }
 
 pub async fn unsubscribe(
-    client: &Client,
+    client: &mut Client,
     user_id: i32,
     feed_id: i32,
 ) -> Result<(), tokio_postgres::Error> {
     let stmnt = client.prepare(inc_sql!("delete/subscription")).await?;
-    client.execute(&stmnt, &[&user_id, &feed_id]).await?;
+    let trx = client.transaction().await?;
+    trx.execute(&stmnt, &[&user_id, &feed_id]).await?;
+    trx.commit().await?;
     Ok(())
 }
 

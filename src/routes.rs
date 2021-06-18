@@ -78,16 +78,14 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                                 web::post().to(save_preview_feed::preview::create),
                             )
                             .route("new", web::post().to(save_preview_feed::save::save))
-                            .route("update/{id}", web::patch().to(user_feed::update_feed))
-                            .route(
-                                "subscribe",
-                                web::post().to(handler::subscription::subscribe),
-                            )
-                            .route(
-                                "unsubscribe",
-                                web::post().to(handler::subscription::unsubscribe),
-                            ),
+                            .route("update/{id}", web::patch().to(user_feed::update_feed)),
                     ),
+            )
+            .service(
+                web::resource("/subscription")
+                    .wrap(my_middleware::auth::CheckLogin)
+                    .route(web::post().to(handler::subscription::subscribe))
+                    .route(web::delete().to(handler::subscription::unsubscribe)),
             )
             .route("/categories", web::get().to(api::category::all))
             .service(
@@ -99,6 +97,12 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             .route(
                 "/author/{author_id_name}/feeds",
                 web::get().to(api::author::feeds),
+            )
+            .service(
+                web::scope("/comment")
+                    .wrap(my_middleware::auth::CheckLogin)
+                    .route("", web::post().to(handler::comment::new))
+                    .route("/{id}", web::get().to(handler::comment::get_for_feed)),
             ),
     );
 }
