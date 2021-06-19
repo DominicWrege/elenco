@@ -20,6 +20,8 @@ pub enum ApiError {
     AuthorNotFound(String),
     #[error("missing field `term`")]
     MissingTerm,
+    #[error("{0}")]
+    BadRequest(#[from] actix_web::Error)
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -77,7 +79,7 @@ impl actix_web::ResponseError for ApiError {
             | ApiError::FeedByIdNotFound(_)
             | ApiError::FeedByNameNotFound(_)
             | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
-            ApiError::MissingTerm => StatusCode::BAD_REQUEST,
+            ApiError::BadRequest(_) | ApiError::MissingTerm => StatusCode::BAD_REQUEST,
         }
     }
 

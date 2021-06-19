@@ -10,8 +10,9 @@ use super::api::error::ApiError;
 // valid if content is not empty
 pub async fn new(
     state: web::Data<crate::State>,
-    comment_json: actix_web::web::Json<NewComment>,
+    comment_json: Result<actix_web::web::Json<NewComment>, actix_web::Error>,
 ) -> Result<HttpResponse, ApiError> {
+    let comment_json = comment_json.map_err(|err| ApiError::BadRequest(err))?;
     let mut client = state.db_pool.get().await?;
 
     let new_comment = db::comment::insert(&mut client, comment_json.into_inner()).await?;
