@@ -1,5 +1,5 @@
 use crate::{db::rows_into_vec, inc_sql, model::Author, path::Path};
-use crate::{model::json::Feed, State};
+use crate::{model::feed::Feed, State};
 use actix_web::{web, web::Json};
 use futures_util::future;
 

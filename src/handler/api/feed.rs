@@ -2,7 +2,8 @@ use crate::{
     db::{self, rows_into_vec},
     inc_sql,
     model::{
-        json::{Episode, Feed, FeedEpisode},
+        episode::Episode,
+        feed::{Feed, FeedEpisode},
         Completion,
     },
     util::percent_decode,
@@ -35,15 +36,13 @@ pub async fn search(
 ) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
     let query = query.map_err(|_e| ApiError::MissingTerm)?;
-    dbg!(&query.term);
     let search_term = percent_decode(&query.term);
-    dbg!(&search_term);
     let feeds_row = match &query.lang {
         Some(lang) => {
             match &query.category {
                 Some(category) => {
                     let feed_stmnt = client
-                        .prepare(inc_sql!("get/feed/search_with_language_category"))
+                        .prepare(inc_sql!("get/feed/search/with_language_category"))
                         .await?;
                     client
                         .query(&feed_stmnt, &[&search_term, lang, category])
@@ -51,18 +50,18 @@ pub async fn search(
                 }
                 None => {
                     let feed_stmnt = client
-                        .prepare(inc_sql!("get/feed/search_with_language"))
+                        .prepare(inc_sql!("get/feed/search/with_language"))
                         .await?;
                     client.query(&feed_stmnt, &[&search_term, lang]).await?
                 }
             };
             let feed_stmnt = client
-                .prepare(inc_sql!("get/feed/search_with_language"))
+                .prepare(inc_sql!("get/feed/search/with_language"))
                 .await?;
             client.query(&feed_stmnt, &[&search_term, lang]).await?
         }
         None => {
-            let feed_stmnt = client.prepare(inc_sql!("get/feed/search")).await?;
+            let feed_stmnt = client.prepare(inc_sql!("get/feed/search/all")).await?;
             client.query(&feed_stmnt, &[&search_term]).await?
         }
     };

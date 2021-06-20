@@ -1,7 +1,4 @@
-// TODO split into separate files
-use std::str::FromStr;
-
-use crate::time_date::{serialize_datetime, serialize_option_datetime};
+use crate::time_date::serialize_datetime;
 use crate::Client;
 use crate::{handler::api::error::ApiError, util::LanguageCodeLookup};
 use chrono::{DateTime, Utc};
@@ -9,7 +6,7 @@ use reqwest::Url;
 use serde::Serialize;
 
 use super::category::Category;
-use super::preview::episode::MyEnclosure;
+use crate::model::episode::Episode;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,53 +49,6 @@ pub struct FeedEpisode {
     pub last_modified: DateTime<Utc>,
     pub categories: Vec<Category>,
     pub episodes: Vec<Episode>,
-}
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Episode {
-    pub title: String,
-    pub description: String,
-    pub explicit: bool,
-    pub duration: i64,
-    pub web_link: Option<String>,
-    pub show_notes: Option<String>,
-    pub enclosure: MyEnclosure,
-    #[serde(serialize_with = "serialize_option_datetime")]
-    pub published: Option<DateTime<Utc>>,
-    pub keywords: Option<Vec<String>>,
-    pub guid: String,
-}
-
-impl From<tokio_postgres::Row> for Episode {
-    fn from(row: tokio_postgres::Row) -> Self {
-        let media_url: String = row.get("media_url");
-        let mime_type: String = row.get("mime_type");
-
-        Self {
-            title: row.get("title"),
-            description: row.get("description"),
-            explicit: row.get("explicit"),
-            duration: row.get::<_, Option<i64>>("duration").unwrap_or_default(),
-            web_link: row.get("web_link"),
-            show_notes: row.get("show_notes"),
-            enclosure: MyEnclosure {
-                media_url: Url::parse(&media_url).unwrap(),
-                length: row.get("media_length"),
-                mime_type: mime::Mime::from_str(&mime_type).unwrap(),
-            },
-            published: row.get("published"),
-            keywords: row.get("keywords"),
-            guid: row.get("guid"),
-        }
-    }
-}
-
-fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
-    if let Some(link) = row.get("link_web") {
-        Url::parse(link).ok()
-    } else {
-        None
-    }
 }
 
 impl FeedEpisode {
@@ -143,5 +93,13 @@ impl Feed {
             last_modified: feed_row.get("last_modified"),
             categories: get_categories_for_feed(&client, feed_id).await?,
         })
+    }
+}
+
+fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
+    if let Some(link) = row.get("link_web") {
+        Url::parse(link).ok()
+    } else {
+        None
     }
 }

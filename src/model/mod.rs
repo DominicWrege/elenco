@@ -1,7 +1,10 @@
 pub mod category;
-pub mod json;
+
+pub mod episode;
+pub mod feed;
 pub mod preview;
 pub mod user;
+
 use crate::time_date::serialize_datetime;
 use chrono::Utc;
 use postgres_types::{FromSql, ToSql};

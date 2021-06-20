@@ -30,7 +30,7 @@ pub async fn submitted_feeds(
 ) -> Result<HttpResponse, ApiError> {
     let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
-    let stmnt = client.prepare(inc_sql!("get/feed/for_profile")).await?;
+    let stmnt = client.prepare(inc_sql!("get/feed/user/submitted")).await?;
     let rows = client.query(&stmnt, &[&account.id()]).await?;
     let feeds: Vec<UserFeed> = rows_into_vec(rows);
     let feeds_json = SubmittedFeeds {

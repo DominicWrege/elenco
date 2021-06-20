@@ -1,8 +1,7 @@
-use crate::State;
-use crate::{inc_sql, model::json::Episode};
-use actix_web::{web, web::Json};
-
 use super::{error::ApiError, ApiJsonResult};
+use crate::State;
+use crate::{inc_sql, model::episode::Episode};
+use actix_web::{web, web::Json};
 
 pub async fn by_feed_id(
     state: web::Data<State>,
