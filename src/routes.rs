@@ -1,5 +1,5 @@
 use crate::{
-    handler::{self, user_feed},
+    handler::{self, user},
     my_middleware,
 };
 // TODO seperater /sub path!!
@@ -11,7 +11,8 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
             .route("/info", web::get().to(auth::user_info))
-            .route("/feeds", web::get().to(user_feed::submitted_feeds))
+            .route("/feeds", web::get().to(user::submitted_feeds))
+            .route("/subscriptions", web::get().to(user::subscriptions))
             .route(
                 "/has-subscription",
                 web::post().to(handler::subscription::user_has_subscription),
@@ -68,7 +69,8 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/feed")
-                    .route("/{id}", web::get().to(api::feed::by_name))
+                    .route("/{id}", web::get().to(api::feed::by_name_or_id))
+                    .route("/{id}/related", web::get().to(api::feed::releated))
                     .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
                     .service(
                         web::scope("/") // change / to action
@@ -78,7 +80,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                                 web::post().to(save_preview_feed::preview::create),
                             )
                             .route("new", web::post().to(save_preview_feed::save::save))
-                            .route("update/{id}", web::patch().to(user_feed::update_feed)),
+                            .route("update/{id}", web::patch().to(user::update_feed))
                     ),
             )
             .service(

@@ -1,7 +1,7 @@
 use super::api::error::ApiError;
 use crate::db::rows_into_vec;
 use crate::model::user::SubmittedFeeds;
-use crate::model::user::UserFeed;
+use crate::model::feed::TinyFeed;
 use crate::State;
 use crate::{
     inc_sql,
@@ -15,13 +15,13 @@ use actix_web::{
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-fn filter_feeds(feeds: &[UserFeed], status: Status) -> Vec<UserFeed> {
+fn filter_feeds(feeds: &[TinyFeed], status: Status) -> Vec<TinyFeed> {
     feeds
         .into_iter()
         .filter(|feed| feed.status == status)
         .cloned()
         .map(|feed| feed.to_owned().clone())
-        .collect::<Vec<UserFeed>>()
+        .collect::<Vec<TinyFeed>>()
 }
 
 pub async fn submitted_feeds(
@@ -32,7 +32,7 @@ pub async fn submitted_feeds(
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/user/submitted")).await?;
     let rows = client.query(&stmnt, &[&account.id()]).await?;
-    let feeds: Vec<UserFeed> = rows_into_vec(rows);
+    let feeds: Vec<TinyFeed> = rows_into_vec(rows);
     let feeds_json = SubmittedFeeds {
         blocked: filter_feeds(&feeds, Status::Blocked),
         online: filter_feeds(&feeds, Status::Online),
@@ -41,6 +41,24 @@ pub async fn submitted_feeds(
     };
 
     Ok(HttpResponse::Ok().json(feeds_json))
+}
+
+pub async fn subscriptions(
+    session: Session,
+    state: web::Data<State>,
+) -> Result<HttpResponse, ApiError> {
+    let account = Account::from_session(&session).ok_or_else(|| anyhow!("session error"))?;
+    let client = state.db_pool.get().await?;
+    let stmnt = client
+        .prepare(inc_sql!("get/feed/user/subscription"))
+        .await?;
+
+    dbg!(account.id());
+    let rows = client.query(&stmnt, &[&account.id()]).await?;
+    dbg!(rows.len());
+    let feeds: Vec<TinyFeed> = rows_into_vec(rows);
+    dbg!(feeds.len());
+    Ok(HttpResponse::Ok().json(feeds))
 }
 
 #[derive(Debug, Deserialize, Serialize)]

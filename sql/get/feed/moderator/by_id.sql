@@ -7,7 +7,8 @@ SELECT  f.id, f.title,
         img.filename as img_cache
 FROM
     feed f
-        LEFT JOIN  author ON author.id = f.author_id
+        LEFT JOIN author ON author.id = f.author_id
         LEFT JOIN feed_language ON feed_language.id = f.language
         LEFT JOIN img ON f.img_id = img.id
-WHERE f.id = $1 AND f.status = 'online'
+        LEFT JOIN account a on f.submitter_id = a.id
+WHERE f.id = $1

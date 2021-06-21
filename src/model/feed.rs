@@ -8,6 +8,8 @@ use serde::Serialize;
 use super::category::Category;
 use crate::model::episode::Episode;
 
+use tokio_pg_mapper_derive::PostgresMapper;
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Feed {
@@ -102,4 +104,18 @@ fn parse_url(row: &tokio_postgres::Row) -> Option<Url> {
     } else {
         None
     }
+}
+
+#[derive(Debug, PostgresMapper, Serialize, Clone)]
+#[pg_mapper(table = "profilefeed")]
+#[serde(rename_all = "camelCase")]
+pub struct TinyFeed {
+    pub id: i32,
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub img: Option<String>,
+    pub author_name: String,
+    pub status: super::Status,
+    #[serde(serialize_with = "serialize_datetime")]
+    pub submitted: DateTime<Utc>,
 }

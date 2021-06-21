@@ -8,4 +8,4 @@ pub mod episode;
 pub mod error;
 pub mod feed;
 
-type ApiJsonResult<T> = Result<Json<T>, ApiError>;
+pub type ApiJsonResult<T> = Result<Json<T>, ApiError>;
