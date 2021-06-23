@@ -50,7 +50,7 @@ macro_rules! hide_internal {
 #[macro_export]
 macro_rules! json_error {
     ($t: tt, $self: ident) => {
-        crate::handler::api::error::JsonError::new(hide_internal!($t, $self), $self.status_code())
+        crate::handler::error::JsonError::new(hide_internal!($t, $self), $self.status_code())
             .into_response()
     };
 }

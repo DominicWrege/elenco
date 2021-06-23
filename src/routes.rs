@@ -4,7 +4,7 @@ use crate::{
 };
 // TODO seperater /sub path!!
 use actix_web::web::{self};
-use handler::{api, auth, save_preview_feed};
+use handler::{auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -57,21 +57,21 @@ pub fn moderator(cfg: &mut web::ServiceConfig) {
 pub fn api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
-            .default_service(web::route().to(api::error::not_found))
+            .default_service(web::route().to(handler::error::not_found))
             .route(
                 "/completion/{query}",
-                web::route().to(api::feed::completion),
+                web::route().to(handler::feed::completion),
             )
             .service(
                 web::scope("/feeds")
-                    .route("", web::get().to(api::feed::all))
-                    .route("/search", web::get().to(api::feed::search)),
+                    .route("", web::get().to(handler::feed::all))
+                    .route("/search", web::get().to(handler::feed::search)),
             )
             .service(
                 web::scope("/feed")
-                    .route("/{id}", web::get().to(api::feed::by_name_or_id))
-                    .route("/{id}/related", web::get().to(api::feed::releated))
-                    .route("/{id}/episodes", web::get().to(api::episode::by_feed_id))
+                    .route("/{id}", web::get().to(handler::feed::by_name_or_id))
+                    .route("/{id}/related", web::get().to(handler::feed::releated))
+                    .route("/{id}/episodes", web::get().to(handler::episode::by_feed_id))
                     .service(
                         web::scope("/") // change / to action
                             .wrap(my_middleware::auth::CheckLogin)
@@ -89,16 +89,16 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route(web::post().to(handler::subscription::subscribe))
                     .route(web::delete().to(handler::subscription::unsubscribe)),
             )
-            .route("/categories", web::get().to(api::category::all))
+            .route("/categories", web::get().to(handler::category::all))
             .service(
                 web::scope("/category")
-                    .route("/{category}", web::get().to(api::category::by_id_or_name))
-                    .route("/{category}/feeds", web::get().to(api::feed::by_category)),
+                    .route("/{category}", web::get().to(handler::category::by_id_or_name))
+                    .route("/{category}/feeds", web::get().to(handler::feed::by_category)),
             )
-            .route("/authors", web::get().to(api::author::all))
+            .route("/authors", web::get().to(handler::author::all))
             .route(
                 "/author/{author_id_name}/feeds",
-                web::get().to(api::author::feeds),
+                web::get().to(handler::author::feeds),
             )
             .service(
                 web::scope("/comment")

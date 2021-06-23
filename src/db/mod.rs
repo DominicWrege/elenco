@@ -5,7 +5,7 @@ pub mod feed;
 pub mod subscription;
 
 pub mod util;
-use crate::handler::api::error::ApiError;
+use crate::handler::error::ApiError;
 use crate::inc_sql;
 use crate::{handler::save_preview_feed::error::PreviewSaveError, img_cache::RowImg, Client};
 use deadpool_postgres::Transaction;

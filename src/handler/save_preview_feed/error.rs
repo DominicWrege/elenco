@@ -1,6 +1,6 @@
 use crate::hide_internal;
-use actix_web::ResponseError;
-use actix_web::{http::StatusCode, BaseHttpResponse};
+use actix_web::{HttpResponse, ResponseError};
+use actix_web::{http::StatusCode};
 use std::error::Error as _;
 use std::fmt::Debug;
 use thiserror::Error;
@@ -30,7 +30,7 @@ impl ResponseError for PreviewSaveError {
         }
     }
 
-    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+    fn error_response(&self) -> HttpResponse {
         log::error!("{}", self.to_string());
         // error::JsonError::into_response(hide_internal!(PreviewError, self), self.status_code())
         crate::json_error!(PreviewSaveError, self)

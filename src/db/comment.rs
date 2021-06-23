@@ -1,11 +1,9 @@
 use crate::{
-    db::rows_into_vec,
     inc_sql,
     model::{Comment, NewComment},
     Client,
 };
-use tokio_pg_mapper::FromTokioPostgresRow;
-use tokio_postgres::row;
+
 
 pub async fn insert(
     client: &mut Client,

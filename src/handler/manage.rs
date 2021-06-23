@@ -20,7 +20,7 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tokio_pg_mapper_derive::PostgresMapper;
 
-use super::api::error::ApiError;
+use super::error::ApiError;
 
 pub async fn manage(
     state: Data<State>,

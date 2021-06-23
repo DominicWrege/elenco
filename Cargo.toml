@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0.117", features=["derive"] }
 serde_json = "1.0"
-actix-web = "4.0.0-beta.6"
+actix-web = "4.0.0-beta.7"
 rss = "1.10.0"
 reqwest = { version= "0.11", features = ["rustls-tls", "serde_json"], default-features = false}
 thiserror = "1.0.22"
@@ -20,11 +20,11 @@ deadpool-postgres = "0.8"
 tokio-postgres = { version = "0.7", features=["with-chrono-0_4", "with-serde_json-1"] }
 tokio-pg-mapper = "0.2"
 tokio-pg-mapper-derive = "0.2"
-actix-session = { git ="https://github.com/nhruo123/actix-extras", rev="b4e8db446843a99b06c7ec40f18ef7b59ee7e955" }
-actix-files = { git ="https://github.com/actix/actix-web", rev="a7cd4e85cf75e2cdf6fc54d91ef3c60967e64288" }
+actix-session = { git ="https://github.com/andy128k/actix-extras", rev="6682fc826fdaa0abe2765c08286ed033edef3d02" }
+actix-files = "0.6.0-beta.5"
 actix-web-actors = {git = "https://github.com/actix/actix-web"}
-actix-broker = "0.4.0"
-actix = "0.11.1"
+actix-broker = "0.4.1"
+actix = "0.12"
 rand = "0.8"
 futures-util = "0.3.9"
 email_address = "0.2.0"
@@ -38,7 +38,7 @@ tree_magic_mini = "3.0.0"
 mime =  "0.3.16"
 blake3 = "0.3.7"
 envy = "0.4.2"
-actix-cors = { git = "https://github.com/nhruo123/actix-extras", rev="b4e8db446843a99b06c7ec40f18ef7b59ee7e955"}
+actix-cors = { git = "https://github.com/andy128k/actix-extras", rev="6682fc826fdaa0abe2765c08286ed033edef3d02"}
 ammonia = "3.1.1"
 http-serde = "1.0.2"
 percent-encoding = "2.1.0"

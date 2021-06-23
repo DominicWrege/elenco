@@ -8,12 +8,12 @@ use actix_web::Error;
 use futures_util::future::{ok, Either, Ready};
 pub struct CheckLogin;
 
-impl<S, B> Transform<S, ServiceRequest> for CheckLogin
+impl<S> Transform<S, ServiceRequest> for CheckLogin
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error>,
     S::Future: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     type InitError = ();
     type Transform = CheckLoginMiddleware<S>;
@@ -27,12 +27,12 @@ pub struct CheckLoginMiddleware<S> {
     service: S,
 }
 
-impl<S, B> Service<ServiceRequest> for CheckLoginMiddleware<S>
+impl<S> Service<ServiceRequest> for CheckLoginMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error>,
     S::Future: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;
 
@@ -46,7 +46,7 @@ where
             Some(_) => Either::Left(self.service.call(req)),
             // None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
             None => {
-                let resp = actix_web::HttpResponse::Unauthorized().finish().into_body();
+                let resp = actix_web::HttpResponse::Unauthorized().finish();
                 Either::Right(ok(req.into_response(resp)))
             }
         }

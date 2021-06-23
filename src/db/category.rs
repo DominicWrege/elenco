@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use futures_util::future;
 use tokio_postgres::Transaction;
 
-use crate::{handler::api::error::ApiError, inc_sql, model::category::Category, Client};
+use crate::{handler::error::ApiError, inc_sql, model::category::Category, Client};
 
 use super::rows_into_vec;
 

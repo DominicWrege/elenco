@@ -12,7 +12,7 @@ use crate::{
     session_storage,
 };
 
-use actix_web::{web, BaseHttpResponse, HttpResponse, ResponseError};
+use actix_web::{web, HttpResponse, ResponseError};
 
 use actix_session::Session;
 use actix_web::http::StatusCode;
@@ -31,7 +31,8 @@ impl ResponseError for AuthError {
         }
     }
 
-    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+    
+    fn error_response(&self) -> HttpResponse {
         log::error!("{}", self.to_string());
         crate::json_error!(AuthError, self)
     }

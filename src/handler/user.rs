@@ -1,4 +1,4 @@
-use super::api::error::ApiError;
+use super::error::ApiError;
 use crate::db::rows_into_vec;
 use crate::model::user::SubmittedFeeds;
 use crate::model::feed::TinyFeed;

@@ -5,6 +5,8 @@ use actix_web_actors::ws;
 use std::time::{Duration, Instant};
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
+
+
 pub struct LiveFeedSocket {
     heart_beat: Instant,
 }
@@ -24,6 +26,7 @@ impl Actor for LiveFeedSocket {
         //     })
         // });
     }
+
 }
 
 impl LiveFeedSocket {

@@ -1,5 +1,7 @@
+use actix_web::HttpResponse;
+use actix_web::HttpResponseBuilder;
 use actix_web::error::ErrorInternalServerError;
-use actix_web::{body::Body, http::StatusCode, BaseHttpResponse};
+use actix_web::{body::Body, http::StatusCode};
 use std::fmt::Display;
 
 use thiserror::Error;
@@ -40,10 +42,9 @@ impl JsonError {
             status_code,
         }
     }
-    pub fn into_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
-        BaseHttpResponse::build(self.status_code)
-            .content_type(mime::APPLICATION_JSON)
-            .body(self.clone())
+    pub fn into_response(&self) -> HttpResponse {
+        HttpResponseBuilder::new(self.status_code)
+            .json(self.clone())
     }
 }
 
@@ -60,15 +61,14 @@ impl Display for JsonError {
     }
 }
 
-pub fn not_found() -> BaseHttpResponse<actix_web::dev::Body> {
-    let json = JsonError {
+pub fn not_found() -> HttpResponse {
+    let status_code = StatusCode::NOT_FOUND;
+    let body = JsonError {
         message: String::from("resource does not exist"),
-        status_code: StatusCode::NOT_FOUND,
+        status_code
     };
 
-    BaseHttpResponse::build(StatusCode::NOT_FOUND)
-        .content_type(mime::APPLICATION_JSON)
-        .body(serde_json::to_string(&json).unwrap())
+    HttpResponseBuilder::new(status_code).json(body)
 }
 
 impl actix_web::ResponseError for ApiError {
@@ -83,7 +83,7 @@ impl actix_web::ResponseError for ApiError {
         }
     }
 
-    fn error_response(&self) -> BaseHttpResponse<actix_web::dev::Body> {
+    fn error_response(&self) -> HttpResponse{
         log::error!("{}", self.to_string());
         crate::json_error!(ApiError, self)
     }

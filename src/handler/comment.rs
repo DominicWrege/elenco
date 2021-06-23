@@ -1,11 +1,11 @@
 use actix_web::{
-    web::{self, Json},
+    web::{self},
     HttpResponse,
 };
 
 use crate::{db, model::NewComment};
 
-use super::api::error::ApiError;
+use super::error::ApiError;
 
 // valid if content is not empty
 pub async fn new(
