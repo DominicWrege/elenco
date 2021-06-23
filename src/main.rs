@@ -26,11 +26,11 @@ mod session_storage;
 mod socket;
 mod time_date;
 
-pub type Client = deadpool_postgres::Client<tokio_postgres::NoTls>;
+pub type Client = deadpool_postgres::Client;
 
 #[derive(Clone)]
 pub struct State {
-    db_pool: Pool<tokio_postgres::NoTls>,
+    db_pool: Pool,
     img_cache: ImageCache,
 }
 

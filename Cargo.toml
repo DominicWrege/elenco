@@ -1,6 +1,6 @@
 [package]
 name = "elenco"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["DominicWrege <dominic.wrege001@stud.fh-dortmund.de>"]
 edition = "2018"
 
@@ -13,10 +13,10 @@ actix-web = "4.0.0-beta.7"
 rss = "1.10.0"
 reqwest = { version= "0.11", features = ["rustls-tls", "serde_json"], default-features = false}
 thiserror = "1.0.22"
-bcrypt = "0.9.0"
+bcrypt = "0.10.0"
 anyhow = "1.0.34"
 postgres-types =  { version = "0.2", features=["derive", "serde_json-1"] }
-deadpool-postgres = "0.8"
+deadpool-postgres = "0.9"
 tokio-postgres = { version = "0.7", features=["with-chrono-0_4", "with-serde_json-1"] }
 tokio-pg-mapper = "0.2"
 tokio-pg-mapper-derive = "0.2"
