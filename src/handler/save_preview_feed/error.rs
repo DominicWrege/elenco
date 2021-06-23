@@ -1,6 +1,6 @@
 use crate::hide_internal;
+use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, ResponseError};
-use actix_web::{http::StatusCode};
 use std::error::Error as _;
 use std::fmt::Debug;
 use thiserror::Error;

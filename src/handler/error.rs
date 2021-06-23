@@ -1,6 +1,6 @@
+use actix_web::error::ErrorInternalServerError;
 use actix_web::HttpResponse;
 use actix_web::HttpResponseBuilder;
-use actix_web::error::ErrorInternalServerError;
 use actix_web::{body::Body, http::StatusCode};
 use std::fmt::Display;
 
@@ -23,7 +23,7 @@ pub enum ApiError {
     #[error("missing field `term`")]
     MissingTerm,
     #[error("{0}")]
-    BadRequest(#[from] actix_web::Error)
+    BadRequest(#[from] actix_web::Error),
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -43,8 +43,7 @@ impl JsonError {
         }
     }
     pub fn into_response(&self) -> HttpResponse {
-        HttpResponseBuilder::new(self.status_code)
-            .json(self.clone())
+        HttpResponseBuilder::new(self.status_code).json(self.clone())
     }
 }
 
@@ -65,7 +64,7 @@ pub fn not_found() -> HttpResponse {
     let status_code = StatusCode::NOT_FOUND;
     let body = JsonError {
         message: String::from("resource does not exist"),
-        status_code
+        status_code,
     };
 
     HttpResponseBuilder::new(status_code).json(body)
@@ -83,7 +82,7 @@ impl actix_web::ResponseError for ApiError {
         }
     }
 
-    fn error_response(&self) -> HttpResponse{
+    fn error_response(&self) -> HttpResponse {
         log::error!("{}", self.to_string());
         crate::json_error!(ApiError, self)
     }

@@ -82,7 +82,7 @@ async fn run() -> Result<(), anyhow::Error> {
             .configure(routes::auth)
             .configure(routes::user)
             .configure(routes::moderator)
-        //   .default_service(web::route().to(handler::general_error::not_found))
+            .default_service(web::route().to(handler::error::not_found))
     })
     .bind("0.0.0.0:8080")?
     .run()

@@ -31,7 +31,6 @@ impl ResponseError for AuthError {
         }
     }
 
-    
     fn error_response(&self) -> HttpResponse {
         log::error!("{}", self.to_string());
         crate::json_error!(AuthError, self)

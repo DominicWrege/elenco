@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::{db::subscription, model::user::Account, State};
 
-use super::{ApiJsonResult, error::ApiError};
+use super::{error::ApiError, ApiJsonResult};
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

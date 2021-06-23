@@ -1,4 +1,4 @@
-use crate::{Client, model::Permission};
+use crate::{model::Permission, Client};
 
 use super::error::{AuthError, ValidationError};
 

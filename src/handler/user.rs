@@ -1,7 +1,7 @@
 use super::error::ApiError;
 use crate::db::rows_into_vec;
-use crate::model::user::SubmittedFeeds;
 use crate::model::feed::TinyFeed;
+use crate::model::user::SubmittedFeeds;
 use crate::State;
 use crate::{
     inc_sql,

@@ -4,7 +4,6 @@ use crate::{
     Client,
 };
 
-
 pub async fn insert(
     client: &mut Client,
     comment: NewComment,

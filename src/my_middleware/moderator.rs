@@ -52,7 +52,6 @@ where
         self.service.borrow_mut().poll_ready(cx)
     }
 
-    
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
         use crate::db::is_moderator;
