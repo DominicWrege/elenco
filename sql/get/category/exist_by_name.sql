@@ -1,0 +1,1 @@
+SELECT id FROM category WHERE description = $1

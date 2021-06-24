@@ -26,7 +26,7 @@ pub async fn save(
     img: Option<RowImg<'_>>,
 ) -> Result<i32, PreviewSaveError> {
     let trx = client.transaction().await?;
-    let author_id = insert_or_get_author_id(&trx, feed_content.author).await;
+    let author_id = insert_or_get_author_id(&trx, feed_content.author_name).await;
     let language = if let Some(lang) = feed_content.language {
         insert_or_get_language_id(&trx, lang).await.ok()
     } else {

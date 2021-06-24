@@ -163,25 +163,35 @@ pub async fn by_category(
     let client = state.db_pool.get().await?;
 
     let rows = if let Ok(category_id) = category.parse::<i32>() {
+        let stmnt_exists = client.prepare(inc_sql!("get/category/exist_by_id")).await?;
+        client
+            .query_one(&stmnt_exists, &[&category_id])
+            .await
+            .map_err(|_e| ApiError::CategoryNotFound(category.clone()))?;
+
         let stmnt = client.prepare(inc_sql!("get/feed/by_category_id")).await?;
         client.query(&stmnt, &[&category_id]).await?
     } else {
         let category_name = &category.decode();
-        let stmnt = client
+        let stmnt_exists = client
+            .prepare(inc_sql!("get/category/exist_by_name"))
+            .await?;
+        client
+            .query_one(&stmnt_exists, &[&category_name])
+            .await
+            .map_err(|_e| ApiError::CategoryNotFound(category.clone()))?;
+        let stmnt_feeds = client
             .prepare(inc_sql!("get/feed/by_category_name"))
             .await?;
-        client.query(&stmnt, &[category_name]).await?
+        client.query(&stmnt_feeds, &[category_name]).await?
     };
-    if rows.is_empty() {
-        return Err(ApiError::CategoryNotFound(category.clone()));
-    }
 
     let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
 
     Ok(Json(feeds))
 }
 
-pub async fn releated(
+pub async fn related(
     state: web::Data<State>,
     feed_id: Result<actix_web::web::Path<i32>, actix_web::Error>,
 ) -> ApiJsonResult<Vec<TinyFeed>> {

@@ -12,7 +12,7 @@ pub struct FeedPreview<'a> {
     pub img: Option<Url>,
     pub title: &'a str,
     pub description: &'a str,
-    pub author: Option<&'a str>,
+    pub author_name: Option<&'a str>,
     pub episodes: Vec<Episode<'a>>,
     pub subtitle: Option<&'a str>,
     pub language: Option<&'a str>,
@@ -56,7 +56,7 @@ impl<'a> FeedPreview<'a> {
                 }),
             title: feed.title(),
             description,
-            author: feed
+            author_name: feed
                 .itunes_ext()
                 .and_then(|it| it.author())
                 .or(Some("Default Author")),
