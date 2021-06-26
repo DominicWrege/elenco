@@ -3,7 +3,7 @@ SELECT  f.id, f.title,
         f.url, img.link as img,
         f.link_web, author.name as author_name,
         feed_language.name as language,
-        f.last_modified,
+        f.submitted,
         img.filename as img_cache
 FROM
     feed f

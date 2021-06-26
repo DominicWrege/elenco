@@ -24,7 +24,7 @@ pub struct Feed {
     pub language: Option<String>,
     pub img_cache: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
-    pub last_modified: DateTime<Utc>,
+    pub submitted: DateTime<Utc>,
     pub categories: Vec<Category>,
 }
 
@@ -48,7 +48,7 @@ pub struct FeedEpisode {
     pub language: Option<String>,
     pub img_cache: Option<String>,
     #[serde(serialize_with = "serialize_datetime")]
-    pub last_modified: DateTime<Utc>,
+    pub submitted: DateTime<Utc>,
     pub categories: Vec<Category>,
     pub episodes: Vec<Episode>,
 }
@@ -69,7 +69,7 @@ impl FeedEpisode {
             description: row.get("description"),
             subtitle: row.get("subtitle"),
             language: row.get("language"),
-            last_modified: row.get("last_modified"),
+            submitted: row.get("submitted"),
             img_cache: row.get("img_cache"),
             categories,
             episodes,
@@ -92,7 +92,7 @@ impl Feed {
             subtitle: feed_row.get("subtitle"),
             language: feed_row.get("language"),
             img_cache: feed_row.get("img_cache"),
-            last_modified: feed_row.get("last_modified"),
+            submitted: feed_row.get("submitted"),
             categories: get_categories_for_feed(&client, feed_id).await?,
         })
     }
