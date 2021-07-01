@@ -3,7 +3,7 @@ use crate::{
     inc_sql,
     model::{
         episode::Episode,
-        feed::{Feed, FeedEpisode, TinyFeed},
+        feed::{Feed, TinyFeed},
         user::Account,
         Completion, Permission,
     },
@@ -20,8 +20,12 @@ use super::{error::ApiError, ApiJsonResult};
 pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
     let feeds_row = client.query(inc_sql!("get/feed/all"), &[]).await?;
-    let feeds =
-        future::try_join_all(feeds_row.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds = future::try_join_all(
+        feeds_row
+            .into_iter()
+            .map(|row| Feed::from(&client, row, None)),
+    )
+    .await?;
     Ok(Json(feeds))
 }
 
@@ -67,8 +71,12 @@ pub async fn search(
             client.query(&feed_stmnt, &[&search_term]).await?
         }
     };
-    let feeds =
-        future::try_join_all(feeds_row.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds = future::try_join_all(
+        feeds_row
+            .into_iter()
+            .map(|row| Feed::from(&client, row, None)),
+    )
+    .await?;
     Ok(Json(feeds))
 }
 
@@ -76,7 +84,7 @@ pub async fn by_name_or_id(
     path: Path<String>,
     state: web::Data<State>,
     session: Session,
-) -> ApiJsonResult<FeedEpisode> {
+) -> ApiJsonResult<Feed> {
     let client = state.db_pool.get().await?;
 
     let feed_id = match path.parse::<i32>() {
@@ -105,7 +113,6 @@ pub async fn by_name_or_id(
                 .await;
             dbg!(&x);
             if x.is_ok() {
-                dbg!("hdisahdip");
                 client.prepare(inc_sql!("get/feed/moderator/by_id")).await?
             } else {
                 client.prepare(inc_sql!("get/feed/by_id")).await?
@@ -127,7 +134,7 @@ pub async fn by_name_or_id(
         .collect::<Vec<_>>();
 
     let categories = db::category::get_categories_for_feed(&client, feed_id).await?;
-    let feed = FeedEpisode::from(&feed_row, categories, episodes).await?;
+    let feed = Feed::from(&client, feed_row, Some(episodes)).await?;
     Ok(Json(feed))
 }
 
@@ -186,7 +193,8 @@ pub async fn by_category(
         client.query(&stmnt_feeds, &[category_name]).await?
     };
 
-    let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds =
+        future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row, None))).await?;
 
     Ok(Json(feeds))
 }

@@ -31,6 +31,7 @@ pub async fn feeds(state: web::Data<State>, author_path: Path<String>) -> ApiJso
     if rows.is_empty() {
         return Err(ApiError::AuthorNotFound(author));
     }
-    let feeds = future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row))).await?;
+    let feeds =
+        future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row, None))).await?;
     Ok(Json(feeds))
 }

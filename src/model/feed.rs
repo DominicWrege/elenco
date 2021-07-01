@@ -1,3 +1,4 @@
+use crate::db::category::get_categories_for_feed;
 use crate::time_date::serialize_datetime;
 use crate::Client;
 use crate::{handler::error::ApiError, util::LanguageCodeLookup};
@@ -26,6 +27,8 @@ pub struct Feed {
     #[serde(serialize_with = "serialize_datetime")]
     pub submitted: DateTime<Utc>,
     pub categories: Vec<Category>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub episodes: Option<Vec<Episode>>,
 }
 
 impl LanguageCodeLookup for Feed {
@@ -34,33 +37,15 @@ impl LanguageCodeLookup for Feed {
     }
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FeedEpisode {
-    pub id: i32,
-    pub url: Url,
-    pub title: String,
-    pub author_name: String,
-    pub img: Option<String>,
-    pub link_web: Option<Url>,
-    pub description: String,
-    pub subtitle: Option<String>,
-    pub language: Option<String>,
-    pub img_cache: Option<String>,
-    #[serde(serialize_with = "serialize_datetime")]
-    pub submitted: DateTime<Utc>,
-    pub categories: Vec<Category>,
-    pub episodes: Vec<Episode>,
-}
-
-impl FeedEpisode {
+impl Feed {
     pub async fn from(
-        row: &tokio_postgres::Row,
-        categories: Vec<Category>,
-        episodes: Vec<Episode>,
+        client: &Client,
+        row: tokio_postgres::Row,
+        episodes: Option<Vec<Episode>>,
     ) -> Result<Self, ApiError> {
+        let id = row.get("id");
         Ok(Self {
-            id: row.get("id"),
+            id,
             url: Url::parse(row.get("url"))?,
             title: row.get("title"),
             author_name: row.get("author_name"),
@@ -71,29 +56,8 @@ impl FeedEpisode {
             language: row.get("language"),
             submitted: row.get("submitted"),
             img_cache: row.get("img_cache"),
-            categories,
+            categories: get_categories_for_feed(&client, id).await?,
             episodes,
-        })
-    }
-}
-
-impl Feed {
-    pub async fn from(client: &Client, feed_row: tokio_postgres::Row) -> Result<Self, ApiError> {
-        use crate::db::category::get_categories_for_feed;
-        let feed_id = feed_row.get("id");
-        Ok(Self {
-            id: feed_id,
-            url: Url::parse(feed_row.get("url"))?,
-            title: feed_row.get("title"),
-            author_name: feed_row.get("author_name"),
-            img: feed_row.get("img"),
-            link_web: parse_url(&feed_row),
-            description: feed_row.get("description"),
-            subtitle: feed_row.get("subtitle"),
-            language: feed_row.get("language"),
-            img_cache: feed_row.get("img_cache"),
-            submitted: feed_row.get("submitted"),
-            categories: get_categories_for_feed(&client, feed_id).await?,
         })
     }
 }
