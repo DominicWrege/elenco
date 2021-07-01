@@ -1,8 +1,10 @@
+use crate::time_date::serialize_datetime;
 use crate::{
     auth::{
         error::AuthError,
         register::{self, RegisterForm},
     },
+    db::rows_into_vec,
     inc_sql,
     model::{Permission, Status},
     socket::LiveFeedSocket,
@@ -10,24 +12,24 @@ use crate::{
     State,
 };
 use actix_web::{
-    body::Body,
-    web::{self, Data},
+    web::{self, Data, Json},
     HttpResponse,
 };
-
 use chrono::{DateTime, Utc};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-use super::error::ApiError;
+use super::{error::ApiError, ApiJsonResult};
 
-pub async fn manage(
+pub async fn inbox(
     state: Data<State>,
     session: actix_session::Session,
-) -> Result<HttpResponse, ApiError> {
-    // let client = state.db_pool.get().await?;
-    // let queued_feed_rows = client.query(inc_sql!("get/feed/queued"), &[]).await?;
+) -> ApiJsonResult<Vec<ModeratorFeed>> {
+    let client = state.db_pool.get().await?;
+    let queued_feed_rows = client
+        .query(inc_sql!("get/feed/moderator/queued"), &[])
+        .await?;
     // let reviewed_feed_rows = client
     //     .query(inc_sql!("get/feed/last_reviewed"), &[])
     //     .await?;
@@ -38,20 +40,22 @@ pub async fn manage(
     // //     username: "test".into(),
     // // })
 
-    Ok(HttpResponse::Ok().body(Body::from("aaa")))
+    Ok(Json(rows_into_vec(queued_feed_rows)))
 }
 
-#[derive(Debug, PostgresMapper)]
+#[derive(Debug, PostgresMapper, Serialize)]
 #[pg_mapper(table = "feed")]
+#[serde(rename_all = "camelCase")]
 pub struct ModeratorFeed {
     pub id: i32,
     pub url: String,
     pub title: String,
-    pub img_cache: Option<String>,
     pub author_name: String,
     pub link_web: Option<String>,
     pub status: Status,
+    #[serde(serialize_with = "serialize_datetime")]
     pub submitted: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_datetime")]
     pub last_modified: DateTime<Utc>,
     pub language: String,
     pub username: String,
