@@ -41,7 +41,7 @@ pub async fn all_unassigned(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFe
     Ok(Json(rows_into_vec(queued_feed_rows)))
 }
 
-#[derive(Debug, PostgresMapper, Serialize)]
+#[derive(Debug, PostgresMapper, Serialize, Clone)]
 #[pg_mapper(table = "feed")]
 #[serde(rename_all = "camelCase")]
 pub struct ModeratorFeed {
