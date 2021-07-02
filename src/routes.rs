@@ -38,7 +38,14 @@ pub fn moderator(cfg: &mut web::ServiceConfig) {
         web::scope("/admin")
             .wrap(my_middleware::auth::CheckLogin)
             .wrap(my_middleware::moderator::Moderator)
-            .route("/inbox", web::get().to(handler::manage::inbox))
+            .route(
+                "/all-unassigned",
+                web::get().to(handler::manage::all_unassigned),
+            )
+            .route(
+                "/assign-for-review",
+                web::post().to(handler::manage::assign_for_review),
+            )
             .route(
                 "/update-feed-status",
                 web::patch().to(handler::manage::review_feed),

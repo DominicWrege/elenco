@@ -6,16 +6,16 @@ CREATE TABLE review(
    modified timestamptz not null default CURRENT_TIMESTAMP,
    feed_id integer references feed(id) on delete cascade not null,
    id SERIAL,
-   primary key (feed_id, id)
+   PRIMARY KEY (feed_id, id)
 );
 
 
 CREATE FUNCTION add_review() RETURNS trigger AS $$
 begin
     INSERT INTO review (feed_id) VALUES (new.id);
-    return new;
+    RETURN new;
 end
 $$ LANGUAGE plpgsql;
 
-CREATE  TRIGGER add_review_trigger AFTER INSERT
+CREATE TRIGGER add_review_trigger AFTER INSERT
     ON feed FOR EACH ROW EXECUTE PROCEDURE add_review();

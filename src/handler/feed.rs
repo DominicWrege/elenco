@@ -133,7 +133,6 @@ pub async fn by_name_or_id(
         .map(|row| Episode::from(row))
         .collect::<Vec<_>>();
 
-    let categories = db::category::get_categories_for_feed(&client, feed_id).await?;
     let feed = Feed::from(&client, feed_row, Some(episodes)).await?;
     Ok(Json(feed))
 }
