@@ -1,4 +1,4 @@
 UPDATE review SET 
     modified = CURRENT_TIMESTAMP,
     reviewer = $1
-WHERE id= $2
+WHERE feed_id = $2

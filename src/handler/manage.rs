@@ -57,28 +57,33 @@ pub struct ModeratorFeed {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Payload {
+#[serde(rename_all = "camelCase")]
+pub struct ReviewPayload {
     action: Status,
-    feed_id: i32,
+    feed_ids: Vec<i32>,
 }
 
 pub async fn review_feed(
-    json: web::Json<Payload>,
+    json: web::Json<ReviewPayload>,
     state: Data<State>,
 ) -> Result<HttpResponse, ApiError> {
-    // let Payload { action, feed_id } = json.into_inner();
-    // let mut client = state.db_pool.get().await?;
-    // let trx = client.transaction().await?;
-    // let stmnt = trx.prepare(inc_sql!("update/review_feed")).await?;
-    // trx.execute(&stmnt, &[&action, &feed_id]).await?;
-    // trx.commit().await?;
-    // Ok(HttpResponse::Ok().finish())
-    todo!()
+    let ReviewPayload { action, feed_ids } = json.into_inner();
+    let mut client = state.db_pool.get().await?;
+    let trx = client.transaction().await?;
+    let stmnt_review_feed = trx.prepare(inc_sql!("update/review_feed")).await?;
+    let stmnt_update_review = trx.prepare(inc_sql!("update/done_review")).await?;
+    for feed_id in feed_ids {
+        trx.execute(&stmnt_review_feed, &[&action, &feed_id])
+            .await?;
+        trx.execute(&stmnt_update_review, &[&feed_id]).await?;
+    }
+    trx.commit().await?;
+    Ok(HttpResponse::Ok().finish())
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssignPayload {
-    review_ids: Vec<i32>,
+    feed_ids: Vec<i32>,
 }
 
 pub async fn reviewer_inbox(
@@ -108,7 +113,7 @@ pub async fn assign_for_review(
         .map(|a| a.id())
         .ok_or_else(|| anyhow::anyhow!("Session Error"))?;
     let stmnt = trx.prepare(inc_sql!("/update/assign_for_review")).await?;
-    for feed_id in &json.review_ids {
+    for feed_id in &json.feed_ids {
         trx.execute(&stmnt, &[&user_id, feed_id]).await?;
     }
     trx.commit().await?;

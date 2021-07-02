@@ -13,5 +13,5 @@ FROM
              LEFT JOIN feed_language ON feed_language.id = f.language
              LEFT JOIN account ON account.id = f.submitter_id
 WHERE r.reviewer = $1 AND r.status = 'waiting'
-ORDER BY submitted DESC
+ORDER BY r.modified DESC
 LIMIT 100

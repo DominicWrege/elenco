@@ -42,15 +42,12 @@ pub fn moderator(cfg: &mut web::ServiceConfig) {
                 "/all-unassigned",
                 web::get().to(handler::manage::all_unassigned),
             )
-            .route("inbox", web::get().to(handler::manage::reviewer_inbox))
+            .route("/inbox", web::get().to(handler::manage::reviewer_inbox))
             .route(
                 "/assign-for-review",
                 web::post().to(handler::manage::assign_for_review),
             )
-            .route(
-                "/update-feed-status",
-                web::patch().to(handler::manage::review_feed),
-            )
+            .route("/review", web::patch().to(handler::manage::review_feed))
             .route(
                 "/fedd-live-update",
                 web::get().to(handler::manage::register_socket),
