@@ -31,6 +31,9 @@ impl Account {
     pub fn permission(&self) -> Permission {
         self.permission
     }
+    pub fn username(&self) -> &str {
+        &self.username
+    }
     pub fn password_hash(&self) -> &str {
         self.password_hash.as_str()
     }

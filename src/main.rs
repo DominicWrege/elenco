@@ -61,7 +61,6 @@ async fn run() -> Result<(), anyhow::Error> {
                 Cors::default()
                     .allow_any_origin()
                     .supports_credentials()
-                    // .allow_any_header()
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
                         http::header::ACCEPT,

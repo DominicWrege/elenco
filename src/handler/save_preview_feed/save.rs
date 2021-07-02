@@ -1,8 +1,11 @@
+use actix_broker::{Broker, SystemBroker};
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
 
 use crate::{
+    handler::manage::ModeratorFeed,
     model::{preview::feed::FeedPreview, user::Account},
+    socket::Message,
     State,
 };
 
@@ -32,20 +35,18 @@ pub async fn save(
     }
     let feed_id = crate::db::feed::save(&mut client, &raw_feed, user_id, cached_img).await?;
 
-    // let feed_tr = ModeratorFeedTableRow {
-    //     id: feed_id,
-    //     url: raw_feed.url().to_string(),
-    //     title: raw_feed.title.to_string(),
-    //     author_name: raw_feed.author.unwrap_or("default name").to_string(),
-    //     link_web: raw_feed.link_web.map(|u| u.to_string()),
-    //     submitted: chrono::offset::Utc::now(),
-    //     last_modified: chrono::offset::Utc::now(),
-    //     username: Account::from_session(&ses).unwrap().username().to_string(),
-    // }
-    // .render()
-    // .unwrap();
+    let feed_message = Message::new(ModeratorFeed {
+        id: feed_id,
+        url: raw_feed.url().to_string(),
+        title: raw_feed.title.to_string(),
+        author_name: raw_feed.author_name.unwrap_or("default name").to_string(),
+        link_web: raw_feed.link_web.map(|u| u.to_string()),
+        submitted: chrono::offset::Utc::now(),
+        username: Account::from_session(&ses).unwrap().username().to_owned(),
+        status: crate::model::Status::Queued,
+    });
 
-    // Broker::<SystemBroker>::issue_async(MessageRowHtml::new(feed_tr));
+    Broker::<SystemBroker>::issue_async(feed_message);
     Ok(HttpResponse::Ok().json(SavedJson { feed_id }))
 }
 

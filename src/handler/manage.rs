@@ -12,14 +12,12 @@ use crate::{
     util::redirect,
     State,
 };
-use actix::Actor;
 use actix_web::{
     web::{self, Data, Json},
     HttpResponse,
 };
 use chrono::{DateTime, Utc};
 
-use futures_util::future;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -48,7 +46,6 @@ pub async fn all_unassigned(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFe
 #[serde(rename_all = "camelCase")]
 pub struct ModeratorFeed {
     pub id: i32,
-    pub review_id: i32,
     pub url: String,
     pub title: String,
     pub author_name: String,
@@ -82,6 +79,21 @@ pub async fn review_feed(
 #[serde(rename_all = "camelCase")]
 pub struct AssignPayload {
     review_ids: Vec<i32>,
+}
+
+pub async fn reviewer_inbox(
+    session: actix_session::Session,
+    state: Data<State>,
+) -> ApiJsonResult<Vec<ModeratorFeed>> {
+    let user_id = Account::from_session(&session)
+        .map(|a| a.id())
+        .ok_or_else(|| anyhow::anyhow!("Session Error"))?;
+
+    let client = state.db_pool.get().await?;
+    let stmnt = client.prepare(inc_sql!("get/feed/moderator/inbox")).await?;
+    let rows = client.query(&stmnt, &[&user_id]).await?;
+
+    Ok(Json(rows_into_vec(rows)))
 }
 
 pub async fn assign_for_review(
