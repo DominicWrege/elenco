@@ -36,22 +36,26 @@ pub fn auth(cfg: &mut web::ServiceConfig) {
 pub fn moderator(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/admin")
-            // .wrap(my_middleware::auth::CheckLogin)
-            // .wrap(my_middleware::moderator::Moderator)
-            .route(
-                "/all-unassigned",
-                web::get().to(handler::manage::all_unassigned),
+            .wrap(my_middleware::auth::CheckLogin)
+            .wrap(my_middleware::moderator::Moderator)
+            .service(
+                web::scope("/review")
+                    .route(
+                        "/unassigned",
+                        web::get().to(handler::manage::all_unassigned),
+                    )
+                    .route("/inbox", web::get().to(handler::manage::reviewer_inbox))
+                    .route(
+                        "/assign",
+                        web::patch().to(handler::manage::assign_for_review),
+                    )
+                    .route("/reviewed", web::get().to(handler::manage::reviewed))
+                    .route("", web::patch().to(handler::manage::review_feed)),
             )
-            .route("/inbox", web::get().to(handler::manage::reviewer_inbox))
-            .route(
-                "/assign-for-review",
-                web::post().to(handler::manage::assign_for_review),
-            )
-            .route("/review", web::patch().to(handler::manage::review_feed))
-            .route(
-                "/fedd-live-update",
+            .service(web::scope("/socket").route(
+                "/unassigned",
                 web::get().to(handler::manage::register_socket),
-            )
+            ))
             .route(
                 "/register",
                 web::post().to(handler::manage::register_moderator),

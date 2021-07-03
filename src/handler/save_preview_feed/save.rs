@@ -34,6 +34,7 @@ pub async fn save(
         return Err(PreviewSaveError::Duplicate(super::error::Field::Url));
     }
     let feed_id = crate::db::feed::save(&mut client, &raw_feed, user_id, cached_img).await?;
+    let now = chrono::offset::Utc::now();
 
     let feed_message = Message::new(ModeratorFeed {
         id: feed_id,
@@ -41,9 +42,11 @@ pub async fn save(
         title: raw_feed.title.to_string(),
         author_name: raw_feed.author_name.unwrap_or("default name").to_string(),
         link_web: raw_feed.link_web.map(|u| u.to_string()),
-        submitted: chrono::offset::Utc::now(),
+        submitted: now,
         username: Account::from_session(&ses).unwrap().username().to_owned(),
         status: crate::model::Status::Queued,
+        modified: now,
+        reviewer_name: None,
     });
 
     Broker::<SystemBroker>::issue_async(feed_message);

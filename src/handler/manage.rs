@@ -41,6 +41,14 @@ pub async fn all_unassigned(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFe
     Ok(Json(rows_into_vec(queued_feed_rows)))
 }
 
+pub async fn reviewed(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFeed>> {
+    let client = state.db_pool.get().await?;
+    let queued_feed_rows = client
+        .query(inc_sql!("get/feed/moderator/reviewed"), &[])
+        .await?;
+    Ok(Json(rows_into_vec(queued_feed_rows)))
+}
+
 #[derive(Debug, PostgresMapper, Serialize, Clone)]
 #[pg_mapper(table = "feed")]
 #[serde(rename_all = "camelCase")]
@@ -53,7 +61,10 @@ pub struct ModeratorFeed {
     pub status: Status,
     #[serde(serialize_with = "serialize_datetime")]
     pub submitted: DateTime<Utc>,
+    #[serde(serialize_with = "serialize_datetime")]
+    pub modified: DateTime<Utc>,
     pub username: String,
+    pub reviewer_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
