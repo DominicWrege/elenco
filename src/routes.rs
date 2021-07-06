@@ -68,8 +68,11 @@ pub fn api(cfg: &mut web::ServiceConfig) {
         "/completion/{query}",
         web::route().to(handler::feed::completion),
     )
+    .route("/meta", web::get().to(handler::meta))
     .service(
         web::scope("/feeds")
+            .route("/top", web::get().to(handler::feed::top_25))
+            .route("/recent", web::get().to(handler::feed::recent))
             .route("", web::get().to(handler::feed::all))
             .route("/search", web::get().to(handler::feed::search)),
     )

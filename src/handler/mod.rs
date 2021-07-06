@@ -15,9 +15,12 @@ use self::error::ApiError;
 
 pub type ApiJsonResult<T> = Result<Json<T>, ApiError>;
 
-use crate::util::redirect;
+use crate::{inc_sql, model::Meta, util::redirect, State};
 use actix_files::NamedFile;
-use actix_web::{web::Json, Either, HttpRequest, HttpResponse};
+use actix_web::{
+    web::{self, Json},
+    Either, HttpRequest, HttpResponse,
+};
 
 pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
     let file_name = req.match_info().query("file_name");
@@ -27,4 +30,30 @@ pub async fn serve_img(req: HttpRequest) -> Either<NamedFile, HttpResponse> {
     } else {
         Either::Right(redirect("/404"))
     }
+}
+
+pub async fn meta(state: web::Data<State>) -> ApiJsonResult<Meta> {
+    let client = state.db_pool.get().await?;
+    let count_episodes = client
+        .query_one(inc_sql!("get/meta/count_episode"), &[])
+        .await?
+        .get::<_, i64>(0);
+    let episodes_duration = client
+        .query_one(inc_sql!("get/meta/count_episode_duration"), &[])
+        .await?
+        .get::<_, i64>(0);
+    let count_feeds = client
+        .query_one(inc_sql!("get/meta/count_feed"), &[])
+        .await?
+        .get::<_, i64>(0);
+    let count_authors = client
+        .query_one(inc_sql!("get/meta/count_author"), &[])
+        .await?
+        .get::<_, i64>(0);
+    Ok(Json(Meta {
+        episodes_duration,
+        count_episodes,
+        count_authors,
+        count_feeds,
+    }))
 }

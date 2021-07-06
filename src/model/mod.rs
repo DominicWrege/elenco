@@ -92,3 +92,12 @@ impl From<Row> for Comment {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Meta {
+    pub episodes_duration: i64,
+    pub count_episodes: i64,
+    pub count_authors: i64,
+    pub count_feeds: i64,
+}

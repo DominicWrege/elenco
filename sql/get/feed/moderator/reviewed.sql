@@ -15,5 +15,5 @@ FROM
              LEFT JOIN feed_language ON feed_language.id = f.language
              LEFT JOIN account ON account.id = f.submitter_id
 WHERE r.status = 'done'
-ORDER BY submitted DESC
-LIMIT 100
+ORDER BY r.modified DESC, f.submitted DESC
+LIMIT 200

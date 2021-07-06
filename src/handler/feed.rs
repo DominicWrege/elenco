@@ -36,6 +36,20 @@ pub struct SearchQuery {
     category: Option<i32>,
 }
 
+pub async fn top_25(state: web::Data<State>) -> ApiJsonResult<Vec<TinyFeed>> {
+    let client = state.db_pool.get().await?;
+    let rows = client.query(inc_sql!("get/feed/top_25"), &[]).await?;
+    let feeds = rows_into_vec(rows);
+    Ok(Json(feeds))
+}
+
+pub async fn recent(state: web::Data<State>) -> ApiJsonResult<Vec<TinyFeed>> {
+    let client = state.db_pool.get().await?;
+    let rows = client.query(inc_sql!("get/feed/recent"), &[]).await?;
+    let feeds = rows_into_vec(rows);
+    Ok(Json(feeds))
+}
+
 pub async fn search(
     query: Result<web::Query<SearchQuery>, actix_web::Error>,
     state: web::Data<State>,
