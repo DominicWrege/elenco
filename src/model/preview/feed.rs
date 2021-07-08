@@ -13,7 +13,7 @@ pub struct FeedPreview<'a> {
     pub title: &'a str,
     pub description: &'a str,
     pub author_name: Option<&'a str>,
-    pub episodes: Vec<Episode<'a>>,
+    pub episodes: Vec<Episode>,
     pub subtitle: Option<&'a str>,
     pub language: Option<&'a str>,
     pub link_web: Option<Url>,
@@ -29,8 +29,7 @@ impl<'a> FeedPreview<'a> {
     }
     pub fn parse(feed: &'a rss::Channel, url: Url) -> Self {
         let itunes_summary = feed.itunes_ext().and_then(|it| it.summary());
-        let x = (itunes_summary, feed.description());
-        let description = match x {
+        let description = match (itunes_summary, feed.description()) {
             (Some(itunes_summary), description)
                 if !description.is_empty() && !itunes_summary.is_empty() =>
             {
@@ -43,7 +42,7 @@ impl<'a> FeedPreview<'a> {
             (None, description) if !description.is_empty() => description,
             _ => "default description",
         };
-
+        let ee = Episode::from_items(&feed.items());
         Self {
             link_web: parse_website_link(&feed, &url),
             url,
@@ -60,7 +59,8 @@ impl<'a> FeedPreview<'a> {
                 .itunes_ext()
                 .and_then(|it| it.author())
                 .or(Some("Default Author")),
-            episodes: Episode::from_items(&feed.items()),
+            // episodes: Episode::from_items(&feed.items()),
+            episodes: ee,
             subtitle: parse_subtitle(&feed),
             language: feed.language().map(|code| &code[..2]),
             categories: parse_categories(&feed),

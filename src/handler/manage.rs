@@ -104,7 +104,6 @@ pub async fn reviewer_inbox(
     let user_id = Account::from_session(&session)
         .map(|a| a.id())
         .ok_or_else(|| anyhow::anyhow!("Session Error"))?;
-
     let client = state.db_pool.get().await?;
     let stmnt = client.prepare(inc_sql!("get/feed/moderator/inbox")).await?;
     let rows = client.query(&stmnt, &[&user_id]).await?;

@@ -1,3 +1,4 @@
+use super::preview::episode::Episode;
 use super::preview::episode::MyEnclosure;
 use crate::time_date::serialize_option_datetime;
 use crate::time_date::DurationFormator;
@@ -38,22 +39,6 @@ impl DurationFormator for EpisodeSmall {
     }
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Episode {
-    pub title: String,
-    pub description: String,
-    pub explicit: bool,
-    pub duration: i64,
-    pub web_link: Option<String>,
-    pub show_notes: Option<String>,
-    pub enclosure: MyEnclosure,
-    #[serde(serialize_with = "serialize_option_datetime")]
-    pub published: Option<DateTime<Utc>>,
-    pub keywords: Option<Vec<String>>,
-    pub guid: String,
-}
-
 impl From<tokio_postgres::Row> for Episode {
     fn from(row: tokio_postgres::Row) -> Self {
         let media_url: String = row.get("media_url");
@@ -63,8 +48,8 @@ impl From<tokio_postgres::Row> for Episode {
             title: row.get("title"),
             description: row.get("description"),
             explicit: row.get("explicit"),
-            duration: row.get::<_, Option<i64>>("duration").unwrap_or_default(),
-            web_link: row.get("web_link"),
+            duration: row.get::<_, Option<i64>>("duration"),
+            web_link: Url::parse(&row.get::<_, String>("web_link")).ok(),
             show_notes: row.get("show_notes"),
             enclosure: MyEnclosure {
                 media_url: Url::parse(&media_url).unwrap(),

@@ -5,7 +5,7 @@ use tokio_postgres::Transaction;
 pub async fn insert_episodes(
     trx: &Transaction<'_>,
     feed_id: i32,
-    episodes: &[Episode<'_>],
+    episodes: &[Episode],
 ) -> Result<(), tokio_postgres::Error> {
     future::try_join_all(
         episodes
@@ -20,7 +20,7 @@ pub async fn insert_episodes(
 pub async fn insert_one_episode(
     trx: &Transaction<'_>,
     feed_id: i32,
-    ep: &Episode<'_>,
+    ep: &Episode,
 ) -> Result<(), tokio_postgres::Error> {
     let stmnt = trx.prepare(inc_sql!("insert/episode")).await?;
     trx.execute(

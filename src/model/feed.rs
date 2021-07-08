@@ -7,7 +7,7 @@ use reqwest::Url;
 use serde::Serialize;
 
 use super::category::Category;
-use crate::model::episode::Episode;
+use super::preview::episode::Episode;
 
 use tokio_pg_mapper_derive::PostgresMapper;
 

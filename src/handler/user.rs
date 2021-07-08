@@ -53,11 +53,8 @@ pub async fn subscriptions(
         .prepare(inc_sql!("get/feed/user/subscription"))
         .await?;
 
-    dbg!(account.id());
     let rows = client.query(&stmnt, &[&account.id()]).await?;
-    dbg!(rows.len());
     let feeds: Vec<TinyFeed> = rows_into_vec(rows);
-    dbg!(feeds.len());
     Ok(HttpResponse::Ok().json(feeds))
 }
 

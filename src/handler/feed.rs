@@ -1,9 +1,9 @@
 use crate::{
-    db::{self, rows_into_vec},
+    db::rows_into_vec,
     inc_sql,
     model::{
-        episode::Episode,
         feed::{Feed, TinyFeed},
+        preview::episode::Episode,
         user::Account,
         Completion, Permission,
     },
@@ -125,7 +125,6 @@ pub async fn by_name_or_id(
             let x = client
                 .query_one(&submitter_check_stmnt, &[&feed_id, &account.id()])
                 .await;
-            dbg!(&x);
             if x.is_ok() {
                 client.prepare(inc_sql!("get/feed/moderator/by_id")).await?
             } else {

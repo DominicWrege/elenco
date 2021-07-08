@@ -9,18 +9,18 @@ use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Episode<'a> {
-    pub title: &'a str,
+pub struct Episode {
+    pub title: String,
     pub description: Option<String>,
-    #[serde(default, serialize_with = "serialize_option_datetime")] //TODO serializing als str
+    #[serde(default, serialize_with = "serialize_option_datetime")]
     pub published: Option<DateTime<Utc>>,
-    pub keywords: Option<Vec<&'a str>>,
+    pub keywords: Option<Vec<String>>,
     pub duration: Option<i64>,
     pub show_notes: Option<String>,
-    pub url: Option<Url>,
+    pub web_link: Option<Url>,
     pub enclosure: MyEnclosure,
     pub explicit: bool,
-    pub guid: Option<&'a str>,
+    pub guid: Option<String>,
 }
 
 impl TryFrom<&rss::Enclosure> for MyEnclosure {
@@ -29,8 +29,11 @@ impl TryFrom<&rss::Enclosure> for MyEnclosure {
     fn try_from(value: &rss::Enclosure) -> Result<Self, Self::Error> {
         Ok(Self {
             media_url: Url::parse(value.url())?,
-            length: value.length().parse::<i64>()?,
-            mime_type: value.mime_type().parse()?,
+            length: value.length().parse::<i64>().unwrap_or_default(),
+            mime_type: value
+                .mime_type()
+                .parse()
+                .unwrap_or(mime::Mime::from("audio/mpeg".parse().unwrap())),
         })
     }
 }
@@ -51,49 +54,62 @@ where
     s.serialize_str(&mime.to_string())
 }
 
-impl<'a> Episode<'a> {
+impl Episode {
     pub fn url(&self) -> Option<&str> {
-        self.url.as_ref().map(|url| url.as_str())
+        self.web_link.as_ref().map(|url| url.as_str())
     }
+
     pub fn media_url(&self) -> &str {
         self.enclosure.media_url.as_str()
     }
+
     pub fn from_items(items: &[rss::Item]) -> Vec<Episode> {
-        let mut items: Vec<Episode> = items.iter().flat_map(|item| item.try_into().ok()).collect();
+        let mut items: Vec<Episode> = items
+            .iter()
+            .flat_map(|item| {
+                let ret = item.try_into();
+                if ret.is_err() {
+                    log::warn!("{:?}", ret);
+                }
+                ret
+            })
+            .collect();
+
         items.sort_by(|a, b| b.published.cmp(&a.published));
         items
     }
 }
 
-impl DurationFormator for Episode<'_> {
+impl DurationFormator for Episode {
     fn duration(&self) -> Option<i64> {
         self.duration
     }
 }
 
-impl<'a> TryFrom<&'a rss::Item> for Episode<'a> {
+impl<'a> TryFrom<&'a rss::Item> for Episode {
     type Error = anyhow::Error;
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
         Ok(Self {
             title: item
                 .title()
+                .map(|t| t.to_owned())
                 .ok_or_else(|| anyhow::format_err!("field title is required"))?,
             description: parse_description(&item),
             published: item.pub_date().and_then(|d| parse_datetime_rfc822(d).ok()),
             keywords: item
                 .itunes_ext()
                 .and_then(|itunes| itunes.keywords())
-                .map(|k| k.split(',').collect::<Vec<_>>()),
+                .map(|k| k.split(',').map(|k| k.to_owned()).collect::<Vec<_>>()),
             duration: item
                 .itunes_ext()
                 .and_then(|itunes| itunes.duration())
                 .and_then(|d| parse_duration_from_str(d))
                 .map(|x| x.num_seconds() as i64),
             show_notes: parse_show_notes(item),
-            url: item.link().and_then(|u| Url::parse(u).ok()),
+            web_link: item.link().and_then(|u| Url::parse(u).ok()),
             explicit: parse_explicit(item.itunes_ext()),
-            guid: item.guid().map(|guid| guid.value()),
+            guid: item.guid().map(|guid| guid.value().to_string()),
             enclosure: item
                 .enclosure()
                 .and_then(|en| en.try_into().ok())

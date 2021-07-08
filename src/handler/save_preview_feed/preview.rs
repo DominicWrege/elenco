@@ -17,8 +17,7 @@ pub async fn create(
     // cache_feed_url(&session, url.clone()).map_err(|_| anyhow::anyhow!("session error"))?;
     let client = state.db_pool.get().await?;
     let raw_feed = FeedPreview::parse(&channel, form.feed_url.clone());
-
-    Ok(HttpResponse::Ok().json(PreviewJson {
+     Ok(HttpResponse::Ok().json(PreviewJson {
         exists: feed_exits(&client, raw_feed.title, raw_feed.url()).await?,
         feed: raw_feed,
     }))
