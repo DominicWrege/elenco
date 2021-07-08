@@ -1,6 +1,5 @@
 pub mod category;
 
-pub mod episode;
 pub mod feed;
 pub mod preview;
 pub mod user;
