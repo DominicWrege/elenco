@@ -131,7 +131,9 @@ impl From<tokio_postgres::Row> for Episode {
             description: row.get("description"),
             explicit: row.get("explicit"),
             duration: row.get::<_, Option<i64>>("duration"),
-            web_link: Url::parse(&row.get::<_, String>("web_link")).ok(),
+            web_link: row
+                .get::<_, Option<String>>("web_link")
+                .and_then(|url| Url::parse(&url).ok()),
             show_notes: row.get("show_notes"),
             enclosure: MyEnclosure {
                 media_url: Url::parse(&media_url).unwrap(),
