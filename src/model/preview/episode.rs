@@ -165,7 +165,7 @@ fn parse_description(item: &rss::Item) -> Option<String> {
 
     description.map(|desc| {
         desc.split_whitespace()
-            .take(32)
+            .take(52)
             .collect::<Vec<_>>()
             .join(" ")
     })
