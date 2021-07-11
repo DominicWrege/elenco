@@ -11,6 +11,7 @@ use std::str::FromStr;
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Episode {
+    pub id: i64,
     pub title: String,
     pub description: Option<String>,
     #[serde(default, serialize_with = "serialize_option_datetime")]
@@ -22,6 +23,13 @@ pub struct Episode {
     pub enclosure: MyEnclosure,
     pub explicit: bool,
     pub guid: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EpisodeNext {
+    pub items: Vec<Episode>,
+    pub offset: Option<i64>,
 }
 
 impl TryFrom<&rss::Enclosure> for MyEnclosure {
@@ -92,6 +100,7 @@ impl<'a> TryFrom<&'a rss::Item> for Episode {
 
     fn try_from(item: &'a rss::Item) -> Result<Self, Self::Error> {
         Ok(Self {
+            id: 0,
             title: item
                 .title()
                 .map(|t| t.to_owned())
@@ -127,6 +136,7 @@ impl From<tokio_postgres::Row> for Episode {
         let mime_type: String = row.get("mime_type");
 
         Self {
+            id: row.get("id"),
             title: row.get("title"),
             description: row.get("description"),
             explicit: row.get("explicit"),

@@ -1,13 +1,15 @@
 use crate::db::category::get_categories_for_feed;
 use crate::time_date::serialize_datetime;
-use crate::Client;
+use crate::{db, Client};
 use crate::{handler::error::ApiError, util::LanguageCodeLookup};
 use chrono::{DateTime, Utc};
+use db::episode;
+use episode::episode_offset;
 use reqwest::Url;
 use serde::Serialize;
 
 use super::category::Category;
-use super::preview::episode::Episode;
+use super::preview::episode::{Episode, EpisodeNext};
 
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -28,7 +30,7 @@ pub struct Feed {
     pub submitted: DateTime<Utc>,
     pub categories: Vec<Category>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub episodes: Option<Vec<Episode>>,
+    pub episodes: Option<EpisodeNext>,
 }
 
 impl LanguageCodeLookup for Feed {
@@ -44,6 +46,16 @@ impl Feed {
         episodes: Option<Vec<Episode>>,
     ) -> Result<Self, ApiError> {
         let id = row.get("id");
+
+        let epsiodes_next = if let Some(items) = episodes {
+            Some(EpisodeNext {
+                offset: episode_offset(&client, &items, &id).await?,
+                items,
+            })
+        } else {
+            None
+        };
+
         Ok(Self {
             id,
             url: Url::parse(row.get("url"))?,
@@ -57,7 +69,7 @@ impl Feed {
             submitted: row.get("submitted"),
             img_cache: row.get("img_cache"),
             categories: get_categories_for_feed(&client, id).await?,
-            episodes,
+            episodes: epsiodes_next,
         })
     }
 }

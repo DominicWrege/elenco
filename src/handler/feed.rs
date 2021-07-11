@@ -17,18 +17,6 @@ use futures_util::future;
 
 use super::{error::ApiError, ApiJsonResult};
 
-pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Feed>> {
-    let client = state.db_pool.get().await?;
-    let feeds_row = client.query(inc_sql!("get/feed/all"), &[]).await?;
-    let feeds = future::try_join_all(
-        feeds_row
-            .into_iter()
-            .map(|row| Feed::from(&client, row, None)),
-    )
-    .await?;
-    Ok(Json(feeds))
-}
-
 #[derive(serde::Deserialize)]
 pub struct SearchQuery {
     term: String,
@@ -140,7 +128,11 @@ pub async fn by_name_or_id(
         .map_err(|_e| ApiError::FeedByIdNotFound(feed_id))?;
 
     let episodes_stmnt = client.prepare(inc_sql!("get/episodes_for_feed_id")).await?;
-    let episode_rows = client.query(&episodes_stmnt, &[&feed_id]).await?;
+    let offset: i64 = 0;
+    let limit: i64 = 50;
+    let episode_rows = client
+        .query(&episodes_stmnt, &[&feed_id, &offset, &limit])
+        .await?;
     let episodes = episode_rows
         .into_iter()
         .map(|row| Episode::from(row))
