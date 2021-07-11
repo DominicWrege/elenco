@@ -11,12 +11,7 @@ pub fn user(cfg: &mut web::ServiceConfig) {
         web::scope("/user")
             .wrap(my_middleware::auth::CheckLogin)
             .route("/info", web::get().to(auth::user_info))
-            .route("/feeds", web::get().to(user::submitted_feeds))
-            .route("/subscriptions", web::get().to(user::subscriptions))
-            .route(
-                "/has-subscription",
-                web::post().to(handler::subscription::user_has_subscription),
-            ),
+            .route("/feeds", web::get().to(user::submitted_feeds)),
     );
 }
 
@@ -95,10 +90,18 @@ pub fn api(cfg: &mut web::ServiceConfig) {
             ),
     )
     .service(
-        web::resource("/subscription")
+        web::scope("/subscription")
             .wrap(my_middleware::auth::CheckLogin)
-            .route(web::post().to(handler::subscription::subscribe))
-            .route(web::delete().to(handler::subscription::unsubscribe)),
+            .service(
+                web::resource("")
+                    .route(web::post().to(handler::subscription::subscribe))
+                    .route(web::delete().to(handler::subscription::unsubscribe)),
+            )
+            .service(
+                web::resource("/user")
+                    .route(web::get().to(user::subscriptions))
+                    .route(web::post().to(handler::subscription::subscription_info)),
+            ),
     )
     .route("/categories", web::get().to(handler::category::all))
     .service(

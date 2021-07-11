@@ -77,6 +77,13 @@ pub struct Comment {
     user: ShortAccount,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedUserMeta {
+    pub has_subscriped: bool,
+    pub is_owner: bool,
+}
+
 impl From<Row> for Comment {
     fn from(row: Row) -> Self {
         Self {

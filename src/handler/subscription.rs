@@ -3,7 +3,11 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::{db::subscription, model::user::Account, State};
+use crate::{
+    db::subscription,
+    model::{user::Account, FeedUserMeta},
+    State,
+};
 
 use super::{error::ApiError, ApiJsonResult};
 
@@ -37,23 +41,14 @@ pub async fn unsubscribe(
     Ok(HttpResponse::Ok().finish())
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct JsonSubscription {
-    is_subscripted: bool,
-}
-
-pub async fn user_has_subscription(
+pub async fn subscription_info(
     state: web::Data<State>,
     json: Json<SubscribePayload>,
     session: actix_session::Session,
-) -> ApiJsonResult<JsonSubscription> {
+) -> ApiJsonResult<FeedUserMeta> {
     let client = state.db_pool.get().await?;
     let acount = Account::from_session(&session).unwrap();
-    let body = JsonSubscription {
-        is_subscripted: subscription::user_has_subscription(&client, acount.id(), json.feed_id)
-            .await?,
-    };
-
-    Ok(Json(body))
+    let resp_json =
+        subscription::user_subscription_info(&client, acount.id(), json.feed_id).await?;
+    Ok(Json(resp_json))
 }
