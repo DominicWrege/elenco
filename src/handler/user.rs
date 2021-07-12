@@ -59,6 +59,7 @@ pub async fn subscriptions(
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdatePayload {
     action: Status,
     feed_id: i32,
@@ -75,7 +76,7 @@ pub async fn update_feed(
     let UpdatePayload { action, feed_id } = json.into_inner();
     let mut client = state.db_pool.get().await?;
     let trx = client.transaction().await?;
-    let stmnt = trx.prepare(inc_sql!("update/profile_update_feed")).await?;
+    let stmnt = trx.prepare(inc_sql!("update/user_feed_visibility")).await?;
     trx.execute(&stmnt, &[&action, &feed_id, &account_id])
         .await?;
     trx.commit().await?;

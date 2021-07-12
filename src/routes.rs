@@ -86,7 +86,7 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                         web::post().to(save_preview_feed::preview::create),
                     )
                     .route("new", web::post().to(save_preview_feed::save::save))
-                    .route("update/{id}", web::patch().to(user::update_feed)),
+                    .route("update", web::patch().to(user::update_feed)),
             ),
     )
     .service(

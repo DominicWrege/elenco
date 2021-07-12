@@ -3,11 +3,7 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::{
-    db::subscription,
-    model::{user::Account, FeedUserMeta},
-    State,
-};
+use crate::{State, db::subscription, model::{feed::FeedUserMeta, user::Account}};
 
 use super::{error::ApiError, ApiJsonResult};
 

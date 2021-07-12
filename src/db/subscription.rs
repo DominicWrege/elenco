@@ -1,4 +1,8 @@
-use crate::{inc_sql, model::FeedUserMeta, Client};
+use crate::{
+    inc_sql,
+    model::{feed::FeedUserMeta, Status},
+    Client,
+};
 
 pub async fn subscribe(
     client: &mut Client,
@@ -35,8 +39,10 @@ pub async fn user_subscription_info(
     let stmnt_owner = client.prepare(inc_sql!("get/user_is_owner")).await?;
     let sub_result = client.query_one(&stmnt_subs, &[&user_id, &feed_id]).await;
     let owner_result = client.query_one(&stmnt_owner, &[&user_id, &feed_id]).await;
+
     Ok(FeedUserMeta {
-        has_subscriped: sub_result.is_ok(),
+        has_subscribed: sub_result.is_ok(),
         is_owner: owner_result.is_ok(),
+        status: owner_result.map(|r| r.get::<_, Status>("status")).ok(),
     })
 }

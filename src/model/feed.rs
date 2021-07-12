@@ -10,6 +10,7 @@ use serde::Serialize;
 
 use super::category::Category;
 use super::preview::episode::{Episode, EpisodeNext};
+use super::Status;
 
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -94,4 +95,12 @@ pub struct TinyFeed {
     pub status: super::Status,
     #[serde(serialize_with = "serialize_datetime")]
     pub submitted: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedUserMeta {
+    pub has_subscribed: bool,
+    pub is_owner: bool,
+    pub status: Option<Status>,
 }
