@@ -104,3 +104,11 @@ pub struct FeedUserMeta {
     pub is_owner: bool,
     pub status: Option<Status>,
 }
+
+#[derive(Debug, Clone, Serialize, PostgresMapper)]
+#[serde(rename_all = "camelCase")]
+#[pg_mapper(table = "image")]
+pub struct Image {
+    pub feed_id: i32,
+    pub img: Option<String>,
+}

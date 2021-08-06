@@ -3,7 +3,12 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::{State, db::subscription, model::{feed::FeedUserMeta, user::Account}};
+use crate::{
+    db::subscription,
+    model::{feed::FeedUserMeta, user::Account},
+    util::serialize,
+    State,
+};
 
 use super::{error::ApiError, ApiJsonResult};
 
@@ -46,5 +51,5 @@ pub async fn subscription_info(
     let acount = Account::from_session(&session).unwrap();
     let resp_json =
         subscription::user_subscription_info(&client, acount.id(), json.feed_id).await?;
-    Ok(Json(resp_json))
+    serialize(resp_json)
 }

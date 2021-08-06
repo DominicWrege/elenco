@@ -1,17 +1,12 @@
-use crate::{
-    db::rows_into_vec,
-    inc_sql,
-    model::{
+use crate::{db::rows_into_vec, inc_sql, model::{
         feed::{Feed, TinyFeed},
         preview::episode::Episode,
         user::Account,
         Completion, Permission,
-    },
-    util::percent_decode,
-};
+    }, util::{serialize, percent_decode}};
 use crate::{path::Path, State};
 use actix_session::Session;
-use actix_web::{web, web::Json};
+use actix_web::{web};
 
 use futures_util::future;
 
@@ -28,14 +23,14 @@ pub async fn top_25(state: web::Data<State>) -> ApiJsonResult<Vec<TinyFeed>> {
     let client = state.db_pool.get().await?;
     let rows = client.query(inc_sql!("get/feed/top_25"), &[]).await?;
     let feeds = rows_into_vec(rows);
-    Ok(Json(feeds))
+    serialize(feeds)
 }
 
 pub async fn recent(state: web::Data<State>) -> ApiJsonResult<Vec<TinyFeed>> {
     let client = state.db_pool.get().await?;
     let rows = client.query(inc_sql!("get/feed/recent"), &[]).await?;
     let feeds = rows_into_vec(rows);
-    Ok(Json(feeds))
+    serialize(feeds)
 }
 
 pub async fn search(
@@ -79,7 +74,7 @@ pub async fn search(
             .map(|row| Feed::from(&client, row, None)),
     )
     .await?;
-    Ok(Json(feeds))
+    serialize(feeds)
 }
 
 pub async fn by_name_or_id(
@@ -139,7 +134,7 @@ pub async fn by_name_or_id(
         .collect::<Vec<_>>();
 
     let feed = Feed::from(&client, feed_row, Some(episodes)).await?;
-    Ok(Json(feed))
+    serialize(feed)
 }
 
 pub async fn completion(
@@ -148,7 +143,7 @@ pub async fn completion(
 ) -> ApiJsonResult<Vec<Completion>> {
     let name = &path.decode();
     if name.trim().is_empty() {
-        return Ok(Json(vec![]));
+        return serialize(vec![]);
     }
 
     let client = state.db_pool.get().await?;
@@ -159,12 +154,12 @@ pub async fn completion(
         .get("code");
 
     if code == 0 {
-        return Ok(Json(vec![]));
+        return serialize(vec![]);
     }
     let stmnt = client.prepare(inc_sql!("get/completion")).await?;
     let rows = client.query(&stmnt, &[&name]).await?;
     let completions = rows_into_vec(rows);
-    Ok(Json(completions))
+    serialize(completions)
 }
 
 pub async fn by_category(
@@ -200,7 +195,7 @@ pub async fn by_category(
     let feeds =
         future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row, None))).await?;
 
-    Ok(Json(feeds))
+    serialize(feeds)
 }
 
 pub async fn related(
@@ -228,5 +223,5 @@ pub async fn related(
 
     let feeds = rows_into_vec(rows);
 
-    Ok(Json(feeds))
+    serialize(feeds)
 }

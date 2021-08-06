@@ -1,5 +1,6 @@
 use crate::model::user::Account;
 use crate::time_date::serialize_datetime;
+use crate::util::serialize;
 use crate::{
     auth::{
         error::AuthError,
@@ -13,7 +14,7 @@ use crate::{
     State,
 };
 use actix_web::{
-    web::{self, Data, Json},
+    web::{self, Data},
     HttpResponse,
 };
 use chrono::{DateTime, Utc};
@@ -38,7 +39,7 @@ pub async fn all_unassigned(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFe
     // //     username: "test".into(),
     // // })
 
-    Ok(Json(rows_into_vec(queued_feed_rows)))
+    serialize(rows_into_vec(queued_feed_rows))
 }
 
 pub async fn reviewed(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFeed>> {
@@ -46,7 +47,7 @@ pub async fn reviewed(state: Data<State>) -> ApiJsonResult<Vec<ModeratorFeed>> {
     let queued_feed_rows = client
         .query(inc_sql!("get/feed/moderator/reviewed"), &[])
         .await?;
-    Ok(Json(rows_into_vec(queued_feed_rows)))
+    serialize(rows_into_vec(queued_feed_rows))
 }
 
 #[derive(Debug, PostgresMapper, Serialize, Clone)]
@@ -108,7 +109,7 @@ pub async fn reviewer_inbox(
     let stmnt = client.prepare(inc_sql!("get/feed/moderator/inbox")).await?;
     let rows = client.query(&stmnt, &[&user_id]).await?;
 
-    Ok(Json(rows_into_vec(rows)))
+    serialize(rows_into_vec(rows))
 }
 
 pub async fn assign_for_review(

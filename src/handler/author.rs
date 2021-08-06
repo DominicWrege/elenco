@@ -1,6 +1,7 @@
+use crate::util::serialize;
 use crate::{db::rows_into_vec, inc_sql, model::Author, path::Path};
 use crate::{model::feed::Feed, State};
-use actix_web::{web, web::Json};
+use actix_web::web;
 use futures_util::future;
 
 use super::{error::ApiError, ApiJsonResult};
@@ -10,7 +11,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Author>> {
 
     let rows = client.query(inc_sql!("get/author/all"), &[]).await?;
     let authors = rows_into_vec(rows);
-    Ok(Json(authors))
+    serialize(authors)
 }
 
 pub async fn feeds(state: web::Data<State>, author_path: Path<String>) -> ApiJsonResult<Vec<Feed>> {
@@ -33,5 +34,5 @@ pub async fn feeds(state: web::Data<State>, author_path: Path<String>) -> ApiJso
     }
     let feeds =
         future::try_join_all(rows.into_iter().map(|row| Feed::from(&client, row, None))).await?;
-    Ok(Json(feeds))
+    serialize(feeds)
 }

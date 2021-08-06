@@ -43,7 +43,7 @@ macro_rules! hide_internal {
         match $self {
             $t::Internal(_) => "Internal Error".to_string(),
             _ => $self.to_string(),
-        };
+        }
     };
 }
 

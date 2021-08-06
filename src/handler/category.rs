@@ -1,7 +1,8 @@
 use crate::model::category::Category;
+use crate::util::serialize;
 use crate::State;
 use crate::{inc_sql, path};
-use actix_web::{web, web::Json};
+use actix_web::web;
 
 use super::{error::ApiError, ApiJsonResult};
 
@@ -19,7 +20,7 @@ pub async fn all(state: web::Data<State>) -> ApiJsonResult<Vec<Category>> {
         })
         .collect::<Vec<_>>();
 
-    Ok(Json(categories))
+    serialize(categories)
 }
 
 pub async fn by_id_or_name(
@@ -40,5 +41,5 @@ pub async fn by_id_or_name(
         &row,
         serde_json::from_value(row.get("subcategories")).unwrap(),
     );
-    Ok(Json(catagories))
+    serialize(catagories)
 }

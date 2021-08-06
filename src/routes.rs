@@ -74,10 +74,6 @@ pub fn api(cfg: &mut web::ServiceConfig) {
         web::scope("/feed")
             .route("/{id}", web::get().to(handler::feed::by_name_or_id))
             .route("/{id}/related", web::get().to(handler::feed::related))
-            .route(
-                "/{id}/episodes",
-                web::get().to(handler::episode::by_feed_id),
-            )
             .service(
                 web::scope("/") // change / to action
                     .wrap(my_middleware::auth::CheckLogin)
@@ -88,6 +84,18 @@ pub fn api(cfg: &mut web::ServiceConfig) {
                     .route("new", web::post().to(save_preview_feed::save::save))
                     .route("update", web::patch().to(user::update_feed)),
             ),
+    )
+    .route(
+        "/episode/{id}",
+        web::get().to(handler::episode::by_episode_id),
+    )
+    .route(
+        "/episodes/{feed_id}",
+        web::get().to(handler::episode::by_feed_id),
+    )
+    .route(
+        "/img-path/{feed_title}",
+        web::get().to(handler::image_for_feed),
     )
     .service(
         web::scope("/subscription")

@@ -1,8 +1,8 @@
-use actix_web::{http, HttpResponse};
+use actix_web::{http, web::Json, HttpResponse};
 use isolang::Language;
 use percent_encoding::percent_decode_str;
 
-use crate::model::preview::feed::FeedPreview;
+use crate::{handler::error::ApiError, model::preview::feed::FeedPreview};
 
 pub fn redirect<P>(path: P) -> HttpResponse
 where
@@ -34,4 +34,8 @@ pub trait LanguageCodeLookup {
 
 pub fn percent_decode(text: &str) -> String {
     percent_decode_str(text).decode_utf8_lossy().to_string()
+}
+
+pub fn serialize<D>(data: D) -> Result<actix_web::web::Json<D>, ApiError> {
+    Ok(Json(data))
 }
