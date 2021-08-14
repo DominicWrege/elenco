@@ -24,9 +24,11 @@ impl<'a> FeedPreview<'a> {
     pub fn link_web(&self) -> Option<&str> {
         self.link_web.as_ref().map(|link| link.as_str())
     }
+    
     pub fn url(&self) -> &str {
         self.url.as_str()
     }
+
     pub fn parse(feed: &'a rss::Channel, url: Url) -> Self {
         let itunes_summary = feed.itunes_ext().and_then(|it| it.summary());
         let description = match (itunes_summary, feed.description()) {
@@ -41,8 +43,7 @@ impl<'a> FeedPreview<'a> {
             }
             (None, description) if !description.is_empty() => description,
             _ => "default description",
-        };
-        let ee = Episode::from_items(&feed.items());
+        }; 
         Self {
             link_web: parse_website_link(&feed, &url),
             url,
@@ -60,7 +61,7 @@ impl<'a> FeedPreview<'a> {
                 .and_then(|it| it.author())
                 .or(Some("Default Author")),
             // episodes: Episode::from_items(&feed.items()),
-            episodes: ee,
+            episodes: Episode::from_items(&feed.items()),
             subtitle: parse_subtitle(&feed),
             language: feed.language().map(|code| &code[..2]),
             categories: parse_categories(&feed),

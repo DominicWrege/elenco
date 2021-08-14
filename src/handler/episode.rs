@@ -45,10 +45,13 @@ pub async fn by_feed_id(
 
 pub async fn by_episode_id(state: web::Data<State>, id: web::Path<i64>) -> ApiJsonResult<Episode> {
     let client = state.db_pool.get().await?;
-
+    let id = id.into_inner();
     let stmnt = client.prepare(inc_sql!("get/episode")).await?;
 
-    let row = client.query_one(&stmnt, &[&id.into_inner()]).await?;
+    let row = client
+        .query_one(&stmnt, &[&id])
+        .await
+        .map_err(|_err| ApiError::EpisodeNotFound(id))?;
 
     serialize(Episode::from(row))
 }

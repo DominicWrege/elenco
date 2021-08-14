@@ -163,12 +163,14 @@ fn parse_description(item: &rss::Item) -> Option<String> {
         .and_then(|itun| itun.summary())
         .or_else(|| item.description());
 
-    description.map(|desc| {
-        desc.split_whitespace()
-            .take(52)
-            .collect::<Vec<_>>()
-            .join(" ")
-    })
+    description
+        .filter(|desc| desc.trim().len() > 10)
+        .map(|desc| {
+            desc.split_whitespace()
+                .take(52)
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
 }
 
 fn sanitize_html(html: &str) -> String {

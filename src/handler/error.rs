@@ -24,6 +24,8 @@ pub enum ApiError {
     MissingTerm,
     #[error("{0}")]
     BadRequest(#[from] actix_web::Error),
+    #[error("episode id: {0} not found")]
+    EpisodeNotFound(i64),
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -77,6 +79,7 @@ impl actix_web::ResponseError for ApiError {
             ApiError::CategoryNotFound(_)
             | ApiError::FeedByIdNotFound(_)
             | ApiError::FeedByNameNotFound(_)
+            | ApiError::EpisodeNotFound(_)
             | ApiError::AuthorNotFound(_) => StatusCode::NOT_FOUND,
             ApiError::BadRequest(_) | ApiError::MissingTerm => StatusCode::BAD_REQUEST,
         }

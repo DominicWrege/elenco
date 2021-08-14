@@ -23,7 +23,6 @@ pub async fn feeds(state: web::Data<State>, author_path: Path<String>) -> ApiJso
             client.query(&stmnt, &[&author_id]).await?
         }
         Err(_) => {
-            // dbg!(&author.replace(r#"\""#, ""));
             let stmnt = client.prepare(inc_sql!("get/feed/by_author_name")).await?;
             client.query(&stmnt, &[&author]).await?
         }

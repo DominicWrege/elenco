@@ -1,12 +1,17 @@
-use crate::{db::rows_into_vec, inc_sql, model::{
+use crate::{
+    db::rows_into_vec,
+    inc_sql,
+    model::{
         feed::{Feed, TinyFeed},
         preview::episode::Episode,
         user::Account,
         Completion, Permission,
-    }, util::{serialize, percent_decode}};
+    },
+    util::{percent_decode, serialize},
+};
 use crate::{path::Path, State};
 use actix_session::Session;
-use actix_web::{web};
+use actix_web::web;
 
 use futures_util::future;
 
@@ -167,7 +172,6 @@ pub async fn by_category(
     category: Path<String>,
 ) -> ApiJsonResult<Vec<Feed>> {
     let client = state.db_pool.get().await?;
-
     let rows = if let Ok(category_id) = category.parse::<i32>() {
         let stmnt_exists = client.prepare(inc_sql!("get/category/exist_by_id")).await?;
         client
