@@ -2,7 +2,7 @@ use actix_session::Session;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-use crate::session_storage::SESSION_KEY_ACCOUNT;
+use crate::handler::auth::SESSION_KEY_ACCOUNT;
 
 use super::{feed::TinyFeed, Permission};
 

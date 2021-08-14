@@ -9,7 +9,6 @@ use crate::{
 use crate::{
     hide_internal, inc_sql,
     model::{user::Account, Permission},
-    session_storage,
 };
 
 use actix_web::{web, HttpResponse, ResponseError};
@@ -54,8 +53,11 @@ pub async fn register(
     Ok(HttpResponse::Ok().finish())
 }
 
+pub const SESSION_KEY_ACCOUNT: &str = "account";
+
 pub async fn logout(session: Session) -> HttpResponse {
-    session_storage::forget(&session);
+    session.purge();
+    session.remove(SESSION_KEY_ACCOUNT);
     //redirect("/login")
     HttpResponse::Ok().finish()
 }
