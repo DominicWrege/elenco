@@ -129,9 +129,9 @@ pub fn api(cfg: &mut web::ServiceConfig) {
         web::get().to(handler::author::feeds),
     )
     .service(
-        web::scope("/comment")
+        web::resource("/comment")
             .wrap(my_middleware::auth::CheckLogin)
-            .route("/{id}", web::post().to(handler::comment::new))
+            .route(web::post().to(handler::comment::new)),
     )
     .route(
         "/comments/{id}",
