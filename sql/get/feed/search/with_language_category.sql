@@ -5,10 +5,10 @@ SELECT  f.id, f.title,
         feed_language.name as language, f.submitted,
         img.filename as img_cache
 FROM
-    feed f LEFT JOIN  author ON author.id = f.author_id
-           LEFT JOIN feed_language ON feed_language.id = f.language
-           LEFT JOIN img ON f.img_id = img.id
-           LEFT JOIN feed_category fc on f.id = fc.feed_id
+    feed f JOIN  author ON author.id = f.author_id
+           JOIN feed_language ON feed_language.id = f.language
+           JOIN img ON f.img_id = img.id
+           JOIN feed_category fc on f.id = fc.feed_id
 WHERE
         f.status = 'online' AND 
         (

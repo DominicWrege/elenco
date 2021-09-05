@@ -12,4 +12,4 @@ FROM subscription s
 WHERE f.status = 'online'
 GROUP BY f.id, f.title, f.subtitle, author_name, img, f.status
 ORDER BY count(s.feed_id) DESC, (select count(feed_id) FROM comment where feed_id = comment.feed_id ) DESC
-LIMIT 25;
+LIMIT 20;

@@ -55,6 +55,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
         use crate::db::is_moderator;
+
         Box::pin(async move {
             let state = req
                 .app_data::<web::Data<crate::State>>()
