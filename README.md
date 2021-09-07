@@ -6,7 +6,12 @@ This is a simple podcast directory backend. I was written and developed by mysel
 docker-compose up -d
 ```
 
-### Run
+### Run in Development
 ```
-cargo run --relase
+cargo run --release
+```
+
+### Run in Release
+```
+cargo run --release
 ```

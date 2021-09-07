@@ -50,7 +50,7 @@ async fn run() -> Result<(), anyhow::Error> {
                     .name("auth")
                     .path("/")
                     .secure(cookie_conf.secure)
-                    .http_only(true)
+                    .http_only(false)
                     .max_age(chrono::Duration::days(2).num_seconds())
                     .same_site(SameSite::Lax)
                     .lazy(true),
