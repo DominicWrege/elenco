@@ -4,7 +4,7 @@ use actix_web::{
     cookie::SameSite,
     http, middleware,
     middleware::Logger,
-    web::{self},
+    web::{self, Data},
     App, HttpServer,
 };
 // use handler::general_error::render_500;
@@ -44,7 +44,7 @@ async fn run() -> Result<(), anyhow::Error> {
     let cookie_conf = CookieConfig::new();
     HttpServer::new(move || {
         App::new()
-            .app_data(state.clone())
+            .app_data(Data::new(state.clone()))
             .wrap(
                 CookieSession::private(&cookie_conf.key)
                     .name("auth")
