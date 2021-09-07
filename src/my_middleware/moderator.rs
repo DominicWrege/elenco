@@ -13,16 +13,15 @@ use actix_web::{dev::Transform, web};
 use anyhow::anyhow;
 use futures_util::future::{ok, Future, Ready};
 
-use crate::handler::general_error::log_error;
+use crate::{handler::error::log_error, model::user::Account};
 pub struct Moderator;
 
-impl<S, B> Transform<S, ServiceRequest> for Moderator
+impl<S> Transform<S, ServiceRequest> for Moderator
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     type InitError = ();
     type Transform = ModeratorMiddleware<S>;
@@ -39,13 +38,12 @@ pub struct ModeratorMiddleware<S> {
     service: Rc<RefCell<S>>,
 }
 
-impl<S, B> Service<ServiceRequest> for ModeratorMiddleware<S>
+impl<S> Service<ServiceRequest> for ModeratorMiddleware<S>
 where
-    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse;
     type Error = Error;
     #[allow(clippy::type_complexity)]
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
@@ -57,7 +55,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let srv = self.service.clone();
         use crate::db::is_moderator;
-        use crate::model::Account;
+
         Box::pin(async move {
             let state = req
                 .app_data::<web::Data<crate::State>>()
@@ -72,7 +70,7 @@ where
                 srv.call(req).await
             } else {
                 log::warn!("User has no permission to access the moderator site.");
-                let resp = actix_web::HttpResponse::Forbidden().finish().into_body();
+                let resp = actix_web::HttpResponse::Forbidden().finish();
                 Ok(req.into_response(resp))
             }
         })

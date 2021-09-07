@@ -1,15 +1,4 @@
 #[macro_export]
-macro_rules! wrap_err {
-    ($from:ty, $to:ty) => {
-        impl From<$from> for $to {
-            fn from(e: $from) -> Self {
-                Self(e)
-            }
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! inc_sql {
     ($e:expr) => {
         include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/sql/", $e, ".sql"))
@@ -47,16 +36,6 @@ macro_rules! generic_handler_err {
         }
     };
 }
-#[macro_export]
-macro_rules! validation_handler_err {
-    ($ty:ty, $err: expr) => {
-        impl From<validator::ValidationErrors> for $ty {
-            fn from(e: validator::ValidationErrors) -> Self {
-                $err(e.into())
-            }
-        }
-    };
-}
 
 #[macro_export]
 macro_rules! hide_internal {
@@ -64,6 +43,14 @@ macro_rules! hide_internal {
         match $self {
             $t::Internal(_) => "Internal Error".to_string(),
             _ => $self.to_string(),
-        };
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! json_error {
+    ($t: tt, $self: ident) => {
+        crate::handler::error::JsonError::new(hide_internal!($t, $self), $self.status_code())
+            .into_response()
     };
 }

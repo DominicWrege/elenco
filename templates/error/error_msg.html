@@ -1,7 +1,0 @@
-{% match error_msg %}
-    {% when Some with (error_msg) %}
-        <div class="error-msg">
-            Error: {{ error_msg }}
-        </div>
-    {% when None %}
-{% endmatch %}

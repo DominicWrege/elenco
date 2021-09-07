@@ -1,0 +1,1 @@
+SELECT feed_id FROM subscription WHERE user_id = $1 AND feed_id = $2

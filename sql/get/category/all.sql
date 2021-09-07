@@ -2,3 +2,4 @@ SELECT c1.id, c1.description, COALESCE(json_agg(json_build_object('id', c2.id, '
 FROM category c1 LEFT JOIN category c2 ON c1.id = c2.parent_id
 WHERE c1.parent_id IS NULL
 GROUP BY c1.id, c1.description
+ORDER BY c1.description

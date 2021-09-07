@@ -1,120 +1,140 @@
 use crate::{
-    handler::auth::{login, login_site, logout, register, register_site},
-    handler::{self, feed_preview, general_error::render_500, profile},
+    handler::{self, user},
     my_middleware,
 };
-
-use actix_session::CookieSession;
-use actix_web::{cookie::SameSite, http, middleware::ErrorHandlers, web};
-use handler::api;
+// TODO seperater /sub path!!
+use actix_web::web::{self};
+use handler::{auth, save_preview_feed};
 
 pub fn user(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/logout").to(logout))
-        .service(
-            web::scope("/profile")
-                .route("", web::get().to(profile::site))
-                .route("update-feed", web::patch().to(profile::update_feed)),
-        )
-        .service(
-            web::resource("/new-feed")
-                .route(web::get().to(feed_preview::form_template))
-                .route(web::post().to(feed_preview::create_preview)),
-        )
-        .service(web::resource("/save-feed").route(web::post().to(feed_preview::save_feed)));
-}
-
-pub fn login_register(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::resource("/register")
-            .route(web::post().to(register))
-            .route(web::get().to(register_site)),
-    )
-    .service(
-        web::resource("/login")
-            .route(web::get().to(login_site))
-            .route(web::post().to(login)),
+        web::scope("/user")
+            .wrap(my_middleware::auth::CheckLogin)
+            .route("/info", web::get().to(auth::user_info))
+            .route("/feeds", web::get().to(user::submitted_feeds)),
     );
 }
 
-pub fn admin(cfg: &mut web::ServiceConfig) {
+pub fn auth(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/auth")
+            .route("/register", web::post().to(auth::register))
+            .route("/login", web::post().to(auth::login))
+            .service(
+                web::scope("/")
+                    .route("logout", web::post().to(auth::logout))
+                    .wrap(my_middleware::auth::CheckLogin),
+            ),
+    );
+}
+
+pub fn moderator(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/admin")
+            .wrap(my_middleware::auth::CheckLogin)
             .wrap(my_middleware::moderator::Moderator)
-            .route("/manage", web::get().to(handler::manage::manage))
-            .route(
-                "/update-feed-status",
-                web::patch().to(handler::manage::review_feed),
-            )
-            .route(
-                "fedd-live-update",
-                web::get().to(handler::manage::register_socket),
-            )
             .service(
-                web::resource("register")
-                    .route(web::post().to(handler::manage::register_moderator))
-                    .route(web::get().to(handler::manage::register_moderator_site)),
+                web::scope("/review")
+                    .route(
+                        "/unassigned",
+                        web::get().to(handler::manage::all_unassigned),
+                    )
+                    .route("/inbox", web::get().to(handler::manage::reviewer_inbox))
+                    .route(
+                        "/assign",
+                        web::patch().to(handler::manage::assign_for_review),
+                    )
+                    .route("/reviewed", web::get().to(handler::manage::reviewed))
+                    .route("", web::patch().to(handler::manage::review_feed)),
+            )
+            .service(web::scope("/socket").route(
+                "/unassigned",
+                web::get().to(handler::manage::register_socket),
+            ))
+            .route(
+                "/register",
+                web::post().to(handler::manage::register_moderator),
             ),
     );
 }
 
 pub fn api(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/api")
-            .default_service(web::route().to(api::error::not_found))
+    cfg.route(
+        "/completion/{query}",
+        web::route().to(handler::feed::completion),
+    )
+    .route("/meta", web::get().to(handler::meta))
+    .service(
+        web::scope("/feeds")
+            .route("/top", web::get().to(handler::feed::charts))
+            .route("/recent", web::get().to(handler::feed::recent))
+            .route("/search", web::get().to(handler::feed::search)),
+    )
+    .service(
+        web::scope("/feed")
+            .route("/{id}", web::get().to(handler::feed::by_name_or_id))
+            .route("/{id}/related", web::get().to(handler::feed::related))
             .service(
-                web::scope("/feeds")
-                    .route("", web::get().to(api::feed::all))
-                    .route("/search", web::get().to(api::feed::search)),
-            )
-            .service(
-                web::scope("/feed")
-                    .route("/{id}", web::get().to(api::feed::by_id))
-                    .route("/{id}/episodes", web::get().to(api::episode::by_feed_id)),
-            )
-            .route("/categories", web::get().to(api::category::all))
-            .service(
-                web::scope("/category")
-                    .route("/{category}", web::get().to(api::category::by_id_or_name))
-                    .route("/{category}/feeds", web::get().to(api::feed::by_category)),
-            )
-            .route("/authors", web::get().to(api::author::all))
-            .route(
-                "/author/{author_id_name}/feeds",
-                web::get().to(api::author::feeds),
-            ),
-    );
-}
-
-pub fn web(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/web")
-            .wrap(ErrorHandlers::new().handler(http::StatusCode::INTERNAL_SERVER_ERROR, render_500))
-            .wrap(
-                CookieSession::private(&[1; 32])
-                    .name("auth")
-                    .secure(false)
-                    .max_age(chrono::Duration::days(2).num_seconds())
-                    .lazy(true)
-                    .path("/web/auth")
-                    .same_site(SameSite::Strict)
-                    .lazy(true),
-            )
-            .route(
-                "/img/{file_name:.+(jpeg|jpg|png)$}",
-                web::get().to(handler::serve_img),
-            )
-            .configure(self::login_register)
-            .route("404", web::get().to(handler::general_error::not_found))
-            .service(
-                web::scope("/auth")
+                web::scope("/") // change / to action
                     .wrap(my_middleware::auth::CheckLogin)
-                    .service(
-                        web::scope("/feed")
-                            .wrap(my_middleware::feed_access::FeedAccess)
-                            .route("/{feed_id}", web::get().to(handler::feed_detail::site)),
+                    .route(
+                        "preview",
+                        web::post().to(save_preview_feed::preview::create),
                     )
-                    .configure(self::user)
-                    .configure(self::admin),
+                    .route("new", web::post().to(save_preview_feed::save::save))
+                    .route("update", web::patch().to(user::update_feed)),
             ),
+    )
+    .route(
+        "/episode/{id}",
+        web::get().to(handler::episode::by_episode_id),
+    )
+    .route(
+        "/episodes/{feed_id}",
+        web::get().to(handler::episode::by_feed_id),
+    )
+    .route(
+        "/img-path/{feed_title}",
+        web::get().to(handler::image_for_feed),
+    )
+    .service(
+        web::scope("/subscription")
+            .wrap(my_middleware::auth::CheckLogin)
+            .service(
+                web::resource("")
+                    .route(web::post().to(handler::subscription::subscribe))
+                    .route(web::delete().to(handler::subscription::unsubscribe)),
+            )
+            .service(
+                web::resource("/user")
+                    .route(web::get().to(user::subscriptions))
+                    .route(web::post().to(handler::subscription::subscription_info)),
+            ),
+    )
+    .route("/categories", web::get().to(handler::category::all))
+    .service(
+        web::scope("/category")
+            .route(
+                "/{category}",
+                web::get().to(handler::category::by_id_or_name),
+            )
+            .route(
+                "/{category}/feeds",
+                web::get().to(handler::feed::by_category),
+            ),
+    )
+    .route("/authors", web::get().to(handler::author::all))
+    .route(
+        "/author/{author_id_name}/feeds",
+        web::get().to(handler::author::feeds),
+    )
+    .service(
+        web::resource("/comment")
+            .wrap(my_middleware::auth::CheckLogin)
+            .route(web::post().to(handler::comment::new)),
+    )
+    .route(
+        "/comments/{id}",
+        web::get().to(handler::comment::get_for_feed),
     );
 }

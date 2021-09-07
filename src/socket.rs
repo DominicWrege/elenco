@@ -3,8 +3,12 @@ use actix::{Actor, StreamHandler};
 use actix_broker::BrokerSubscribe;
 use actix_web_actors::ws;
 use std::time::{Duration, Instant};
+
+use crate::handler::manage::ModeratorFeed;
+
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
+
 pub struct LiveFeedSocket {
     heart_beat: Instant,
 }
@@ -13,16 +17,9 @@ impl Actor for LiveFeedSocket {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        // self.subscribe_system_async::<TestJson>(ctx);
-        // self.subscribe_system_async::<MessageRowHtml>(ctx);
+        self.subscribe_system_async::<Message>(ctx);
         self.heart_beat_start(ctx);
         ctx.set_mailbox_capacity(24);
-        // ctx.run_interval(Duration::from_secs(3), |act, context| {
-        //     context.notify(TestJson {
-        //         name: "dsa".into(),
-        //         xz: 11,
-        //     })
-        // });
     }
 }
 
@@ -40,7 +37,6 @@ impl LiveFeedSocket {
 
                 return;
             }
-
             ctx.ping(b"");
         });
     }
@@ -65,37 +61,24 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for LiveFeedSocket {
     }
 }
 
-// impl Handler<TestJson> for LiveFeedSocket {
-//     type Result = (); // todo FIXME
-
-//     fn handle(&mut self, msg: TestJson, ctx: &mut Self::Context) -> Self::Result {
-//         ctx.text(serde_json::to_string(&msg).unwrap());
-//     }
-// }
-
-impl Handler<MessageRowHtml> for LiveFeedSocket {
+impl Handler<Message> for LiveFeedSocket {
     type Result = ();
 
-    fn handle(&mut self, msg: MessageRowHtml, ctx: &mut Self::Context) -> Self::Result {
-        ctx.text(msg.value);
+    fn handle(&mut self, msg: Message, ctx: &mut Self::Context) -> Self::Result {
+        ctx.text(msg.to_json());
     }
 }
 
-#[derive(Message, Clone, serde::Serialize, Debug)]
+#[derive(Message, serde::Serialize, Debug, Clone)]
 #[rtype(result = "()")]
-struct TestJson {
-    name: String,
-    xz: u32,
-}
+pub struct Message(ModeratorFeed);
 
-#[derive(Message, Clone, serde::Serialize, Debug)]
-#[rtype(result = "()")]
-pub struct MessageRowHtml {
-    value: String,
-}
+impl Message {
+    pub fn new(value: ModeratorFeed) -> Self {
+        Self(value)
+    }
 
-impl MessageRowHtml {
-    pub fn new(html: String) -> Self {
-        Self { value: html }
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(&self.0).unwrap()
     }
 }
