@@ -26,6 +26,10 @@ pub enum ApiError {
     BadRequest(#[from] actix_web::Error),
     #[error("episode id: {0} not found")]
     EpisodeNotFound(i64),
+    #[error("unauthorized access")]
+    Unauthorized,
+    #[error("User has no permission to access the moderator site")]
+    Forbidden,
 }
 generic_handler_err!(ApiError, ApiError::Internal);
 
@@ -76,6 +80,8 @@ impl actix_web::ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
             ApiError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::Unauthorized => StatusCode::UNAUTHORIZED,
+            ApiError::Forbidden => StatusCode::FORBIDDEN,
             ApiError::CategoryNotFound(_)
             | ApiError::FeedByIdNotFound(_)
             | ApiError::FeedByNameNotFound(_)

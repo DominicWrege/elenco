@@ -5,7 +5,9 @@ use actix_session::UserSession;
 use actix_web::dev::{Service, Transform};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::Error;
-use futures_util::future::{ok, Either, Ready};
+use futures_util::future::{err, ok, Either, Ready};
+
+use crate::handler;
 pub struct CheckLogin;
 
 impl<S> Transform<S, ServiceRequest> for CheckLogin
@@ -44,10 +46,9 @@ where
         use crate::model::user::Account;
         match Account::from_session(&req.get_session()) {
             Some(_) => Either::Left(self.service.call(req)),
-            // None => Either::Right(ok(req.into_response(util::redirect("/login").into_body()))),
             None => {
-                let resp = actix_web::HttpResponse::Unauthorized().finish();
-                Either::Right(ok(req.into_response(resp)))
+                let error = handler::error::ApiError::Unauthorized;
+                Either::Right(err(Error::from(error)))
             }
         }
     }

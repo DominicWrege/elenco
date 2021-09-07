@@ -13,7 +13,10 @@ use actix_web::{dev::Transform, web};
 use anyhow::anyhow;
 use futures_util::future::{ok, Future, Ready};
 
-use crate::{handler::error::log_error, model::user::Account};
+use crate::{
+    handler::error::{log_error, ApiError},
+    model::user::Account,
+};
 pub struct Moderator;
 
 impl<S> Transform<S, ServiceRequest> for Moderator
@@ -70,8 +73,8 @@ where
                 srv.call(req).await
             } else {
                 log::warn!("User has no permission to access the moderator site.");
-                let resp = actix_web::HttpResponse::Forbidden().finish();
-                Ok(req.into_response(resp))
+
+                Err(Error::from(ApiError::Forbidden))
             }
         })
     }
