@@ -42,16 +42,16 @@ async fn run() -> Result<(), anyhow::Error> {
         std::env::set_var("RUST_LOG", "info");
     }
     env_logger::init();
-    let _private_key = rand::thread_rng().gen::<[u8; 32]>();
+    let cookie_conf = CookieConfig::new();
     HttpServer::new(move || {
         App::new()
-            .data(state.clone())
+            .app_data(state.clone())
             .wrap(
-                CookieSession::private(&[1; 32])
+                CookieSession::private(&cookie_conf.key)
                     .name("auth")
                     .path("/")
-                    .secure(false)
-                    .http_only(false)
+                    .secure(cookie_conf.secure)
+                    .http_only(true)
                     .max_age(chrono::Duration::days(2).num_seconds())
                     .same_site(SameSite::Lax)
                     .lazy(true),
@@ -92,5 +92,27 @@ async fn main() {
     if let Err(e) = run().await {
         eprintln!("{:#?}", e);
         std::process::exit(1);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CookieConfig {
+    secure: bool,
+    key: [u8; 32],
+}
+
+impl CookieConfig {
+    pub fn new() -> Self {
+        if cfg!(debug_assertions) {
+            Self {
+                secure: false,
+                key: [0u8; 32],
+            }
+        } else {
+            Self {
+                secure: true,
+                key: rand::random(),
+            }
+        }
     }
 }
