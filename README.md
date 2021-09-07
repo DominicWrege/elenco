@@ -8,9 +8,8 @@ docker-compose up -d
 
 ### Run in Development
 ```
-cargo run --release
+cargo run
 ```
-
 ### Run in Release
 ```
 cargo run --release
