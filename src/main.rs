@@ -61,6 +61,7 @@ async fn run() -> Result<(), anyhow::Error> {
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
                         http::header::ACCEPT,
+                        http::header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
                         http::header::CONTENT_TYPE,
                     ])
                     .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"]),
