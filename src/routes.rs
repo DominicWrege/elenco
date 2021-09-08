@@ -2,6 +2,7 @@ use crate::{
     handler::{self, user},
     my_middleware,
 };
+use actix_cors::Cors;
 // TODO seperater /sub path!!
 use actix_web::web::{self};
 use handler::{auth, save_preview_feed};

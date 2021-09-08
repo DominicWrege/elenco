@@ -16,6 +16,7 @@ mod handler;
 mod routes;
 mod util;
 use deadpool_postgres::Pool;
+use rand::thread_rng;
 mod img_cache;
 mod macros;
 mod model;
@@ -45,7 +46,7 @@ async fn run() -> Result<(), anyhow::Error> {
         App::new()
             .app_data(Data::new(state.clone()))
             .wrap(
-                CookieSession::private(&key())
+                CookieSession::private(&[0u8; 32])
                     .name("auth")
                     .path("/")
                     .secure(false)
@@ -54,19 +55,21 @@ async fn run() -> Result<(), anyhow::Error> {
                     .same_site(SameSite::Lax)
                     .lazy(true),
             )
+            .wrap(middleware::Compress::default())
             .wrap(
                 Cors::default()
-                    .allow_any_origin()
-                    .supports_credentials()
                     .allowed_headers(vec![
                         http::header::AUTHORIZATION,
                         http::header::ACCEPT,
+                        http::header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                        http::header::ACCESS_CONTROL_ALLOW_HEADERS,
                         http::header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
                         http::header::CONTENT_TYPE,
                     ])
+                    .allow_any_origin()
+                    .supports_credentials()
                     .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"]),
             )
-            .wrap(middleware::Compress::default())
             .wrap(
                 Logger::new("ip: %a status: %s time: %Dms req: %r")
                     .exclude_regex("^(/static/|/web/img/)"),
@@ -91,13 +94,5 @@ async fn main() {
     if let Err(e) = run().await {
         eprintln!("{:#?}", e);
         std::process::exit(1);
-    }
-}
-
-fn key() -> [u8; 32] {
-    if cfg!(debug_assertions) {
-        [0u8; 32]
-    } else {
-        rand::random()
     }
 }
