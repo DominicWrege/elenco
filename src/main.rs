@@ -16,7 +16,6 @@ mod handler;
 mod routes;
 mod util;
 use deadpool_postgres::Pool;
-use rand::thread_rng;
 mod img_cache;
 mod macros;
 mod model;
