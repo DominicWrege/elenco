@@ -1,3 +1,5 @@
+use std::ffi::OsString;
+
 use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::{
@@ -37,21 +39,24 @@ async fn run() -> Result<(), anyhow::Error> {
         db_pool: db::util::connect_and_migrate().await?,
         img_cache: ImageCache::new("img-cache").await?,
     };
+
     if std::env::var_os("RUST_LOG").is_none() {
         std::env::set_var("RUST_LOG", "info");
     }
-    env_logger::init();
+
+    let cookie_config = CookieConfig::new();
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(state.clone()))
             .wrap(
-                CookieSession::private(&[0u8; 32])
+                CookieSession::private(&cookie_config.key)
                     .name("auth")
+                    .domain(cookie_config.domain.to_str().unwrap())
                     .path("/")
-                    .secure(false)
+                    .secure(cookie_config.secure)
                     .http_only(false)
                     .max_age(chrono::Duration::days(2).num_seconds())
-                    .same_site(SameSite::Lax)
+                    .same_site(cookie_config.same_site)
                     .lazy(true),
             )
             .wrap(middleware::Compress::default())
@@ -93,5 +98,37 @@ async fn main() {
     if let Err(e) = run().await {
         eprintln!("{:#?}", e);
         std::process::exit(1);
+    }
+}
+
+#[derive(Clone)]
+pub struct CookieConfig {
+    secure: bool,
+    key: [u8; 32],
+    domain: OsString,
+    same_site: SameSite,
+}
+
+impl CookieConfig {
+    pub fn new() -> Self {
+        let domain = match std::env::var_os("DOMAIN") {
+            Some(domain) => domain,
+            None => "localhost".into(),
+        };
+        if cfg!(debug_assertions) {
+            Self {
+                secure: false,
+                key: [0u8; 32],
+                domain,
+                same_site: SameSite::Lax,
+            }
+        } else {
+            Self {
+                secure: true,
+                domain,
+                key: rand::random(),
+                same_site: SameSite::Lax,
+            }
+        }
     }
 }

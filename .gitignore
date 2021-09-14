@@ -30,3 +30,4 @@ __pycache__/
 /mingw-build/
 /src/tools/x/target
 img-cache
+*.tgz
