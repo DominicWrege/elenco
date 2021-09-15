@@ -28,12 +28,3 @@ pub struct PreviewJson<'a> {
     pub exists: bool,
     pub feed: FeedPreview<'a>,
 }
-
-// pub async fn form_template<'a>(session: Session) -> Result<HttpResponse, actix_web::Error> {
-//     // Ok(FeedPreviewSite {
-//     //     session_context: SessionContext::from(&session),
-//     //     error_msg: None,
-//     //     context: None,
-//     // })
-//     todo!()
-// }

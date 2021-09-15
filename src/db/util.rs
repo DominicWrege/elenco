@@ -14,7 +14,6 @@ fn default_port() -> u16 {
 struct DBConfig {
     username: String,
     password: String,
-    //TODO id or url
     host: String,
     databasename: String,
     #[serde(default = "default_port")]

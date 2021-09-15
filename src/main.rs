@@ -1,5 +1,3 @@
-use std::ffi::OsString;
-
 use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::{
@@ -51,7 +49,7 @@ async fn run() -> Result<(), anyhow::Error> {
             .wrap(
                 CookieSession::private(&cookie_config.key)
                     .name("auth")
-                    .domain(cookie_config.domain.to_str().unwrap())
+                    .domain(&cookie_config.domain)
                     .path("/")
                     .secure(cookie_config.secure)
                     .http_only(false)
@@ -105,16 +103,14 @@ async fn main() {
 pub struct CookieConfig {
     secure: bool,
     key: [u8; 32],
-    domain: OsString,
+    domain: String,
     same_site: SameSite,
 }
 
 impl CookieConfig {
     pub fn new() -> Self {
-        let domain = match std::env::var_os("DOMAIN") {
-            Some(domain) => domain,
-            None => "localhost".into(),
-        };
+        let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".into());
+        log::info!("using cookie domain {}", domain);
         if cfg!(debug_assertions) {
             Self {
                 secure: false,

@@ -14,3 +14,16 @@ cargo run
 ```
 cargo run --release
 ```
+
+
+## Example Enviroment
+
+```
+export DB_USERNAME=usertest
+export DB_PASSWORD=hundpwd
+export DB_HOST=127.0.0.1
+export DB_DATABASENAME=podcast
+export DB_PORT=5432
+# Cookie Option, default: localhost
+export DOMAIN=elenco-podcast.com 
+```
