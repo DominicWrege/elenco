@@ -11,4 +11,4 @@ FROM
            LEFT JOIN feed_category ON f.id = feed_category.feed_id
            LEFT JOIN category ON category.id = feed_category.category_id
 WHERE
-    f.status = 'online' AND category.description = $1
+    f.status = 'online' AND category.description ilike $1
