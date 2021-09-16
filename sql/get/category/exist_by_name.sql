@@ -1,1 +1,1 @@
-SELECT id FROM category WHERE description = $1
+SELECT id FROM category WHERE description ilike $1
