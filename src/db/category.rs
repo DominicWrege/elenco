@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use actix::fut::ok;
 use futures_util::future;
 use tokio_postgres::Transaction;
 
@@ -81,5 +82,37 @@ pub async fn get_categories_for_feed(
         categories.push(Category::from(row, subcategories));
     }
 
+    Ok(categories)
+}
+
+pub async fn get_by_id_or_name(client: &Client, path: &str) -> Result<Category, ApiError> {
+    let result = if let Ok(category_id) = path.parse::<i32>() {
+        let stmnt = client.prepare(inc_sql!("get/category/by_id")).await?;
+        client.query_one(&stmnt, &[&category_id]).await
+    } else {
+        let category_name = path;
+        let stmnt = client.prepare(inc_sql!("get/category/by_name")).await?;
+        client.query_one(&stmnt, &[&category_name]).await
+    };
+    let row = result.map_err(|_e| ApiError::CategoryNotFound(path.to_string()))?;
+    let category = Category::from(
+        &row,
+        serde_json::from_value(row.get("subcategories")).unwrap(),
+    );
+    Ok(category)
+}
+
+pub async fn get_all(client: &Client) -> Result<Vec<Category>, ApiError> {
+    let stmnt = inc_sql!("get/category/all");
+    let rows = client.query(stmnt, &[]).await?;
+    let categories = rows
+        .iter()
+        .map(|row| {
+            Category::from(
+                row,
+                serde_json::from_value(row.get("subcategories")).unwrap(),
+            )
+        })
+        .collect::<Vec<_>>();
     Ok(categories)
 }
