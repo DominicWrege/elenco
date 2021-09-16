@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 
-use actix::fut::ok;
 use futures_util::future;
 use tokio_postgres::Transaction;
 
